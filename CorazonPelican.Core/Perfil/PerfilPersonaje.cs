@@ -34,6 +34,9 @@ namespace CorazonPelican.Core.Perfil
         [DataMember(Name = "periferia")] public double Periferia { get; set; }
         [DataMember(Name = "pico")] public double Pico { get; set; }
         [DataMember(Name = "deriva")] public double Deriva { get; set; }
+
+        /// <summary>Margen para cambiar de banda (GSS §3.3); 0 = sin histéresis.</summary>
+        [DataMember(Name = "histeresis")] public double Histeresis { get; set; }
     }
 
     [DataContract]

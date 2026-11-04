@@ -121,6 +121,12 @@ namespace CorazonPelican.Core.Perfil
                     $"deben cumplir 0 < periferia < mencion < foco < pico; ahora son periferia {u.Periferia}, mencion {u.Mencion}, foco {u.Foco}, pico {u.Pico}."));
             }
 
+            var huecoMinimo = new[] { u.Mencion - u.Periferia, u.Foco - u.Mencion, u.Pico - u.Foco }.Min();
+            if (u.Histeresis < 0 || u.Histeresis >= huecoMinimo / 2)
+            {
+                r.Errores.Add(new("umbrales.histeresis", $"debe estar entre 0 y la mitad del menor hueco entre umbrales ({huecoMinimo / 2:0.###}); es {u.Histeresis}."));
+            }
+
             if (u.Deriva <= 0)
             {
                 r.Errores.Add(new("umbrales.deriva", "el umbral de deriva debe ser mayor que 0."));

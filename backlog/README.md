@@ -31,14 +31,15 @@ conviene hacerlo pronto.
 
 ## Primeras tareas listas
 
-Hechas: CP-001…CP-004, CP-102. Listas ahora, por prioridad:
+Hechas: CP-001…CP-004, CP-102, CP-103. Listas ahora, por prioridad:
 
 1. **CP-013** spike del taller (P1, sin juego).
 2. **CP-205** voz de Leah y rúbrica (P1, creativo).
-3. **CP-103** bandas de detalle (P1; desbloqueada por CP-102).
-4. **CP-005** configuración, módulos y `cp_estado` (P2; trae el modo de desarrollo).
-5. **CP-006** partida de desarrollo y medición de lugares (P2, 🎮).
-6. **CP-902** decisiones abiertas.
+3. **CP-201** disparadores, integrador y refractario (P1).
+4. **CP-105** léxico único (P2; desbloquea CP-104, la prosa).
+5. **CP-005** configuración, módulos y `cp_estado` (P2; trae el modo de desarrollo).
+6. **CP-006** partida de desarrollo y medición de lugares (P2, 🎮).
+7. **CP-902** decisiones abiertas.
 
 ## Tareas
 
@@ -58,7 +59,7 @@ Hechas: CP-001…CP-004, CP-102. Listas ahora, por prioridad:
 | [CP-015](tareas/CP-015-spike-obra-como-mueble.md) | Spike V-03/V-05 · una textura generada como mueble colocable que sobrevive a guardar, cargar y multijugador 🎮 | S | P1 | CP-006 | pendiente |
 | [CP-101](tareas/CP-101-observador-juego.md) | ObservadorJuego · del estado del juego a una Observacion de solo lectura | F1 | P1 | CP-003, CP-005 | pendiente |
 | [CP-102](tareas/CP-102-saliencia.md) | Saliencia de cinco capas con distancia, línea de visión y novedad | F1 | P1 | CP-003, CP-004 | hecha |
-| [CP-103](tareas/CP-103-bandas-gradiente.md) | Bandas de detalle foco/mención/periferia/ausente | F1 | P1 | CP-102 | pendiente |
+| [CP-103](tareas/CP-103-bandas-gradiente.md) | Bandas de detalle foco/mención/periferia/ausente | F1 | P1 | CP-102 | hecha |
 | [CP-104](tareas/CP-104-prosa-determinista.md) | Plantillas de prosa deterministas, escena y prosa de acción, con escenas doradas | F1 | P1 | CP-103, CP-105 | pendiente |
 | [CP-105](tareas/CP-105-lexico-unico.md) | Léxico único compartido por percepción, acción y diálogo | F1 | P2 | CP-003 | pendiente |
 | [CP-106](tareas/CP-106-bufer-diario.md) | Búfer de prosa de acción, huella de atención y diario con consolidación temporal | F1 | P2 | CP-104 | pendiente |

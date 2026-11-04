@@ -12,7 +12,8 @@
       "type": "object",
       "properties": {
         "foco": { "type": "number" }, "mencion": { "type": "number" }, "periferia": { "type": "number" },
-        "pico": { "type": "number" }, "deriva": { "type": "number" }
+        "pico": { "type": "number" }, "deriva": { "type": "number" },
+        "histeresis": { "description": "Margen para cambiar de banda; 0 o ausente = sin histéresis.", "type": "number", "minimum": 0 }
       },
       "required": ["foco", "mencion", "periferia", "pico", "deriva"], "additionalProperties": false
     },

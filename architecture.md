@@ -156,7 +156,7 @@ de modo que un pack de Content Patcher pueda editar o añadir personajes sin có
   "id": "leah",
   "npc": "Leah",
   "rasgos": { "luz": 2.0, "agua": 1.8, "madera": 1.5, "color": 1.6, "persona": 0.8, "maquinaria": 0.3 },
-  "umbrales": { "foco": 0.70, "mencion": 0.40, "periferia": 0.15, "pico": 0.85, "deriva": 3.0 },
+  "umbrales": { "foco": 0.70, "mencion": 0.40, "periferia": 0.15, "pico": 0.85, "deriva": 3.0, "histeresis": 0.02 },
   "refractario": { "subida": 0.5, "semivida_s": 30 },
   "presupuesto": {
     "vanilla": { "pulsos_por_dia_juego": 24, "reservados_cadenas": 2 },
