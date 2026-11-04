@@ -20,6 +20,8 @@ Con `MenteHabilitada=false`, Leah vive un día vanilla mientras el motor escribe
 
 ADS §14 fase 1. Es la primera prueba de los pilares 1 y 2 sin gastar un token. Aquí se ajustan pesos y plantillas.
 
+Punto de partida de la calibración (CP-102, escenario de la pasarela con los rasgos de Leah): lago a 4 casillas 0,56; pasarela bajo ella 0,60; Ana con 6 corazones a 9 casillas 0,45; un jugador con 10 corazones a 2 casillas 0,60; el lago habituado 0,28; con la intención puesta en el agua (×1,5), 0,66. Con los umbrales actuales del perfil (mención 0,40, foco 0,70, pico 0,85) casi nada llega a foco sin intención y el **pico es prácticamente inalcanzable**: aquí hay que decidir si bajan los umbrales o sube la ganancia de la saliencia.
+
 ## Alcance
 
 - Un día completo en DEV con telemetría `escenas.jsonl`.

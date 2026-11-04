@@ -18,6 +18,7 @@ namespace CorazonPelican.Core.Sensorio
     /// </summary>
     /// <param name="Etiquetas">Rasgos que la entidad activa en la saliencia del personaje (p. ej. <c>agua</c>, <c>madera</c>, <c>persona</c>).</param>
     /// <param name="Corazones">Solo para personas con relación: corazones con el personaje observador.</param>
+    /// <param name="Visible">Si hay línea de visión desde el personaje (sin ella, la entidad no pasa de la periferia).</param>
     public sealed record EntidadObservada(
         string Ref,
         CategoriaEntidad Categoria,
@@ -26,7 +27,8 @@ namespace CorazonPelican.Core.Sensorio
         int X,
         int Y,
         IReadOnlyList<string> Etiquetas,
-        int? Corazones = null);
+        int? Corazones = null,
+        bool Visible = true);
 
     /// <summary>
     /// Lo que el sensorio observa en un paso (ADS §4, pasos 3–4): la ubicación del personaje y las

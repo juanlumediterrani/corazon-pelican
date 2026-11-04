@@ -62,8 +62,8 @@ CorazonPelican.sln
 │   │   └── PerfilValidator.cs           # Validación determinista del perfil al cargar
 │   ├── Sensorio/
 │   │   ├── Observacion.cs               # DTO del estado observado (lo rellena el adaptador)
-│   │   ├── Saliencia.cs                 # base × rasgos × estado × intención × novedad × relación
-│   │   ├── Novedad.cs                   # Habituación por entidad con decaimiento
+│   │   ├── Saliencia.cs                 # rasgos × estado × intención × novedad × relación × distancia → x/(1+x); sin visión ≤ periferia
+│   │   ├── Novedad.cs                   # Habituación por entidad en minutos de juego, con recuperación y piso
 │   │   ├── Bandas.cs                    # Foco / mención / periferia / ausente
 │   │   └── Prosa/
 │   │       ├── PlantillasProsa.cs       # Plantillas por categoría y banda (deterministas)
