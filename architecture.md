@@ -90,6 +90,8 @@ CorazonPelican.sln
 │   │   ├── Consolidacion.cs             # Envejecimiento y poda con tope de tamaño
 │   │   └── Compromisos.cs               # Plazos y curva de saliencia
 │   ├── Contrato/                        # DTOs del API (espejo de schemas/)
+│   ├── Tiempo/
+│   │   └── Reloj.cs                     # IReloj (tiempo de juego y real), ModoReloj, aritmética de la hora
 │   └── Config/
 │       └── CorazonConfig.cs             # Config + Validate()
 ├── CorazonPelican/                      # Mod SMAPI (.NET 6)

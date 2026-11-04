@@ -17,7 +17,7 @@ Cada `SensorioCadenciaTicks`, el adaptador produce una `Observacion` de la ubica
 
 ## Contexto
 
-GSS §3.1 y ADS §4 (pasos 3 y 4). Las identidades (`farmer:<id>`, `npc:<nombre>`, `obj:<ubicación>:<x>,<y>:<id>`…) son las que luego usan léxico, actos y memoria.
+GSS §3.1 y ADS §4 (pasos 3 y 4). CP-004 ya creó `Core/Sensorio/Observacion.cs` (`Observacion`, `EntidadObservada` con `Ref`, categoría, casilla, etiquetas de rasgo y corazones) y lo rellena el FakeWorld; esta tarea lo rellena desde el juego y lo amplía si hace falta (sucesos, línea de visión). Las identidades (`farmer:<id>`, `npc:<nombre>`, `obj:<ubicación>:<x>,<y>:<id>`…) son las que luego usan léxico, actos y memoria.
 
 ## Alcance
 
