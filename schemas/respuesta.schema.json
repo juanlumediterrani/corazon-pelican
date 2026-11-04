@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dr4co.local/corazon-pelican/schemas/respuesta.schema.json",
+  "title": "Respuesta (mente → motor), ADS §3.4",
+  "description": "Pensar en prosa, decidir en léxico (P-11). 'pensamiento' va primero: el modelo piensa como el personaje antes de comprometerse. Campos de prosa (nunca ejecutados): pensamiento, intencion.objetivo, intencion.porque, frase, memoria, obra.decision. Campos efectivos (cerrados): plan, actos, cambios_rutina, agenda, plazo_juego, pesos_atencion. 'epoca' y 'basada_en' los copia la mente del pulso; no los genera el modelo.",
+  "type": "object",
+  "properties": {
+    "pensamiento": { "$ref": "comun.schema.json#/$defs/prosa" },
+    "epoca": { "$ref": "comun.schema.json#/$defs/epoca" },
+    "basada_en": { "type": "integer", "minimum": 1 },
+    "intencion": {
+      "type": "object",
+      "properties": {
+        "objetivo": { "$ref": "comun.schema.json#/$defs/prosa" },
+        "porque": { "$ref": "comun.schema.json#/$defs/prosa" },
+        "plazo_juego": { "$ref": "comun.schema.json#/$defs/tiempoJuego" },
+        "pesos_atencion": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0 } },
+        "plan": { "type": "array", "items": { "$ref": "comun.schema.json#/$defs/pasoPlan" } },
+        "cambios_rutina": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "hito": { "$ref": "comun.schema.json#/$defs/idHito" },
+              "cambio": { "enum": ["saltar", "mover", "sustituir"] },
+              "hora": { "type": "integer", "minimum": 600, "maximum": 2600 },
+              "plan": { "type": "array", "minItems": 1, "items": { "$ref": "comun.schema.json#/$defs/pasoPlan" } }
+            },
+            "required": ["hito", "cambio"],
+            "additionalProperties": false,
+            "allOf": [
+              { "if": { "properties": { "cambio": { "const": "mover" } } }, "then": { "required": ["hora"] } },
+              { "if": { "properties": { "cambio": { "const": "sustituir" } } }, "then": { "required": ["plan"] } }
+            ]
+          }
+        }
+      },
+      "required": ["objetivo", "porque", "plan"],
+      "additionalProperties": false
+    },
+    "frase": { "$ref": "comun.schema.json#/$defs/prosa" },
+    "actos": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "acto": { "const": "promete" },
+              "obra": { "anyOf": [ { "const": "nueva" }, { "$ref": "comun.schema.json#/$defs/idObra" } ] },
+              "tema": { "$ref": "comun.schema.json#/$defs/prosa" },
+              "para": { "$ref": "comun.schema.json#/$defs/ref" },
+              "cuando": { "$ref": "comun.schema.json#/$defs/tiempoJuego" }
+            },
+            "required": ["acto", "obra", "tema", "para", "cuando"], "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "acto": { "const": "regala" },
+              "obra_id": { "$ref": "comun.schema.json#/$defs/idObra" },
+              "para": { "$ref": "comun.schema.json#/$defs/ref" }
+            },
+            "required": ["acto", "obra_id", "para"], "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "acto": { "const": "cita" },
+              "lugar": { "$ref": "comun.schema.json#/$defs/idLexico" },
+              "para": { "$ref": "comun.schema.json#/$defs/ref" },
+              "cuando": { "$ref": "comun.schema.json#/$defs/tiempoJuego" }
+            },
+            "required": ["acto", "lugar", "para", "cuando"], "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "acto": { "const": "ensena" },
+              "obra_id": { "$ref": "comun.schema.json#/$defs/idObra" },
+              "para": { "$ref": "comun.schema.json#/$defs/ref" }
+            },
+            "required": ["acto", "obra_id"], "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": { "acto": { "const": "rechaza" }, "motivo": { "$ref": "comun.schema.json#/$defs/prosa" } },
+            "required": ["acto", "motivo"], "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": { "acto": { "const": "acepta_regalo" } },
+            "required": ["acto"], "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "memoria": {
+      "type": "object",
+      "properties": { "recordar": { "type": "array", "items": { "$ref": "comun.schema.json#/$defs/prosa" } } },
+      "required": ["recordar"], "additionalProperties": false
+    },
+    "obra": {
+      "description": "Decisión de una obra nueva para el taller (GSS §6.1).",
+      "type": "object",
+      "properties": {
+        "formato": { "$ref": "comun.schema.json#/$defs/formatoObra" },
+        "decision": { "$ref": "comun.schema.json#/$defs/decisionObra" }
+      },
+      "required": ["formato", "decision"], "additionalProperties": false
+    },
+    "agenda": {
+      "description": "Solo en la respuesta a «despertar»: la agenda del día (GSS §4.1).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hito": { "$ref": "comun.schema.json#/$defs/idHito" },
+          "estado": { "$ref": "comun.schema.json#/$defs/estadoHito" }
+        },
+        "required": ["hito", "estado"], "additionalProperties": false
+      }
+    }
+  },
+  "required": ["pensamiento", "epoca", "basada_en"],
+  "additionalProperties": false
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dr4co.local/corazon-pelican/schemas/obra.schema.json",
+  "title": "Obra del portafolio, ADS §3.5",
+  "type": "object",
+  "properties": {
+    "obra_id": { "$ref": "comun.schema.json#/$defs/idObra" },
+    "formato": { "$ref": "comun.schema.json#/$defs/formatoObra" },
+    "decision": { "$ref": "comun.schema.json#/$defs/decisionObra" },
+    "estado": { "enum": ["en_curso", "terminada", "descartada", "regalada", "vendida"] },
+    "intentos": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["obra_id", "formato", "decision", "estado", "intentos"],
+  "additionalProperties": false
+}

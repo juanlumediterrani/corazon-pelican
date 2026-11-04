@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dr4co.local/corazon-pelican/schemas/salud.schema.json",
+  "title": "GET salud, ADS §5",
+  "type": "object",
+  "properties": {
+    "version": { "type": "string", "minLength": 1 },
+    "contrato": { "const": "v1" },
+    "mundo_cargado": { "type": "boolean" },
+    "epoca": { "$ref": "comun.schema.json#/$defs/epoca" },
+    "personajes": { "type": "array", "items": { "$ref": "comun.schema.json#/$defs/idLexico" } }
+  },
+  "required": ["version", "contrato", "mundo_cargado", "personajes"],
+  "additionalProperties": false,
+  "if": { "properties": { "mundo_cargado": { "const": true } } },
+  "then": { "required": ["epoca"] }
+}

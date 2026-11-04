@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dr4co.local/corazon-pelican/schemas/resultado.schema.json",
+  "title": "Resultado de POST respuestas, ADS §5",
+  "type": "object",
+  "properties": {
+    "estado": { "enum": ["aceptada", "rechazada"] },
+    "motivos": { "type": "array", "items": { "$ref": "comun.schema.json#/$defs/motivoRechazo" } }
+  },
+  "required": ["estado"],
+  "additionalProperties": false,
+  "if": { "properties": { "estado": { "const": "rechazada" } } },
+  "then": { "required": ["motivos"], "properties": { "motivos": { "minItems": 1 } } }
+}

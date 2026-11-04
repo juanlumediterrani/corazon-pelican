@@ -1,0 +1,53 @@
+{
+  "_nota": "Instantánea de los campos obligatorios de cada esquema raíz. Si cambias 'required' en un esquema, actualiza este fichero a conciencia: los tests de C# y Python lo comparan.",
+  "pulso": [
+    "id",
+    "epoca",
+    "personaje",
+    "motivo",
+    "tiempo_juego",
+    "escena",
+    "hechos",
+    "acciones_disponibles",
+    "lugares",
+    "bufer",
+    "huella",
+    "agenda"
+  ],
+  "respuesta": [
+    "pensamiento",
+    "epoca",
+    "basada_en"
+  ],
+  "obra": [
+    "obra_id",
+    "formato",
+    "decision",
+    "estado",
+    "intentos"
+  ],
+  "perfil": [
+    "id",
+    "npc",
+    "rasgos",
+    "umbrales",
+    "refractario",
+    "presupuesto",
+    "lexico",
+    "plantillas",
+    "apertura",
+    "voz",
+    "acciones",
+    "formatos_obra",
+    "rutina"
+  ],
+  "resultado": [
+    "estado"
+  ],
+  "salud": [
+    "version",
+    "contrato",
+    "mundo_cargado",
+    "personajes"
+  ]
+}

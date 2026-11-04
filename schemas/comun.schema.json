@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dr4co.local/corazon-pelican/schemas/comun.schema.json",
+  "title": "Definiciones comunes del contrato motor ↔ mente v1",
+  "$defs": {
+    "epoca": {
+      "description": "Identificador opaco y único de la carga de mundo vigente (P-1). No se guarda en la partida.",
+      "type": "string", "minLength": 1
+    },
+    "tiempoJuego": {
+      "type": "object",
+      "properties": {
+        "dia": { "description": "Días de juego desde el inicio de la partida.", "type": "integer", "minimum": 1 },
+        "hora": { "description": "Hora del juego (600 = 6:00, 2600 = 2:00).", "type": "integer", "minimum": 600, "maximum": 2600 }
+      },
+      "required": ["dia", "hora"], "additionalProperties": false
+    },
+    "ref": {
+      "description": "Identidad estable de una entidad observada: «farmer:123», «npc:Leah», «agua:Mountain:lago», «luz».",
+      "type": "string", "pattern": "^[a-z][a-z_]*(:[^\\s]+)?$"
+    },
+    "idLexico": {
+      "description": "Nombre único del léxico del personaje (lugares, objetos).",
+      "type": "string", "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "idHito": {
+      "description": "Hito de la agenda: «despertar», «acostarse», «<clave de horario>:<hora>» o el de un plan de intención.",
+      "type": "string", "pattern": "^[A-Za-z0-9_-]+(:[A-Za-z0-9_-]+)?$"
+    },
+    "idObra": { "type": "string", "pattern": "^[a-z0-9_]+-[0-9]{4}$" },
+    "prosa": { "type": "string", "minLength": 1 },
+    "accion": {
+      "description": "Vocabulario de acciones v1 (GSS §5.2).",
+      "enum": ["ir_a", "sentarse", "mirar", "levantar_la_vista", "dibujar", "guardar_cuaderno", "gesto", "murmurar", "esperar", "volver_a_rutina"]
+    },
+    "pasoPlan": {
+      "description": "Una acción del vocabulario con argumentos del léxico. Sin coordenadas, casillas ni rutas (R-13).",
+      "type": "object",
+      "properties": {
+        "accion": { "$ref": "#/$defs/accion" },
+        "lugar": { "$ref": "#/$defs/idLexico" },
+        "objetivo": { "$ref": "#/$defs/ref" },
+        "obra": { "anyOf": [ { "const": "nueva" }, { "$ref": "#/$defs/idObra" } ] },
+        "tipo": { "enum": ["saludo", "sorpresa", "alegria", "duda", "enfado", "tristeza", "corazon", "pensativa"] },
+        "texto": { "$ref": "#/$defs/prosa" },
+        "duracion_min": { "description": "Minutos de juego.", "type": "integer", "minimum": 10 }
+      },
+      "required": ["accion"],
+      "additionalProperties": false,
+      "allOf": [
+        { "if": { "properties": { "accion": { "enum": ["ir_a", "sentarse"] } } }, "then": { "required": ["lugar"] } },
+        { "if": { "properties": { "accion": { "const": "mirar" } } }, "then": { "required": ["objetivo"] } },
+        { "if": { "properties": { "accion": { "const": "dibujar" } } }, "then": { "required": ["obra"] } },
+        { "if": { "properties": { "accion": { "const": "gesto" } } }, "then": { "required": ["tipo"] } },
+        { "if": { "properties": { "accion": { "const": "murmurar" } } }, "then": { "required": ["texto"] } },
+        { "if": { "properties": { "accion": { "const": "esperar" } } }, "then": { "required": ["duracion_min"] } }
+      ]
+    },
+    "parIdProsa": {
+      "description": "Par del apéndice: el id que usa la respuesta y la prosa que usa la escena (P-11).",
+      "type": "object",
+      "properties": { "id": { "type": "string", "minLength": 1 }, "prosa": { "$ref": "#/$defs/prosa" } },
+      "required": ["id", "prosa"], "additionalProperties": false
+    },
+    "estadoHito": { "enum": ["pendiente", "en_curso", "cumplido", "saltado", "movido", "sustituido"] },
+    "decisionObra": {
+      "type": "object",
+      "properties": {
+        "titulo": { "$ref": "#/$defs/prosa" },
+        "tema": { "$ref": "#/$defs/prosa" },
+        "composicion": { "$ref": "#/$defs/prosa" },
+        "paleta": { "$ref": "#/$defs/prosa" },
+        "nota": { "$ref": "#/$defs/prosa" }
+      },
+      "required": ["titulo", "tema", "composicion", "paleta", "nota"], "additionalProperties": false
+    },
+    "formatoObra": { "enum": ["boceto", "cuadro_pequeno", "cuadro_mediano"] },
+    "motivoRechazo": {
+      "description": "Motivo en dos formas: código para el arnés y prosa para que la mente reformule (ADS §4.1).",
+      "type": "object",
+      "properties": {
+        "codigo": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "campo": { "type": "string", "minLength": 1 },
+        "prosa": { "$ref": "#/$defs/prosa" }
+      },
+      "required": ["codigo", "campo", "prosa"], "additionalProperties": false
+    }
+  }
+}

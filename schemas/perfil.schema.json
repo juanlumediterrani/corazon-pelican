@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dr4co.local/corazon-pelican/schemas/perfil.schema.json",
+  "title": "Perfil de personaje, ADS §3.1",
+  "description": "Estructura del perfil. Las reglas semánticas (orden de umbrales, áreas medidas, fuentes de contexto conocidas) las aplica PerfilValidator (CP-003).",
+  "type": "object",
+  "properties": {
+    "id": { "$ref": "comun.schema.json#/$defs/idLexico" },
+    "npc": { "type": "string", "minLength": 1 },
+    "rasgos": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0 } },
+    "umbrales": {
+      "type": "object",
+      "properties": {
+        "foco": { "type": "number" }, "mencion": { "type": "number" }, "periferia": { "type": "number" },
+        "pico": { "type": "number" }, "deriva": { "type": "number" }
+      },
+      "required": ["foco", "mencion", "periferia", "pico", "deriva"], "additionalProperties": false
+    },
+    "refractario": {
+      "type": "object",
+      "properties": { "subida": { "type": "number", "minimum": 0 }, "semivida_s": { "type": "number", "exclusiveMinimum": 0 } },
+      "required": ["subida", "semivida_s"], "additionalProperties": false
+    },
+    "presupuesto": {
+      "type": "object",
+      "properties": { "vanilla": { "$ref": "#/$defs/presupuestoModo" }, "pelican": { "$ref": "#/$defs/presupuestoModo" } },
+      "required": ["vanilla", "pelican"], "additionalProperties": false
+    },
+    "lexico": {
+      "type": "object",
+      "properties": {
+        "lugares": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "$ref": "comun.schema.json#/$defs/idLexico" },
+              "ubicacion": { "type": "string", "minLength": 1 },
+              "area": { "type": "array", "items": { "type": "integer" }, "minItems": 4, "maxItems": 4 },
+              "prosa": { "$ref": "comun.schema.json#/$defs/prosa" },
+              "sentable": { "type": "boolean" }
+            },
+            "required": ["id", "ubicacion", "area", "prosa"], "additionalProperties": false
+          }
+        }
+      },
+      "required": ["lugares"], "additionalProperties": false
+    },
+    "plantillas": { "type": "string", "minLength": 1 },
+    "apertura": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "desde_corazones": { "type": "integer", "minimum": 0 },
+          "ensenar": { "type": "boolean" }, "encargos": { "type": "boolean" }, "regalar": { "type": "boolean" }
+        },
+        "required": ["desde_corazones", "ensenar", "encargos", "regalar"], "additionalProperties": false
+      }
+    },
+    "voz": { "type": "string", "minLength": 1 },
+    "acciones": { "type": "array", "uniqueItems": true, "items": { "$ref": "comun.schema.json#/$defs/accion" } },
+    "formatos_obra": { "type": "array", "uniqueItems": true, "items": { "$ref": "comun.schema.json#/$defs/formatoObra" } },
+    "rutina": {
+      "type": "object",
+      "properties": {
+        "por_defecto": { "$ref": "#/$defs/anotacionBase", "unevaluatedProperties": false },
+        "anotaciones": {
+          "type": "array",
+          "items": {
+            "allOf": [ { "$ref": "#/$defs/anotacionBase" } ],
+            "properties": {
+              "id": { "$ref": "comun.schema.json#/$defs/idLexico" },
+              "si": {
+                "description": "Patrón sobre la entrada del horario de hoy.",
+                "type": "object",
+                "properties": {
+                  "ubicacion": { "type": "string", "minLength": 1 },
+                  "animacion": { "type": "string", "minLength": 1 },
+                  "desde_hora": { "type": "integer", "minimum": 600, "maximum": 2600 },
+                  "hasta_hora": { "type": "integer", "minimum": 600, "maximum": 2600 }
+                },
+                "minProperties": 1, "additionalProperties": false
+              },
+              "forma": { "enum": ["pensamiento", "cadena"] }
+            },
+            "required": ["id"],
+            "unevaluatedProperties": false
+          }
+        }
+      },
+      "required": ["por_defecto", "anotaciones"], "additionalProperties": false
+    }
+  },
+  "required": ["id", "npc", "rasgos", "umbrales", "refractario", "presupuesto", "lexico", "plantillas", "apertura", "voz", "acciones", "formatos_obra", "rutina"],
+  "additionalProperties": false,
+  "$defs": {
+    "presupuestoModo": {
+      "type": "object",
+      "properties": {
+        "pulsos_por_dia_juego": { "type": "integer", "minimum": 1 },
+        "reservados_cadenas": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["pulsos_por_dia_juego", "reservados_cadenas"], "additionalProperties": false
+    },
+    "anotacionBase": {
+      "type": "object",
+      "properties": {
+        "contexto": { "type": "array", "items": { "$ref": "comun.schema.json#/$defs/idLexico" } },
+        "omitir_si_ya_penso": { "type": "boolean" },
+        "cambios": { "type": "array", "uniqueItems": true, "items": { "enum": ["saltar", "mover", "sustituir"] } },
+        "limites": {
+          "type": "object",
+          "properties": {
+            "max_por_semana": { "type": "integer", "minimum": 0 },
+            "nunca": { "type": "array", "items": { "enum": ["festival", "lluvia", "boda"] } }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  }
+}

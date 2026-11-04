@@ -1,0 +1,4 @@
+{
+  "estado": "rechazada",
+  "motivos": [ { "codigo": "lugar_ocupado", "campo": "intencion.plan[1]", "prosa": "no puedes sentarte en la pasarela: hay alguien" } ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": 1050,
+  "epoca": "01JC8Q2M5V7K3T9W4X6Y8Z0A1B",
+  "personaje": "leah",
+  "motivo": "hito",
+  "tiempo_juego": { "dia": 68, "hora": 1900 },
+  "hito": { "id": "fall:1900", "origen": "rutina", "forma": "pensamiento" },
+  "escena": "Cae la noche sobre el pueblo. Cierras el cuaderno: es hora de volver a casa.",
+  "hechos": { "energia": "baja", "cerca": [] },
+  "acciones_disponibles": ["ir_a(tu_casa)", "esperar", "volver_a_rutina"],
+  "lugares": [ { "id": "tu_casa", "prosa": "tu casa" }, { "id": "pasarela_lago", "prosa": "la pasarela de madera del lago" } ],
+  "bufer": [],
+  "huella": { "desde_ultimo_pensamiento_min_juego": 80, "prosa": "Has estado pensando en el lago que prometiste.", "entidades": [] },
+  "agenda": [ { "hito": "fall:1900", "prosa": "volver a casa", "estado": "en_curso" } ],
+  "compromisos_proximos": [
+    { "id": "comp-12", "con": "farmer:123", "prosa": "dibujar el lago para Ana", "plazo_juego": { "dia": 69, "hora": 1900 } }
+  ]
+}

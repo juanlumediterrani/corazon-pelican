@@ -31,17 +31,20 @@ conviene hacerlo pronto.
 
 ## Primeras tareas listas
 
-1. **CP-001** repositorio y solución → desbloquea casi todo.
-2. **CP-205** voz de Leah y rúbrica (sin dependencias, trabajo creativo).
-3. **CP-902** decisiones abiertas (sin dependencias).
-4. **CP-013** spike del taller a 32 px (tras CP-001, sin juego).
+Hechas: CP-001, CP-002. Listas ahora, por prioridad:
+
+1. **CP-003** perfil de personaje y perfil de Leah (P1).
+2. **CP-004** FakeWorld (P1).
+3. **CP-013** spike del taller (P1, sin juego).
+4. **CP-205** voz de Leah y rúbrica (P1, creativo).
+5. **CP-902** decisiones abiertas.
 
 ## Tareas
 
 | ID | Tarea | Hito | Prio | Depende de | Estado |
 | --- | --- | --- | --- | --- | --- |
 | [CP-001](tareas/CP-001-repositorio-y-solucion.md) | Repositorio y solución multiproyecto que compila sin juego | F0 | P1 | — | hecha |
-| [CP-002](tareas/CP-002-contrato-json-schema.md) | Contrato v1 en JSON Schema, con época de mundo, validado desde C# y Python | F0 | P1 | CP-001 | pendiente |
+| [CP-002](tareas/CP-002-contrato-json-schema.md) | Contrato v1 en JSON Schema, con época de mundo, validado desde C# y Python | F0 | P1 | CP-001 | hecha |
 | [CP-003](tareas/CP-003-perfil-leah.md) | Perfil de personaje cargado como asset y validado; perfil inicial de Leah | F0 | P1 | CP-002 | pendiente |
 | [CP-004](tareas/CP-004-fakeworld.md) | FakeWorld para probar el bucle completo sin juego | F0 | P1 | CP-001 | pendiente |
 | [CP-005](tareas/CP-005-config-modulos-consola.md) | Configuración validada, registro de módulos y comando cp_estado | F0 | P2 | CP-001 | pendiente |

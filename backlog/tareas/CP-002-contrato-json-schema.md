@@ -1,7 +1,7 @@
 ---
 id: CP-002
 titulo: Contrato v1 en JSON Schema, con época de mundo, validado desde C# y Python
-estado: pendiente
+estado: hecha
 prioridad: P1
 hito: F0
 depende_de: [CP-001]
@@ -10,6 +10,7 @@ complejidad: media
 duracion_min: 120
 sensibilidad: public
 reglas: [R-13]
+fecha: 2026-11-04
 ---
 
 ## Objetivo
@@ -37,11 +38,20 @@ ADS §3.3–3.5 y §5. Decisión P-1 (ADS §5): los `id` de pulso y de obra pued
 
 ## Criterios de aceptación
 
-- [ ] Los ejemplos de la ADS §3.3–3.5 validan contra los esquemas (C# y Python).
-- [ ] `EsquemaIntencionTests`: un `plan` con `x`, `y`, `tile` o `casilla` es inválido en ambos lados.
-- [ ] Un ejemplo de respuesta con `epoca` distinta a la del pulso se rechaza en el validador de Core.
-- [ ] Cambiar un campo obligatorio en un esquema rompe al menos un test en cada lenguaje.
-- [ ] Test de orden: `pensamiento` es la primera propiedad de la respuesta en el esquema.
+- [x] Los ejemplos de la ADS §3.3–3.5 validan contra los esquemas (C# y Python). Evidencia: `schemas/ejemplos/validos/` (8 ejemplos, uno por esquema raíz como mínimo); `ContratoTests.Ejemplo_valido_valida` y `test_ejemplos_validos_validan`; 14 ejemplos inválidos rechazados en ambos lados; ida y vuelta de los DTOs en `ContratoTests.Dto_conserva_el_ejemplo_y_sigue_validando`.
+- [x] `EsquemaIntencionTests`: un `plan` con `x`, `y`, `tile` o `casilla` (y `ruta`) es inválido en ambos lados. Evidencia: `EsquemaIntencionTests.Plan_con_coordenadas_es_invalido` (C#) y `TestEsquemaIntencion` (Python), que también cubre un `sustituir` con coordenadas.
+- [x] Un ejemplo de respuesta con `epoca` distinta a la del pulso se rechaza en el validador de Core. Evidencia: `ValidadorEpoca.Comprobar` → `epoca_obsoleta` con campo y prosa; `ValidadorEpocaTests` (3 casos).
+- [x] Cambiar un campo obligatorio en un esquema rompe al menos un test en cada lenguaje. Evidencia: instantánea `schemas/ejemplos/obligatorios.json` comparada en ambos lados; mutación comprobada (quitar `basada_en` de `required` → «1 failed» en pytest y «Con error: 1» en xUnit; restaurado → verde).
+- [x] Test de orden: `pensamiento` es la primera propiedad de la respuesta en el esquema. Evidencia: `Pensamiento_es_la_primera_propiedad_de_la_respuesta` y `test_pensamiento_es_la_primera_propiedad_de_la_respuesta`.
+
+Verificación final: `dotnet build` 0 advertencias, `dotnet test` 45/45, `python3 -m pytest -q` 39 passed.
+
+## Notas de cierre
+
+- Esquemas añadidos además de los cuatro previstos: `comun` (definiciones compartidas), `resultado` (POST respuestas) y `salud` (GET salud).
+- Python valida con `jsonschema` + `referencing` en `mente/contrato.py`; los modelos tipados (pydantic) se dejan para CP-204 si hacen falta.
+- El DTO del perfil queda para CP-003 (`Perfil/PerfilPersonaje.cs`); aquí solo su esquema.
+- JsonSchema.Net solo está en el proyecto de tests: Core sigue sin dependencias externas.
 
 ## Fuera de alcance
 

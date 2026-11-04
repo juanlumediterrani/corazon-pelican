@@ -111,10 +111,14 @@ CorazonPelican.sln
 │   └── assets/personajes/leah.json      # Perfil por defecto (editable con Content Patcher)
 ├── CorazonPelican.Tests/                # xUnit (.NET 8) sobre Core + FakeWorld
 ├── schemas/                             # JSON Schema: fuente única del contrato (C# y Python)
+│   ├── comun.schema.json                # Definiciones compartidas ($defs): época, tiempo, ref, paso de plan…
 │   ├── pulso.schema.json
 │   ├── respuesta.schema.json
 │   ├── obra.schema.json
-│   └── perfil.schema.json
+│   ├── perfil.schema.json
+│   ├── resultado.schema.json            # Resultado de POST respuestas (motivos de rechazo)
+│   ├── salud.schema.json                # GET salud
+│   └── ejemplos/                        # validos/ e invalidos/ (<esquema>--<caso>.json) + obligatorios.json
 ├── mente/                               # Python: proceso de la mente
 │   ├── cliente_motor.py                 # Long-poll de pulsos, envío de respuestas
 │   ├── ensamblador.py                   # Prompt: voz + escena + búfer + memoria + compromisos
@@ -128,8 +132,13 @@ CorazonPelican.sln
     └── tests/
 ```
 
-`schemas/` es la **única fuente del contrato**. Los DTOs de `Core/Contrato` y los modelos de
-Python se validan contra ella en sus respectivos tests.
+`schemas/` es la **única fuente del contrato** (JSON Schema 2020-12, `$id` bajo
+`https://dr4co.local/corazon-pelican/schemas/`, referencias cruzadas a `comun.schema.json`).
+En Python valida `mente/contrato.py` (`jsonschema` + `referencing`); en C#, los tests con
+JsonSchema.Net (solo en `CorazonPelican.Tests`: Core no depende de él). Los DTOs de
+`Core/Contrato` (System.Text.Json) se prueban con ida y vuelta sobre los ejemplos válidos, y
+`schemas/ejemplos/obligatorios.json` fija los campos obligatorios: cambiarlos rompe un test en
+cada lenguaje. Los ejemplos de esta sección están en `schemas/ejemplos/validos/`.
 
 ---
 
@@ -258,9 +267,9 @@ respuesta, el id, sin que la mente tenga que adivinar la correspondencia.
 
 ```json
 {
+  "pensamiento": "Ana otra vez. Quiere el lago… y yo llevo toda la tarde mirándolo. Pero hoy la luz ya se ha ido.",
   "epoca": "01JC8Q2M5V7K3T9W4X6Y8Z0A1B",
   "basada_en": 1042,
-  "pensamiento": "Ana otra vez. Quiere el lago… y yo llevo toda la tarde mirándolo. Pero hoy la luz ya se ha ido.",
   "intencion": {
     "objetivo": "dibujar el lago para Ana mañana al atardecer",
     "porque": "me lo ha pedido y la luz de otoño en el agua es lo que llevo semanas mirando",
@@ -270,8 +279,7 @@ respuesta, el id, sin que la mente tenga que adivinar la correspondencia.
   },
   "frase": "¿El lago? …Mañana, cuando baje el sol. Hoy la luz ya no da para nada.",
   "actos": [ { "acto": "promete", "obra": "nueva", "tema": "lago al atardecer", "para": "farmer:123", "cuando": { "dia": 69, "hora": 1900 } } ],
-  "memoria": { "recordar": [ "Ana me pidió un dibujo del lago. Le dije que sí, casi sin pensarlo." ] },
-  "obra": null
+  "memoria": { "recordar": [ "Ana me pidió un dibujo del lago. Le dije que sí, casi sin pensarlo." ] }
 }
 ```
 
@@ -283,6 +291,13 @@ respuesta, el id, sin que la mente tenga que adivinar la correspondencia.
   telemetría y como entrada del diario.
 * **Campos efectivos**, cerrados: `plan`, `actos`, `cambios_rutina`, `agenda`, `plazo_juego`,
   `pesos_atencion`. Solo admiten acciones del vocabulario e ids que el pulso ofrece.
+
+`epoca` y `basada_en` los copia la mente del pulso; el modelo no los genera. Los campos
+opcionales se omiten en vez de enviarse a `null`. Cada paso de `plan` es
+`{ "accion", "lugar"?, "objetivo"?, "obra"?, "tipo"?, "texto"?, "duracion_min"? }`, con el argumento
+que exige cada acción (`ir_a`/`sentarse` → `lugar`, `mirar` → `objetivo`, `dibujar` → `obra`,
+`gesto` → `tipo`, `murmurar` → `texto`, `esperar` → `duracion_min`). En JSON los identificadores
+son ASCII: el acto `enseña` de la GSS se escribe `ensena`.
 
 El esquema **no admite coordenadas** en `plan` (regla R-13): solo acciones del vocabulario con
 argumentos del léxico. Si lo que el personaje quiere no tiene id («la orilla con esta niebla»),

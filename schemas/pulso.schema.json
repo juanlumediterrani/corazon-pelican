@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dr4co.local/corazon-pelican/schemas/pulso.schema.json",
+  "title": "Pulso (motor → mente), ADS §3.3",
+  "type": "object",
+  "properties": {
+    "id": { "type": "integer", "minimum": 1 },
+    "epoca": { "$ref": "comun.schema.json#/$defs/epoca" },
+    "personaje": { "$ref": "comun.schema.json#/$defs/idLexico" },
+    "motivo": { "enum": ["pico", "interlocucion", "deriva", "hito", "fin_intencion", "compromiso", "transicion"] },
+    "anticipado": { "type": "boolean" },
+    "tiempo_juego": { "$ref": "comun.schema.json#/$defs/tiempoJuego" },
+    "tiempo_real_utc": { "type": "string", "format": "date-time" },
+    "hito": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "comun.schema.json#/$defs/idHito" },
+        "origen": { "enum": ["rutina", "intencion"] },
+        "forma": { "enum": ["pensamiento", "cadena"] }
+      },
+      "required": ["id", "origen", "forma"], "additionalProperties": false
+    },
+    "escena": { "$ref": "comun.schema.json#/$defs/prosa" },
+    "hechos": {
+      "type": "object",
+      "properties": {
+        "energia": { "enum": ["baja", "media", "alta"] },
+        "cerca": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ref": { "$ref": "comun.schema.json#/$defs/ref" },
+              "nombre": { "$ref": "comun.schema.json#/$defs/prosa" },
+              "corazones": { "type": "integer", "minimum": 0, "maximum": 14 },
+              "distancia": { "description": "En casillas.", "type": "integer", "minimum": 0 }
+            },
+            "required": ["ref", "nombre"], "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "acciones_disponibles": { "type": "array", "items": { "type": "string", "pattern": "^[a-z_]+(\\([a-z0-9_:.]+\\))?$" } },
+    "lugares": { "type": "array", "items": { "$ref": "comun.schema.json#/$defs/parIdProsa" } },
+    "obras": {
+      "description": "Obras del portafolio que la respuesta puede citar.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "comun.schema.json#/$defs/idObra" },
+          "prosa": { "$ref": "comun.schema.json#/$defs/prosa" },
+          "estado": { "enum": ["en_curso", "terminada", "descartada", "regalada", "vendida"] }
+        },
+        "required": ["id", "prosa", "estado"], "additionalProperties": false
+      }
+    },
+    "bufer": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hora": { "type": "integer", "minimum": 600, "maximum": 2600 },
+          "prosa": { "$ref": "comun.schema.json#/$defs/prosa" },
+          "saliencia": { "type": "number", "minimum": 0 }
+        },
+        "required": ["hora", "prosa", "saliencia"], "additionalProperties": false
+      }
+    },
+    "huella": {
+      "description": "Atención acumulada desde el último pensamiento (GSS §4.4, P-8).",
+      "type": "object",
+      "properties": {
+        "desde_ultimo_pensamiento_min_juego": { "type": "integer", "minimum": 0 },
+        "prosa": { "type": "string" },
+        "entidades": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "ref": { "$ref": "comun.schema.json#/$defs/ref" }, "atencion": { "type": "number", "minimum": 0 } },
+            "required": ["ref", "atencion"], "additionalProperties": false
+          }
+        }
+      },
+      "required": ["desde_ultimo_pensamiento_min_juego", "prosa", "entidades"], "additionalProperties": false
+    },
+    "intencion_activa": {
+      "type": "object",
+      "properties": { "id": { "type": "string", "minLength": 1 }, "objetivo": { "$ref": "comun.schema.json#/$defs/prosa" } },
+      "required": ["id", "objetivo"], "additionalProperties": false
+    },
+    "agenda": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hito": { "$ref": "comun.schema.json#/$defs/idHito" },
+          "prosa": { "$ref": "comun.schema.json#/$defs/prosa" },
+          "estado": { "$ref": "comun.schema.json#/$defs/estadoHito" }
+        },
+        "required": ["hito", "prosa", "estado"], "additionalProperties": false
+      }
+    },
+    "compromisos_proximos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "con": { "$ref": "comun.schema.json#/$defs/ref" },
+          "prosa": { "$ref": "comun.schema.json#/$defs/prosa" },
+          "plazo_juego": { "$ref": "comun.schema.json#/$defs/tiempoJuego" }
+        },
+        "required": ["id", "con", "prosa", "plazo_juego"], "additionalProperties": false
+      }
+    },
+    "diario_dia": {
+      "description": "Solo en el hito «acostarse»: episodios del día para la reflexión.",
+      "type": "array", "items": { "$ref": "comun.schema.json#/$defs/prosa" }
+    },
+    "recuerdos": {
+      "description": "Recuerdos recuperados para este pulso (en «despertar», los pendientes de ayer).",
+      "type": "array", "items": { "$ref": "comun.schema.json#/$defs/prosa" }
+    },
+    "interlocutor": {
+      "type": "object",
+      "properties": { "ref": { "$ref": "comun.schema.json#/$defs/ref" }, "texto": { "type": "string" } },
+      "required": ["ref", "texto"], "additionalProperties": false
+    },
+    "caduca_en_ms": { "type": "integer", "minimum": 1 }
+  },
+  "required": ["id", "epoca", "personaje", "motivo", "tiempo_juego", "escena", "hechos", "acciones_disponibles", "lugares", "bufer", "huella", "agenda"],
+  "additionalProperties": false,
+  "allOf": [
+    { "if": { "properties": { "motivo": { "const": "hito" } } }, "then": { "required": ["hito"] } },
+    { "if": { "properties": { "motivo": { "const": "interlocucion" } } }, "then": { "required": ["interlocutor", "caduca_en_ms"] } }
+  ]
+}

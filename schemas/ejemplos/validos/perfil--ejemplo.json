@@ -1,0 +1,28 @@
+{
+  "id": "leah",
+  "npc": "Leah",
+  "rasgos": { "luz": 2.0, "agua": 1.8, "madera": 1.5, "color": 1.6, "persona": 0.8, "maquinaria": 0.3 },
+  "umbrales": { "foco": 0.70, "mencion": 0.40, "periferia": 0.15, "pico": 0.85, "deriva": 3.0 },
+  "refractario": { "subida": 0.5, "semivida_s": 30 },
+  "presupuesto": {
+    "vanilla": { "pulsos_por_dia_juego": 24, "reservados_cadenas": 2 },
+    "pelican": { "pulsos_por_dia_juego": 24, "reservados_cadenas": 2 }
+  },
+  "lexico": {
+    "lugares": [ { "id": "pasarela_lago", "ubicacion": "Mountain", "area": [0, 0, 0, 0], "prosa": "la pasarela de madera del lago", "sentable": true } ]
+  },
+  "plantillas": "assets/personajes/leah.plantillas.json",
+  "apertura": [ { "desde_corazones": 0, "ensenar": false, "encargos": false, "regalar": false } ],
+  "voz": "assets/personajes/leah.voz.md",
+  "acciones": ["ir_a", "sentarse", "mirar", "levantar_la_vista", "dibujar", "guardar_cuaderno", "gesto", "murmurar", "esperar", "volver_a_rutina"],
+  "formatos_obra": ["boceto", "cuadro_pequeno", "cuadro_mediano"],
+  "rutina": {
+    "por_defecto": { "contexto": [], "omitir_si_ya_penso": true, "cambios": [] },
+    "anotaciones": [
+      { "id": "despertar", "forma": "cadena" },
+      { "id": "acostarse", "forma": "cadena" },
+      { "id": "dibujar_fuera", "si": { "animacion": "leah_draw" }, "contexto": ["luz", "obra_en_curso"], "cambios": ["saltar", "sustituir"] },
+      { "id": "saloon", "si": { "ubicacion": "Saloon" }, "contexto": ["personas_cerca"], "cambios": ["saltar", "sustituir"], "limites": { "max_por_semana": 1, "nunca": ["festival"] } }
+    ]
+  }
+}

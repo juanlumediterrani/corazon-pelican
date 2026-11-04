@@ -1,0 +1,8 @@
+{
+  "version": "0.1.0",
+  "contrato": "v1",
+  "mundo_cargado": true,
+  "personajes": [
+    "leah"
+  ]
+}

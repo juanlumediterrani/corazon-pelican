@@ -1,0 +1,93 @@
+{
+  "id": 1042,
+  "epoca": "01JC8Q2M5V7K3T9W4X6Y8Z0A1B",
+  "personaje": "leah",
+  "motivo": "interlocucion",
+  "anticipado": false,
+  "tiempo_juego": {
+    "dia": 68,
+    "hora": 1740
+  },
+  "tiempo_real_utc": "2026-11-03T22:40:12Z",
+  "escena": "Es última hora de la tarde de otoño. El viento arrastra hojas sobre el agua, que está gris y quieta junto a la pasarela. Tienes el cuaderno en las rodillas: el boceto del sauce va por la mitad. Por el camino del norte se acerca alguien a paso tranquilo.",
+  "hechos": {
+    "energia": "media",
+    "cerca": [
+      {
+        "ref": "farmer:123",
+        "nombre": "Ana",
+        "corazones": 6,
+        "distancia": 9
+      }
+    ]
+  },
+  "acciones_disponibles": [
+    "dibujar",
+    "levantar_la_vista",
+    "gesto(saludo)",
+    "guardar_cuaderno"
+  ],
+  "lugares": [
+    {
+      "id": "pasarela_lago",
+      "prosa": "la pasarela de madera del lago"
+    },
+    {
+      "id": "orilla_norte",
+      "prosa": "la orilla norte"
+    },
+    {
+      "id": "tu_casa",
+      "prosa": "tu casa"
+    }
+  ],
+  "obras": [
+    {
+      "id": "leah-0030",
+      "prosa": "el boceto del sauce",
+      "estado": "en_curso"
+    }
+  ],
+  "bufer": [
+    {
+      "hora": 1700,
+      "prosa": "trazas la línea del muelle",
+      "saliencia": 0.52
+    }
+  ],
+  "huella": {
+    "desde_ultimo_pensamiento_min_juego": 95,
+    "prosa": "Durante la tarde te has fijado sobre todo en el agua gris y en la luz que se va.",
+    "entidades": [
+      {
+        "ref": "agua:Mountain:lago",
+        "atencion": 0.81
+      },
+      {
+        "ref": "luz",
+        "atencion": 0.64
+      }
+    ]
+  },
+  "intencion_activa": {
+    "id": "int-77",
+    "objetivo": "acabar el boceto del sauce"
+  },
+  "agenda": [
+    {
+      "hito": "fall:1900",
+      "prosa": "volver a casa",
+      "estado": "pendiente"
+    },
+    {
+      "hito": "fall:2200",
+      "prosa": "recoger el taller",
+      "estado": "saltado"
+    }
+  ],
+  "compromisos_proximos": [],
+  "interlocutor": {
+    "ref": "farmer:123",
+    "texto": "¿Me dibujarías el lago?"
+  }
+}

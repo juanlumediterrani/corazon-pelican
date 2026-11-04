@@ -1,0 +1,41 @@
+{
+  "pensamiento": "Ana otra vez. Quiere el lago… y yo llevo toda la tarde mirándolo. Pero hoy la luz ya se ha ido.",
+  "epoca": "01JC8Q2M5V7K3T9W4X6Y8Z0A1B",
+  "basada_en": 1042,
+  "intencion": {
+    "objetivo": "dibujar el lago para Ana mañana al atardecer",
+    "porque": "me lo ha pedido y la luz de otoño en el agua es lo que llevo semanas mirando",
+    "plazo_juego": {
+      "dia": 69,
+      "hora": 1900
+    },
+    "pesos_atencion": {
+      "luz": 1.5,
+      "agua": 1.5,
+      "persona": 0.6
+    },
+    "plan": [
+      {
+        "accion": "ir_a"
+      }
+    ]
+  },
+  "frase": "¿El lago? …Mañana, cuando baje el sol. Hoy la luz ya no da para nada.",
+  "actos": [
+    {
+      "acto": "promete",
+      "obra": "nueva",
+      "tema": "lago al atardecer",
+      "para": "farmer:123",
+      "cuando": {
+        "dia": 69,
+        "hora": 1900
+      }
+    }
+  ],
+  "memoria": {
+    "recordar": [
+      "Ana me pidió un dibujo del lago. Le dije que sí, casi sin pensarlo."
+    ]
+  }
+}

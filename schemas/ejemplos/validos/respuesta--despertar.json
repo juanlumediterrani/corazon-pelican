@@ -1,0 +1,20 @@
+{
+  "pensamiento": "Hoy es viernes, pero no me apetece el Saloon. Le prometí el lago a Ana: necesito la luz del atardecer en la pasarela.",
+  "epoca": "01JC8Q2M5V7K3T9W4X6Y8Z0A1B",
+  "basada_en": 1101,
+  "intencion": {
+    "objetivo": "dibujar el lago al atardecer para Ana",
+    "porque": "se lo prometí ayer",
+    "plazo_juego": { "dia": 69, "hora": 1900 },
+    "plan": [ { "accion": "ir_a", "lugar": "pasarela_lago" }, { "accion": "sentarse", "lugar": "pasarela_lago" }, { "accion": "dibujar", "obra": "nueva" } ],
+    "cambios_rutina": [
+      { "hito": "Fri:1600", "cambio": "sustituir", "plan": [ { "accion": "ir_a", "lugar": "pasarela_lago" }, { "accion": "dibujar", "obra": "nueva" } ] }
+    ]
+  },
+  "memoria": { "recordar": [ "Hoy cambio el Saloon por el lago." ] },
+  "agenda": [
+    { "hito": "Fri:900", "estado": "pendiente" },
+    { "hito": "Fri:1600", "estado": "sustituido" },
+    { "hito": "Fri:2340", "estado": "pendiente" }
+  ]
+}
