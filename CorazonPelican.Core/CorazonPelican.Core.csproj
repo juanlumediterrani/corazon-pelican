@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Dominio puro de Corazón Pelican: SIN referencias a Stardew Valley, SMAPI ni Harmony.
+    Perfil, sensorio, atención, intención, diálogo y memoria viven aquí para probarlos sin juego.
+    El motor nunca contiene nada específico de un personaje (GSS §1.2).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RootNamespace>CorazonPelican.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CorazonPelican.Tests" />
+  </ItemGroup>
+
+</Project>

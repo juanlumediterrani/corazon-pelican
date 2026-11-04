@@ -1,0 +1,17 @@
+# .NET
+bin/
+obj/
+*.user
+local.props
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+*.egg-info/
+
+# Telemetría y contenido del juego: nunca se versionan
+telemetria/
+telemetry/
+*.xnb
