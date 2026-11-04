@@ -200,8 +200,17 @@ personaje con tienda, `contexto: ["ventas_dia"]` exigiría una fuente nueva en e
 La cadencia de pensamiento no se programa: emerge de los disparadores (GSS §4.1) y se mide en
 la fase 2 en ambos modos. Los valores de `presupuesto` son provisionales hasta esa medición.
 
-`area: [0,0,0,0]` es un marcador: las coordenadas reales de cada lugar se fijan midiendo en vivo
-**[verificar]**. `PerfilValidator` rechaza perfiles con lugares sin área válida.
+`area` es `[x, y, ancho, alto]` en casillas de su `ubicacion`. `[0,0,0,0]` es el marcador de
+«pendiente de medir en vivo» **[verificar: CP-006]**: `PerfilValidator` lo reporta como aviso en
+modo de desarrollo y como error en modo normal (el personaje no se gobierna). Los lugares que
+salen del horario de Leah usan su casilla del horario como área `1×1` de partida.
+
+`PerfilPersonaje` (Core) usa `[DataContract]`/`[DataMember]` con los nombres del esquema: así lo
+leen SMAPI y Content Patcher (Newtonsoft.Json) sin que Core dependa de ninguna biblioteca. Cada
+fichero `assets/personajes/<id>.json` es un perfil (los que llevan otro punto, como
+`leah.plantillas.json`, no). Las fuentes de `contexto` que el motor sabe reunir están en
+`Core/Sensorio/FuentesContexto.cs` (`luz`, `clima`, `energia`, `obra_en_curso`, `personas_cerca`,
+`compromisos`); una nueva exige ampliar el sensorio.
 
 ### 3.2. Estado persistido por personaje (`EstadoPersonaje`)
 
@@ -585,6 +594,7 @@ si el jugador se aleja antes de la respuesta ──▶ la frase se guarda como �
 |---|---|---|
 | `Personajes` | `["leah"]` | Personajes gobernados |
 | `MenteHabilitada` | `true` | Con `false`, solo sensorio y diario (fase 1) |
+| `ModoDesarrollo` | `false` | Con `true`, lo pendiente de medir en vivo (áreas del léxico) es aviso y no error |
 | `ApiPuerto` / `ApiToken` | `25560` / vacío | API motor ↔ mente |
 | `SensorioCadenciaTicks` | `15` | Frecuencia de observación |
 | `ModoReloj` | `auto` | `auto` / `vanilla` / `pelican`: elige el `presupuesto` del perfil y etiqueta la telemetría para medir la cadencia. `auto` detecta Pelican 4Ever |

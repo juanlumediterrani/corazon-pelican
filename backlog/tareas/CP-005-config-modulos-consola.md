@@ -21,7 +21,7 @@ ADS §12. Patrón `IModule`/`ModContext` y `ServerConfig.Validate()` de Pelican 
 
 ## Alcance
 
-- `CorazonConfig` con las claves de ADS §12.1 y `Validate()`.
+- `CorazonConfig` con las claves de ADS §12.1 y `Validate()`, incluida `ModoDesarrollo`, que sustituye al `ModoValidacion.Normal` fijo con el que `ModEntry` valida hoy los perfiles (CP-003).
 - Registro de módulos con `try/catch` por módulo; un fallo desactiva ese módulo, no el mod.
 - Guarda de host: todo el motor solo corre si `Context.IsMainPlayer`.
 - `cp_estado` y `cp_mente on/off`.

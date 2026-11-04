@@ -8,7 +8,7 @@ internal static class Esquemas
 {
     public static readonly string[] Nombres = { "comun", "pulso", "respuesta", "obra", "perfil", "resultado", "salud" };
 
-    public static readonly string Directorio = BuscarDirectorio();
+    public static readonly string Directorio = Repo.Ruta("schemas");
 
     private static readonly Dictionary<string, JsonSchema> Cargados = Cargar();
 
@@ -43,19 +43,5 @@ internal static class Esquemas
         }
 
         return cargados;
-    }
-
-    private static string BuscarDirectorio()
-    {
-        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
-        {
-            var candidato = Path.Combine(dir.FullName, "schemas");
-            if (File.Exists(Path.Combine(candidato, "comun.schema.json")))
-            {
-                return candidato;
-            }
-        }
-
-        throw new DirectoryNotFoundException("No se encuentra schemas/ por encima de " + AppContext.BaseDirectory);
     }
 }

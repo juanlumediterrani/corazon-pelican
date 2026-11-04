@@ -70,3 +70,11 @@ def test_campos_obligatorios_coinciden_con_la_instantanea():
     instantanea.pop("_nota")
     reales = {nombre: contrato.cargar_esquema(nombre)["required"] for nombre in contrato.ESQUEMAS if nombre != "comun"}
     assert reales == instantanea
+
+
+def test_los_perfiles_del_mod_cumplen_el_esquema():
+    carpeta = contrato.DIR_ESQUEMAS.parent / "CorazonPelican" / "assets" / "personajes"
+    perfiles = [p for p in carpeta.glob("*.json") if p.name.count(".") == 1]
+    assert perfiles
+    for ruta in perfiles:
+        assert contrato.errores("perfil", _cargar(ruta)) == [], ruta.name
