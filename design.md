@@ -231,8 +231,16 @@ que Leah siempre empieza y cierra el día pensando, aunque se haya agotado el re
 
 ### 4.2. Integrador, refractario y presupuesto
 
-* El **integrador** acumula saliencias menores con fuga (lo antiguo pesa menos).
-* Tras cada pulsión, el umbral sube (**período refractario**) y decae hacia su valor base.
+* El **integrador** acumula saliencias menores (periferia y mención) con fuga (lo antiguo pesa
+  menos), en minutos de juego, como la novedad. Se vacía en cada pulsión: lo acumulado ya se pensó.
+* Tras cada pulsión se abre un **período refractario** en tiempo real: durante una ventana no pasan
+  los disparadores de estímulo (pico, deriva, transición; las transiciones esperan su turno) y
+  después sus umbrales siguen elevados y decaen hacia su valor base. La rutina (hitos, despertar,
+  acostarse, fin de intención, compromiso) y la interlocución pasan siempre, para no llegar tarde a
+  lo que toca.
+* Un hito de rutina se dispara **diez minutos de juego antes** de la hora de su entrada: al
+  disponerse, cuando todavía se puede cambiar. La luz y el clima con que amanece un día no cuentan
+  como transición.
 * Hay un **presupuesto de pulsiones** por personaje y día de juego, con dos reservadas para
   las cadenas de despertar y acostarse. Agotado, solo pasan esas dos y la interlocución; el resto
   del tiempo Leah vive de intención, hábito y reflejo.

@@ -1,4 +1,5 @@
 using CorazonPelican.Core.Contrato;
+using CorazonPelican.Core.Intencion;
 using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Tiempo;
 
@@ -55,11 +56,13 @@ public sealed class FakeWorld
 
     private readonly List<EntidadSimulada> entidades;
     private readonly Random azar;
+    private readonly Func<int, string, HorarioDia?> horarios;
     private long ultimoDeambularMs;
 
     internal FakeWorld(RelojVirtual reloj, PosicionPersonaje personaje, IReadOnlyDictionary<string, LugarSimulado> lugares,
-        List<EntidadSimulada> entidades, string clima, int semilla, FakeMind mente)
+        List<EntidadSimulada> entidades, string clima, int semilla, FakeMind mente, Func<int, string, HorarioDia?>? horarios = null)
     {
+        this.horarios = horarios ?? ((_, _) => null);
         this.Reloj = reloj;
         this.Personaje = personaje;
         this.Lugares = lugares;
@@ -79,6 +82,9 @@ public sealed class FakeWorld
     public string Clima { get; set; }
 
     public FakeBody Cuerpo { get; }
+
+    /// <summary>El horario que «el juego» elige hoy para el personaje, según el día y el clima (CP-011).</summary>
+    public HorarioDia? HorarioHoy => this.horarios(this.Reloj.Juego.Dia, this.Clima);
 
     public FakeMind Mente { get; }
 

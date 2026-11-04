@@ -131,6 +131,11 @@ namespace CorazonPelican.Core.Perfil
             {
                 r.Errores.Add(new("umbrales.deriva", "el umbral de deriva debe ser mayor que 0."));
             }
+
+            if (u.DerivaSemividaMin <= 0)
+            {
+                r.Errores.Add(new("umbrales.deriva_semivida_min", "la fuga de la deriva necesita una semivida mayor que 0 minutos."));
+            }
         }
 
         private static void ValidarRefractario(Refractario f, ResultadoValidacionPerfil r)

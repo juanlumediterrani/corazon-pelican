@@ -20,6 +20,12 @@ Medir qué cadencia de pensamiento dan deriva, hitos y el resto de disparadores,
 
 ADS §14 fase 2 y GSS §7 (decisión P-2): la cadencia se mide, no se programa. Expectativa de partida: del orden de un pensamiento cada 5–15 min reales en vanilla y cada 4–6 h en Pelican, más interrupciones puntuales y las dos cadenas del día. Si la medida se aleja, se ajustan umbrales, fuga y presupuesto; no se añade un temporizador. Primera aplicación de la rúbrica de CP-205.
 
+Hallazgos de CP-201 con el perfil actual de Leah (a resolver aquí):
+
+- En una escena tranquila y ya habituada, las saliencias menores (piso de novedad 0,3) siguen sumando lo bastante para que la **deriva salte en cuanto acaba cada ventana refractaria** (30 s reales ≈ 43 min de juego en vanilla). Consecuencia: casi todos los hitos omitibles se omiten y la cadencia queda marcada por el refractario, no por la rutina.
+- El refractario multiplica el umbral de pico por hasta 1,5: durante ~45 s tras cualquier pulsión el pico es imposible (la saliencia es < 1), y con la deriva disparando cada 30 s, **el pico casi nunca llega**. Se suma al hallazgo de CP-102 (con los umbrales actuales el pico ya era difícil).
+- Palancas: umbral y semivida de la deriva, piso de novedad, ventana y subida del refractario, y si la deriva debería integrar solo la parte novedosa de la saliencia.
+
 ## Alcance
 
 - Un día vanilla completo con mente real; telemetría de pulsos, respuestas y costes.

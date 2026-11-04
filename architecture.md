@@ -70,9 +70,9 @@ CorazonPelican.sln
 │   │       ├── GeneradorEscena.cs       # Escena en segunda persona + apéndice de hechos
 │   │       └── GeneradorAccion.cs       # Prosa de acción para el búfer
 │   ├── Atencion/
-│   │   ├── Integrador.cs                # Acumulador con fuga
-│   │   ├── Disparadores.cs              # Pico, interlocución, deriva, hito, fin, compromiso, transición
-│   │   ├── Refractario.cs
+│   │   ├── Integrador.cs                # Acumulador con fuga en minutos de juego (integración exacta)
+│   │   ├── Disparadores.cs              # Pico, interlocución, deriva, hito, fin, compromiso, transición → Disparo
+│   │   ├── Refractario.cs               # Ventana y elevación de umbrales en tiempo real
 │   │   ├── PresupuestoPulsos.cs         # Por personaje, modo de reloj y día de juego; reserva para las cadenas
 │   │   ├── Bufer.cs                     # Búfer de prosa y consolidación fóvea/periferia temporal
 │   │   └── Huella.cs                    # Atención acumulada por entidad desde el último pensamiento
@@ -80,7 +80,7 @@ CorazonPelican.sln
 │   │   ├── Intencion.cs                 # Ciclo de vida y pesos de atención
 │   │   ├── ValidadorIntencion.cs        # Precondiciones contra la observación vigente
 │   │   ├── Acciones.cs                  # Vocabulario v1 (ir_a, sentarse, mirar, dibujar…)
-│   │   └── Rutina.cs                    # Hitos del horario del día, anotaciones del perfil y cambios (R-16)
+│   │   └── HitosRutina.cs               # Horario del día → hitos, con la anotación del perfil que coincide (cambios: R-16, CP-306)
 │   ├── Dialogo/
 │   │   ├── Actos.cs                     # promete, regala, cita, enseña, rechaza, acepta_regalo
 │   │   ├── ValidadorActos.cs            # Todos válidos o ninguno
@@ -156,7 +156,7 @@ de modo que un pack de Content Patcher pueda editar o añadir personajes sin có
   "id": "leah",
   "npc": "Leah",
   "rasgos": { "luz": 2.0, "agua": 1.8, "madera": 1.5, "color": 1.6, "persona": 0.8, "maquinaria": 0.3 },
-  "umbrales": { "foco": 0.70, "mencion": 0.40, "periferia": 0.15, "pico": 0.85, "deriva": 3.0, "histeresis": 0.02 },
+  "umbrales": { "foco": 0.70, "mencion": 0.40, "periferia": 0.15, "pico": 0.85, "deriva": 3.0, "deriva_semivida_min": 10, "histeresis": 0.02 },
   "refractario": { "subida": 0.5, "semivida_s": 30 },
   "presupuesto": {
     "vanilla": { "pulsos_por_dia_juego": 24, "reservados_cadenas": 2 },

@@ -35,6 +35,9 @@ namespace CorazonPelican.Core.Perfil
         [DataMember(Name = "pico")] public double Pico { get; set; }
         [DataMember(Name = "deriva")] public double Deriva { get; set; }
 
+        /// <summary>Semivida, en minutos de juego, de la fuga del integrador de la deriva (GSS §4.2).</summary>
+        [DataMember(Name = "deriva_semivida_min")] public double DerivaSemividaMin { get; set; } = 10;
+
         /// <summary>Margen para cambiar de banda (GSS §3.3); 0 = sin histéresis.</summary>
         [DataMember(Name = "histeresis")] public double Histeresis { get; set; }
     }

@@ -1,3 +1,4 @@
+using CorazonPelican.Core.Intencion;
 using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Tiempo;
 
@@ -20,6 +21,7 @@ public sealed class Escenario
     private int semilla = 1;
     private FakeMind mente = FakeMind.Rapida();
     private int jugadores;
+    private Func<int, string, HorarioDia?>? horarios;
 
     private Escenario(LugarSimulado inicio)
     {
@@ -75,6 +77,29 @@ public sealed class Escenario
         return this;
     }
 
+    /// <summary><paramref name="cantidad"/> personas sin relación repartidas alrededor, que deambulan (un festival).</summary>
+    public Escenario ConMultitud(int cantidad, int radio = 15)
+    {
+        for (var i = 0; i < cantidad; i++)
+        {
+            this.entidades.Add(new EntidadSimulada
+            {
+                Ref = $"npc:multitud_{i}", Categoria = CategoriaEntidad.Npc, Nombre = "alguien", Ubicacion = this.personaje.Ubicacion,
+                X = this.personaje.X - radio + ((i * 7) % (2 * radio)), Y = this.personaje.Y - radio + ((i * 11) % (2 * radio)),
+                Etiquetas = new[] { "persona" }, Deambula = true,
+            });
+        }
+
+        return this;
+    }
+
+    /// <summary>Cómo elige «el juego» el horario de cada día según el día y el clima.</summary>
+    public Escenario ConHorarios(Func<int, string, HorarioDia?> horarios)
+    {
+        this.horarios = horarios;
+        return this;
+    }
+
     public Escenario ConClima(string clima)
     {
         this.clima = clima;
@@ -115,5 +140,6 @@ public sealed class Escenario
             this.entidades.Select(e => e.Clonar()).ToList(),
             this.clima,
             this.semilla,
-            this.mente);
+            this.mente,
+            this.horarios);
 }
