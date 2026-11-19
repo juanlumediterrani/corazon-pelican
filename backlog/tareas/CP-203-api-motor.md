@@ -30,6 +30,7 @@ ADS §1 (principios), §5. Pelican 4Ever ya resuelve el patrón: `HttpListener` 
 ## Criterios de aceptación
 
 - [ ] `CuerpoNoBloqueaTests` (FakeWorld + mente lenta de 30 s): el tick del motor nunca tarda más de 2 ms (R-05).
+- [ ] Al drenar una respuesta con reflexión, comprobar sus orígenes sobre el pulso correspondiente con el validador de CP-211 antes de aplicar cambios.
 - [ ] Repetir un `POST respuestas` devuelve el mismo resultado sin reaplicar.
 - [ ] Tras simular una recarga (época nueva), un pulso con `id` repetido no se confunde con el anterior.
 - [ ] Un intento de conexión desde una IP no loopback es rechazado (test de configuración del listener).

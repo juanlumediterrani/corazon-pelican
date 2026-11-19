@@ -115,6 +115,12 @@
         "required": ["id", "con", "prosa", "plazo_juego"], "additionalProperties": false
       }
     },
+    "episodios_diario": {
+      "description": "Episodios ofrecidos para la reflexión, por id estable del diario del personaje.",
+      "type": "object",
+      "propertyNames": { "$ref": "comun.schema.json#/$defs/idEpisodio" },
+      "additionalProperties": { "$ref": "comun.schema.json#/$defs/prosa" }
+    },
     "diario_dia": {
       "description": "Solo en el hito «acostarse»: episodios del día para la reflexión.",
       "type": "array", "items": { "$ref": "comun.schema.json#/$defs/prosa" }
@@ -133,6 +139,7 @@
   "required": ["id", "epoca", "personaje", "motivo", "tiempo_juego", "escena", "hechos", "acciones_disponibles", "lugares", "bufer", "huella", "agenda"],
   "additionalProperties": false,
   "allOf": [
+    { "not": { "required": ["diario_dia", "episodios_diario"] } },
     { "if": { "properties": { "motivo": { "const": "hito" } } }, "then": { "required": ["hito"] } },
     { "if": { "properties": { "motivo": { "const": "interlocucion" } } }, "then": { "required": ["interlocutor", "caduca_en_ms"] } }
   ]

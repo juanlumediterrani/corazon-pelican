@@ -1,0 +1,12 @@
+{
+  "id": 52, "epoca": "primavera", "personaje": "leah", "motivo": "hito",
+  "tiempo_juego": { "dia": 4, "hora": 2200 },
+  "hito": { "id": "acostarse", "origen": "rutina", "forma": "cadena" },
+  "escena": "Cierras el cuaderno al acabar el día.", "hechos": {},
+  "acciones_disponibles": [], "lugares": [], "bufer": [], "agenda": [],
+  "huella": { "desde_ultimo_pensamiento_min_juego": 120, "prosa": "", "entidades": [] },
+  "episodios_diario": {
+    "ep-8": "La lluvia golpeaba el tejado mientras trabajabas.",
+    "ep-9": "Al caer la tarde guardaste el cuaderno."
+  }
+}

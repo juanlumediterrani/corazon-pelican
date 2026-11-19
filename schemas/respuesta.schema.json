@@ -97,8 +97,25 @@
     },
     "memoria": {
       "type": "object",
-      "properties": { "recordar": { "type": "array", "items": { "$ref": "comun.schema.json#/$defs/prosa" } } },
-      "required": ["recordar"], "additionalProperties": false
+      "properties": {
+        "recordar": { "type": "array", "items": { "$ref": "comun.schema.json#/$defs/prosa" } },
+        "reflexiones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "texto": { "$ref": "comun.schema.json#/$defs/prosa" },
+              "origen_diario": {
+                "type": "array", "minItems": 1, "uniqueItems": true,
+                "items": { "$ref": "comun.schema.json#/$defs/idEpisodio" }
+              }
+            },
+            "required": ["texto", "origen_diario"], "additionalProperties": false
+          }
+        }
+      },
+      "oneOf": [ { "required": ["recordar"] }, { "required": ["reflexiones"] } ],
+      "additionalProperties": false
     },
     "obra": {
       "description": "Decisión de una obra nueva para el taller (GSS §6.1).",

@@ -58,7 +58,22 @@ namespace CorazonPelican.Core.Contrato
 
     public sealed class MemoriaPropuesta
     {
-        [JsonPropertyName("recordar")] public List<string> Recordar { get; set; } = new();
+        private List<string> recordar = new();
+
+        [JsonPropertyName("recordar")]
+        public List<string>? Recordar
+        {
+            get => this.Reflexiones == null ? this.recordar : null;
+            set => this.recordar = value ?? new();
+        }
+
+        [JsonPropertyName("reflexiones")] public List<ReflexionPropuesta>? Reflexiones { get; set; }
+    }
+
+    public sealed class ReflexionPropuesta
+    {
+        [JsonPropertyName("texto")] public string Texto { get; set; } = "";
+        [JsonPropertyName("origen_diario")] public List<string> OrigenDiario { get; set; } = new();
     }
 
     public sealed class ObraPropuesta

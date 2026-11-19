@@ -442,14 +442,16 @@ loop:
   impresión separada de la acción. El host verifica la procedencia, acota su efecto y la
   guarda con el personaje. Al preparar otra pulsión, la mente recibe la impresión vigente y
   conserva libertad para seguir el horario, demorarse o elegir otra actividad permitida.
-  CP-206 y CP-210 deben ampliar los esquemas y DTO actuales para transportar las referencias
-  de origen. CP-305 observará la elección ejecutada en el juego.
+  CP-211 transporta los episodios con `episodios_diario` (id → prosa) y cada reflexión en
+  `memoria.reflexiones` con `texto` y `origen_diario`. El validador de Core comprueba el pulso,
+  la época y cada referencia. Los mensajes anteriores conservan `diario_dia` y `memoria.recordar`.
+  CP-206 conectará este contrato con la memoria persistida. CP-305 observará la elección ejecutada en el juego.
 * **Recuperación de memoria:** puntuación por recencia × importancia × relevancia respecto a la
   escena (inspirada en *Generative Agents*, Park et al., 2023).
 * **Cadenas (GSS §4.1):** un pulso de hito con `forma: cadena` (siempre `despertar` y
   `acostarse`; otros si el perfil lo dice) se resuelve en varias llamadas encadenadas, cada
   una con la salida de la anterior, y devuelve **una** respuesta. La de acostarse incluye la
-  **reflexión**: condensa el diario del día en recuerdos y los envía como `memoria.recordar` (el
+  **reflexión**: condensa el diario del día en recuerdos y los envía como `memoria.reflexiones` con sus episodios de origen (el
   motor poda el diario según su tope), junto con impresiones de relaciones y compromisos para
   mañana.
 * **Orden y guardado:** el motor emite `acostarse` cuando Leah se va a dormir o en

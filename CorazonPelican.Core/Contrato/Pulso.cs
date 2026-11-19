@@ -28,6 +28,7 @@ namespace CorazonPelican.Core.Contrato
         [JsonPropertyName("intencion_activa")] public IntencionActiva? IntencionActiva { get; set; }
         [JsonPropertyName("agenda")] public List<EntradaAgenda> Agenda { get; set; } = new();
         [JsonPropertyName("compromisos_proximos")] public List<CompromisoProximo>? CompromisosProximos { get; set; }
+        [JsonPropertyName("episodios_diario")] public Dictionary<string, string>? EpisodiosDiario { get; set; }
         [JsonPropertyName("diario_dia")] public List<string>? DiarioDia { get; set; }
         [JsonPropertyName("recuerdos")] public List<string>? Recuerdos { get; set; }
         [JsonPropertyName("interlocutor")] public Interlocutor? Interlocutor { get; set; }

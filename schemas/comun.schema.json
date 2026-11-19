@@ -23,6 +23,10 @@
       "description": "Nombre único del léxico del personaje (lugares, objetos).",
       "type": "string", "pattern": "^[a-z][a-z0-9_]*$"
     },
+    "idEpisodio": {
+      "description": "Identidad estable asignada por el motor a una entrada del diario del personaje.",
+      "type": "string", "minLength": 1, "pattern": "^[^\\s]+$"
+    },
     "idHito": {
       "description": "Hito de la agenda: «despertar», «acostarse», «<clave de horario>:<hora>» o el de un plan de intención.",
       "type": "string", "pattern": "^[A-Za-z0-9_-]+(:[A-Za-z0-9_-]+)?$"

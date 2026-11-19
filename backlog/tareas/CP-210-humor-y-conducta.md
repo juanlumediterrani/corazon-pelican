@@ -18,7 +18,7 @@ Una experiencia que el personaje interpreta a la luz de su historia puede influi
 ## Alcance
 
 - Partir de episodios identificables del diario y recuerdos disponibles en la pulsión. La mente puede explicar cómo le sentaron, conservar su humor previo o revisarlo. Reutilizar los pensamientos y reflexiones del día.
-- Ampliar el contrato compartido y sus ejemplos en ambos lenguajes. Hoy `diario_dia` y `memoria.recordar` transportan cadenas. CP-206 debe aportar las referencias de origen que permitan validar una impresión. Mantener la lectura de perfiles y partidas anteriores.
+- Ampliar el contrato compartido con la impresión y sus límites. Reutilizar los episodios identificados y la comprobación de origen de CP-211. CP-206 conserva sus referencias al guardar un recuerdo. Mantener la lectura de perfiles y partidas anteriores.
 - El host comprueba origen, época y límites del perfil, persiste la impresión con el personaje y la devuelve en pulsos posteriores. Concretar en el perfil su duración e intensidad y documentar los valores ensayados. Una impresión puede perder fuerza antes de que se olvide el episodio.
 - La mente puede elegir una atención, una pausa o una pequeña variación permitida de la rutina. Toda acción efectiva sigue el camino normal de intención y validación. Los detalles de Leah pertenecen a su perfil y a sus escenas.
 

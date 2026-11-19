@@ -23,7 +23,7 @@ GSS §4.4 y §9.2. Sin LLM resumidor: la consolidación es la fóvea/periferia a
 
 - `Bufer.cs`: inserción (solo desde la banda de mención), consolidación, tamaño máximo.
 - `Huella.cs`: atención acumulada por entidad (tiempo en foco o mención × saliencia, con fuga), reiniciada en cada pulso; minutos de juego desde el último pensamiento; frase con las plantillas del perfil.
-- Diario de episodios con fecha de juego, saliencia y entidades.
+- Diario de episodios con id estable por personaje, fecha de juego, saliencia y entidades. Conservar el id en el guardado para las referencias de CP-211.
 - Envejecimiento y poda con tope (`Consolidacion.cs`).
 
 ## Criterios de aceptación
