@@ -1,0 +1,319 @@
+{
+  "estaciones": {
+    "primavera": "primavera",
+    "verano": "verano",
+    "otono": "otoño",
+    "invierno": "invierno"
+  },
+  "franjas_horarias": {
+    "madrugada": [
+      "Aún es madrugada de {estacion}.",
+      "Queda quietud de madrugada en este día de {estacion}.",
+      "Empieza a clarear apenas en esta madrugada de {estacion}."
+    ],
+    "manana": [
+      "Es por la mañana en {estacion}.",
+      "Avanza la mañana de {estacion}.",
+      "Tienes la mañana de {estacion} por delante."
+    ],
+    "mediodia": [
+      "Es mediodía de {estacion}.",
+      "El día de {estacion} está en su mitad.",
+      "Llega el mediodía en esta jornada de {estacion}."
+    ],
+    "tarde": [
+      "Avanza la tarde de {estacion}.",
+      "Es media tarde de {estacion}.",
+      "Transcurre la tarde en pleno {estacion}."
+    ],
+    "atardecer": [
+      "Es última hora de la tarde de {estacion}.",
+      "Cae la tarde de {estacion}.",
+      "Se acerca el final de la tarde en {estacion}."
+    ],
+    "noche": [
+      "Es ya de noche en {estacion}.",
+      "Ha caído la noche sobre esta jornada de {estacion}.",
+      "Avanza la noche de {estacion}."
+    ]
+  },
+  "climas": {
+    "soleado": [
+      "El tiempo está despejado y tranquilo.",
+      "El aire llega claro y sin nubes.",
+      "El día acompaña con cielo abierto."
+    ],
+    "despejado": [
+      "El cielo se mantiene limpio.",
+      "No hay nubes que velen el aire.",
+      "El ambiente está claro y sereno."
+    ],
+    "lluvia": [
+      "Cae una lluvia pareja y constante.",
+      "La lluvia golpea de forma continua alrededor.",
+      "El aire huele a humedad bajo una lluvia fina."
+    ],
+    "tormenta": [
+      "La tormenta carga el aire con rachas fuertes.",
+      "Retumban truenos entre la lluvia intensa.",
+      "El cielo cerrado descarga con fuerza."
+    ],
+    "viento": [
+      "Sopla el viento de {estacion} a rachas sueltas.",
+      "El viento de {estacion} mueve el aire sin tregua.",
+      "Notas correr un viento fresco de {estacion}."
+    ],
+    "nieve": [
+      "Cae nieve despacio, amortiguando los contornos.",
+      "La nevada vuelve más blancos y quietos los bordes.",
+      "Flotan copos de nieve en el aire frío."
+    ],
+    "por_defecto": [
+      "El tiempo se mantiene estable.",
+      "El ambiente sigue sin cambios bruscos.",
+      "La jornada continúa con calma."
+    ]
+  },
+  "luz": {
+    "clara": [
+      "Hay buena luz para distinguir cada contorno y cada matiz.",
+      "La luz entra limpia y deja ver los contrastes sin esfuerzo.",
+      "La claridad alcanza bien las formas y las sombras."
+    ],
+    "penumbra": [
+      "La luz empieza a caer y suaviza los bordes de las cosas.",
+      "Queda una luz media que vuelve más largos los tonos.",
+      "La media luz obliga a fijar más la vista en cada silueta."
+    ],
+    "oscura": [
+      "Queda muy poca luz y apenas se distinguen los perfiles.",
+      "La oscuridad apaga los colores y deja solo bultos.",
+      "A esta hora ya no hay luz bastante para apreciar detalles finos."
+    ]
+  },
+  "lugar": {
+    "actual": [
+      "Estás en {lugar}.",
+      "Te encuentras en {lugar}.",
+      "Pasas este momento en {lugar}."
+    ],
+    "sin_lugar": []
+  },
+  "energia": {
+    "alta": [],
+    "media": [],
+    "baja": [
+      "Notas el cansancio en las manos y en la vista.",
+      "El cuerpo te pide bajar el ritmo después de tantas horas.",
+      "Sientes el peso del día en los hombros."
+    ]
+  },
+  "obra_en_curso": [
+    "Llevas entre manos {obra}.",
+    "Tienes presente {obra}, todavía por rematar.",
+    "Sigues dándole vueltas a {obra}."
+  ],
+  "intencion_activa": [
+    "Tienes en mente {intencion}.",
+    "Sigues con el propósito de {intencion}.",
+    "Tu intención ahora es {intencion}."
+  ],
+  "entidades": {
+    "granjero": {
+      "foco": [
+        "Tienes delante a {nombre}, {cercania} ({rumbo}); es {relacion}.",
+        "Tu atención se fija en {nombre}, que está {cercania}, {rumbo}.",
+        "Miras con detalle a {nombre} ({rumbo}); al ser {relacion}, distingues enseguida su gesto.",
+        "Reparas en {nombre}, {cercania} y {rumbo}, con toda claridad."
+      ],
+      "mencion": [
+        "Notas a {nombre} {rumbo}, {cercania}.",
+        "Distingues a {nombre} {rumbo}, sin apartar del todo tu atención.",
+        "Sabes que {nombre} anda {cercania}, {rumbo}."
+      ],
+      "periferia": {
+        "referencia": "alguien",
+        "variantes": [
+          "Por el rabillo del ojo notas a {referencia} que se mueve {rumbo}.",
+          "A lo lejos, {rumbo}, se distingue {referencia} sin llegar a ver quién es.",
+          "Adviertes la silueta imprecisa de {referencia} {rumbo}."
+        ]
+      }
+    },
+    "npc": {
+      "foco": [
+        "Observas con nitidez a {nombre}, {cercania} ({rumbo}).",
+        "Tu atención recae en {nombre}, que permanece {cercania}, {rumbo}.",
+        "Tienes a la vista a {nombre} ({rumbo}), {cercania}; es {relacion}.",
+        "Te fijas en {nombre}, {cercania} y {rumbo}, sin perder detalle."
+      ],
+      "mencion": [
+        "Ves pasar o detenerse a {nombre} {rumbo}.",
+        "Distingues a {nombre} {rumbo}, {cercania}.",
+        "Adviertes la presencia de {nombre} {rumbo}."
+      ],
+      "periferia": {
+        "referencia": "alguien",
+        "variantes": [
+          "En el borde de tu atención pasa {referencia} {rumbo}.",
+          "Apenas percibes a {referencia} {rumbo}, demasiado lejos para fijarte.",
+          "Notas un paso de {referencia} {rumbo} sin levantar del todo la vista."
+        ]
+      }
+    },
+    "animal": {
+      "foco": [
+        "Fijas la mirada en {nombre}, {cercania} ({rumbo}), siguiendo su postura.",
+        "Observas con atención cómo se mueve {nombre}, {cercania} y {rumbo}.",
+        "Tu vista se detiene en {nombre} ({rumbo}); distingues bien su silueta, {cercania}.",
+        "Reparas en {nombre}, {cercania} ({rumbo}), como un detalle vivo en mitad de la escena."
+      ],
+      "mencion": [
+        "Notas {nombre} {rumbo}, {cercania}.",
+        "Reparas brevemente en {nombre} {rumbo}.",
+        "Adviertes {nombre} {rumbo}, {cercania}."
+      ],
+      "periferia": {
+        "referencia": "un animal",
+        "variantes": [
+          "Oyes un roce breve: parece {referencia} moviéndose {rumbo}.",
+          "En el borde de tu campo visual cruza {referencia} {rumbo}.",
+          "Notas un movimiento ligero de {referencia} {rumbo}."
+        ]
+      }
+    },
+    "objeto": {
+      "foco": [
+        "Observas {nombre} ({rumbo}), {cercania}, con sus líneas y texturas bien marcadas.",
+        "Tu atención se detiene en {nombre}, {cercania} y {rumbo}.",
+        "Miras de cerca {nombre} ({rumbo}): distingues su forma y su peso visual.",
+        "Tienes presente {nombre}, {cercania} ({rumbo}), ocupando parte clara de tu campo visual."
+      ],
+      "mencion": [
+        "Queda a la vista {nombre} ({rumbo}).",
+        "Adviertes {nombre}, {cercania}.",
+        "Reparas de pasada en {nombre} ({rumbo})."
+      ],
+      "periferia": {
+        "referencia": "un bulto",
+        "variantes": [
+          "Queda fuera de foco {referencia} {rumbo}.",
+          "Apenas reparas en {referencia} {rumbo}, en el límite de lo que miras.",
+          "Distingues sin detalle {referencia} {rumbo}."
+        ]
+      }
+    },
+    "terreno": {
+      "foco": [
+        "Fijas la mirada en {nombre} ({rumbo}); sus tonos y reflejos dominan lo que ves.",
+        "Contemplas {nombre}, {cercania} y {rumbo}, midiendo sus formas y matices.",
+        "Tu vista vuelve una y otra vez hacia {nombre} ({rumbo}), {cercania}.",
+        "Observas con calma {nombre} ({rumbo}), {cercania}, buscando dónde cae la luz sobre la superficie."
+      ],
+      "mencion": [
+        "Se extiende {nombre} {rumbo}.",
+        "Adviertes {nombre} {rumbo} como parte del fondo.",
+        "Tienes {nombre} {cercania}, sin detenerte aún en sus detalles."
+      ],
+      "periferia": {
+        "referencia": "un tramo del entorno",
+        "variantes": [
+          "A lo lejos, {rumbo}, queda {referencia} sin reclamar tu atención.",
+          "En el margen de la escena se insinúa {referencia} {rumbo}.",
+          "Apenas reparas en {referencia} {rumbo}."
+        ]
+      }
+    }
+  },
+  "acciones": {
+    "ir_a": [
+      "Echas a andar hacia {lugar}.",
+      "Tomas el camino en dirección a {lugar}.",
+      "Te encaminas despacio hacia {lugar}."
+    ],
+    "sentarse": [
+      "Te sientas en {lugar} para tomar aire.",
+      "Buscas asiento en {lugar}.",
+      "Te acomodas un rato en {lugar}."
+    ],
+    "mirar": [
+      "Detienes la mirada en {objetivo}.",
+      "Fijas la atención sobre {objetivo}.",
+      "Observas un momento {objetivo}."
+    ],
+    "levantar_la_vista": [
+      "Levantas la vista de lo que estabas haciendo.",
+      "Apartas un momento los ojos de la tarea y miras alrededor.",
+      "Alzas la cabeza para abarcar el lugar."
+    ],
+    "dibujar": [
+      "Abres el cuaderno y trazas líneas para {obra}.",
+      "Trabajas con el lápiz sobre {obra}.",
+      "Anotas formas y sombras en {obra}."
+    ],
+    "guardar_cuaderno": [
+      "Cierras con cuidado el cuaderno y lo guardas.",
+      "Recoges el cuaderno antes de cambiar de postura.",
+      "Guardas el cuaderno dejando la página marcada."
+    ],
+    "gesto": [
+      "Haces un gesto breve de {tipo}.",
+      "Dejas ver un gesto claro de {tipo}.",
+      "Respondes con una señal rápida de {tipo}."
+    ],
+    "murmurar": [
+      "Murmuras para ti: «{texto}».",
+      "Dices en voz muy baja: «{texto}».",
+      "Dejas escapar por lo bajo: «{texto}»."
+    ],
+    "esperar": [
+      "Te quedas quieta unos {duracion} minutos, sin prisas.",
+      "Esperas alrededor de {duracion} minutos observando cómo pasa el rato.",
+      "Dejas correr {duracion} minutos antes de moverte."
+    ],
+    "volver_a_rutina": [
+      "Retomas el ritmo habitual de tu jornada.",
+      "Vuelves a tu horario de costumbre.",
+      "Dejas atrás el desvío y sigues con tu rutina."
+    ]
+  },
+  "percepcion_bufer": {
+    "granjero": [
+      "Reparas en que {nombre} anda cerca.",
+      "Notas la presencia de {nombre}."
+    ],
+    "npc": [
+      "Distingues a {nombre} por allí.",
+      "Notas que {nombre} está a la vista."
+    ],
+    "animal": [
+      "Sigues un momento con la vista {nombre}.",
+      "Te fijas en {nombre} mientras se mueve."
+    ],
+    "objeto": [
+      "Te detienes un instante en {nombre}.",
+      "Miras de paso {nombre}."
+    ],
+    "terreno": [
+      "Te quedas mirando {nombre}.",
+      "Reparas en los tonos de {nombre}."
+    ]
+  },
+  "huella": {
+    "una_entidad": [
+      "Durante {tiempo} te has fijado sobre todo en {primera}.",
+      "A lo largo de {tiempo}, tu atención ha vuelto una y otra vez hacia {primera}.",
+      "Al cabo de {tiempo}, lo que más te ha retenido la mirada es {primera}."
+    ],
+    "varias_entidades": [
+      "Durante {tiempo} te has fijado sobre todo en {primera} y también en {segunda}.",
+      "En este tramo de {tiempo}, tu atención se ha repartido entre {primera} y {segunda}.",
+      "Al cabo de {tiempo}, recuerdas haber mirado ante todo {primera}, junto con {segunda}."
+    ],
+    "sin_entidades": [
+      "Ha pasado {tiempo} sin que nada en particular te detuviera la mirada.",
+      "Durante {tiempo} has dejado correr el rato sin fijarte en nada concreto.",
+      "A lo largo de {tiempo}, nada del entorno ha reclamado demasiado tu atención."
+    ]
+  }
+}

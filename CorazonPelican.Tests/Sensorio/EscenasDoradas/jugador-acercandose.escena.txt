@@ -1,0 +1,20 @@
+Es por la mañana en primavera. El aire llega claro y sin nubes. La luz entra limpia y deja ver los contrastes sin esfuerzo. Te encuentras en el claro del bosque donde dibujas en primavera. Tienes delante a Ana, muy cerca (al norte); es alguien de confianza. Adviertes el arroyo al oeste como parte del fondo. Notas un movimiento ligero de un animal al este.
+
+— Hechos —
+hora 11:00 · primavera 10 · soleado · luz clara · energía alta
+cerca: farmer:1 — Ana (9 corazones, a 3 casillas)
+entidades:
+- farmer:1 — Ana
+- terreno:Forest:arroyo — el arroyo
+- animal:Forest:ardilla — un animal
+lugares:
+- tu_casa — tu casa
+- mesa_de_esculpir — tu mesa de esculpir
+- claro_del_bosque — el claro del bosque donde dibujas en primavera
+- playa — la playa, junto a las rocas
+- plaza — la plaza del pueblo
+- saloon — el Saloon
+- tienda_de_pierre — la tienda de Pierre
+- pasarela_lago — la pasarela de madera del lago
+- orilla_norte — la orilla norte del lago
+acciones: ir_a · sentarse · mirar · levantar_la_vista · dibujar · guardar_cuaderno · gesto · murmurar · esperar · volver_a_rutina

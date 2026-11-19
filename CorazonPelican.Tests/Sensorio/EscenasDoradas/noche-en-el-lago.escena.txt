@@ -1,0 +1,18 @@
+Avanza la noche de invierno. Cae nieve despacio, amortiguando los contornos. Queda muy poca luz y apenas se distinguen los perfiles. Sientes el peso del día en los hombros. Apenas reparas en un tramo del entorno al sur.
+
+— Hechos —
+hora 21:30 · invierno 11 · nieve · luz oscura · energía baja
+cerca: nadie
+entidades:
+- agua:Mountain:lago — un tramo del entorno
+lugares:
+- tu_casa — tu casa
+- mesa_de_esculpir — tu mesa de esculpir
+- claro_del_bosque — el claro del bosque donde dibujas en primavera
+- playa — la playa, junto a las rocas
+- plaza — la plaza del pueblo
+- saloon — el Saloon
+- tienda_de_pierre — la tienda de Pierre
+- pasarela_lago — la pasarela de madera del lago
+- orilla_norte — la orilla norte del lago
+acciones: ir_a · esperar · volver_a_rutina

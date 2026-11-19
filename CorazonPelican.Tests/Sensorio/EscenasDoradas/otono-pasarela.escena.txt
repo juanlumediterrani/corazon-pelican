@@ -1,0 +1,21 @@
+Es última hora de la tarde de otoño. El viento de otoño mueve el aire sin tregua. La media luz obliga a fijar más la vista en cada silueta. Tienes presente el boceto del sauce, todavía por rematar. Se extiende el lago al sur. Adviertes la pasarela de madera, al alcance de la mano. Notas a Ana al norte, a pocos pasos.
+
+— Hechos —
+hora 17:40 · otoño 12 · viento · luz penumbra · energía alta
+obra_en_curso: el boceto del sauce
+cerca: farmer:1 — Ana (6 corazones, a 9 casillas)
+entidades:
+- agua:Mountain:lago — el lago
+- obj:Mountain:40,30:pasarela — la pasarela de madera
+- farmer:1 — Ana
+lugares:
+- tu_casa — tu casa
+- mesa_de_esculpir — tu mesa de esculpir
+- claro_del_bosque — el claro del bosque donde dibujas en primavera
+- playa — la playa, junto a las rocas
+- plaza — la plaza del pueblo
+- saloon — el Saloon
+- tienda_de_pierre — la tienda de Pierre
+- pasarela_lago — la pasarela de madera del lago
+- orilla_norte — la orilla norte del lago
+acciones: ir_a · sentarse · mirar · levantar_la_vista · dibujar · guardar_cuaderno · gesto · murmurar · esperar · volver_a_rutina

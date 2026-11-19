@@ -16,10 +16,11 @@ En FakeWorld se prueban la saliencia, las bandas de detalle, los disparadores de
 el presupuesto de pulsos y el léxico único. La observación del juego, las plantillas de prosa,
 la API que entregará los pulsos a la mente y la ejecución de intenciones siguen pendientes.
 
-Cuatro reglas del diseño cuentan con guarda: el nivel de detalle según la banda de percepción
-(R-03, CP-103), el presupuesto diario aplicado por el motor (R-04, CP-202), la exclusión de
-coordenadas y rutas en los planes de la mente (R-13, CP-002) y el léxico único compartido
-(R-14, CP-105). Las tareas y sus pruebas están en el [backlog](backlog/README.md).
+Seis reglas del diseño cuentan con guarda: las plantillas deterministas (R-01, CP-104),
+la ausencia de alucinaciones en escena (R-02, CP-104), el nivel de detalle según la banda de
+percepción (R-03, CP-103), el presupuesto diario aplicado por el motor (R-04, CP-202), la
+exclusión de coordenadas y rutas en los planes de la mente (R-13, CP-002) y el léxico único
+compartido (R-14, CP-105). Las tareas y sus pruebas están en el [backlog](backlog/README.md).
 
 | Documento | Para qué |
 |---|---|
@@ -31,10 +32,11 @@ coordenadas y rutas en los planes de la mente (R-13, CP-002) y el léxico único
 | [`backlog/README.md`](backlog/README.md) | Índice de tareas (formato Dr4co Core), trazabilidad de reglas |
 | [`tools/xnbdump/`](tools/xnbdump/) | Lector de datos `.xnb` del juego (horarios, animaciones) |
 
-Las dos tareas P1 listas son la prueba de legibilidad de los cuadros (CP-013) y las plantillas
-de prosa deterministas (CP-104); en P2, CP-005 desbloquea la observación y la API del motor.
-El índice recoge las [tareas listas](backlog/README.md#tareas-listas) y [AGENTS.md](AGENTS.md)
-contiene los comandos para verificar la solución.
+Las tareas P1 listas sin juego vivo son la prueba de legibilidad de los cuadros (CP-013),
+el observador del juego (CP-101) y la API loopback del motor (CP-203); en P2, CP-106 desbloquea
+la persistencia del diario (CP-107). El índice recoge las
+[tareas listas](backlog/README.md#tareas-listas) y [AGENTS.md](AGENTS.md) contiene los comandos
+para verificar la solución.
 
 Proyectos hermanos: Pelican 4Ever (`../Stardew Valley MORPG`) y Stardew Voyager
 (`../stardew-voyager`).

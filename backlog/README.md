@@ -38,8 +38,8 @@ Estas cinco fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-013 taller · CP-101 observador · CP-104 prosa determinista · CP-203 API motor |
-| P2 | CP-006 medición de lugares 🎮 |
+| P1 | CP-013 taller · CP-101 observador · CP-203 API motor |
+| P2 | CP-006 medición de lugares 🎮 · CP-106 búfer y diario |
 
 CP-014 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
 
@@ -62,7 +62,7 @@ CP-014 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.
 | [CP-101](tareas/CP-101-observador-juego.md) | ObservadorJuego · del estado del juego a una Observacion de solo lectura | F1 | P1 | CP-003, CP-005 | pendiente |
 | [CP-102](tareas/CP-102-saliencia.md) | Saliencia de cinco capas con distancia, línea de visión y novedad | F1 | P1 | CP-003, CP-004 | hecha |
 | [CP-103](tareas/CP-103-bandas-gradiente.md) | Bandas de detalle foco/mención/periferia/ausente | F1 | P1 | CP-102 | hecha |
-| [CP-104](tareas/CP-104-prosa-determinista.md) | Plantillas de prosa deterministas, escena y prosa de acción, con escenas doradas | F1 | P1 | CP-103, CP-105 | pendiente |
+| [CP-104](tareas/CP-104-prosa-determinista.md) | Plantillas de prosa deterministas, escena y prosa de acción, con escenas doradas | F1 | P1 | CP-103, CP-105 | hecha |
 | [CP-105](tareas/CP-105-lexico-unico.md) | Léxico único compartido por percepción, acción y diálogo | F1 | P2 | CP-003 | hecha |
 | [CP-106](tareas/CP-106-bufer-diario.md) | Búfer de prosa de acción, huella de atención y diario con consolidación temporal | F1 | P2 | CP-104 | pendiente |
 | [CP-107](tareas/CP-107-persistencia-estado.md) | Estado del personaje persistido con la partida, con versión y migraciones | F1 | P1 | CP-106 | pendiente |
