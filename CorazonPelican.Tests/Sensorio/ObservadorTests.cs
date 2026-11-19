@@ -162,20 +162,25 @@ public class ObservadorTests
         medidor.Registrar("observar", 0.8);
         medidor.Registrar("observar", 0.3);
         medidor.Registrar("saliencia", 0.1);
-        using (medidor.Medir("observar"))
+        using (medidor.Medir("medido"))
         {
             // Alcance vacío para cubrir la ruta sin asignaciones de Stopwatch.
         }
 
         var observar = medidor.Obtener("observar");
         Assert.NotNull(observar);
-        Assert.Equal(4, observar!.Muestras);
+        Assert.Equal(3, observar!.Muestras);
         Assert.Equal(0.8, observar.MaximoMs, precision: 6);
-        Assert.True(observar.MinimoMs >= 0.0 && observar.MinimoMs <= 0.3);
-        Assert.True(observar.MedioMs > 0.0);
+        Assert.Equal(0.3, observar.MinimoMs, precision: 6);
+        Assert.Equal(0.5, observar.MedioMs, precision: 6);
+
+        var medido = medidor.Obtener("medido");
+        Assert.NotNull(medido);
+        Assert.Equal(1, medido!.Muestras);
+        Assert.True(medido.MaximoMs >= 0.0 && medido.MedioMs >= 0.0);
 
         var resumen = medidor.Resumen();
-        Assert.Equal(new[] { "observar", "saliencia" }, resumen.Select(r => r.Paso));
+        Assert.Equal(new[] { "observar", "saliencia", "medido" }, resumen.Select(r => r.Paso));
         Assert.Null(medidor.Obtener("inexistente"));
 
         medidor.Reiniciar();

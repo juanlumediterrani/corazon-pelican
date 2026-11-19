@@ -16,6 +16,7 @@ namespace CorazonPelican
     /// <summary>Punto de entrada del mod (ADS §2, CP-005).</summary>
     public sealed class ModEntry : Mod
     {
+        private readonly List<IDisposable> modulosDescartables = new();
         private CargadorPerfiles? perfiles;
         private ModContext? context;
         private ObservadorJuego? observador;
@@ -57,6 +58,7 @@ namespace CorazonPelican
             this.observador = new ObservadorJuego();
 
             this.RegistrarModulos(
+                new ApiModule(),
                 new ConsolaModule());
 
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
@@ -75,7 +77,14 @@ namespace CorazonPelican
             this.context.EstadoModulos = RegistroModulos.RegistrarTodos(
                 modulos,
                 m => m.Nombre,
-                m => m.Registrar(this.context),
+                m =>
+                {
+                    m.Registrar(this.context);
+                    if (m is IDisposable descartable)
+                    {
+                        this.modulosDescartables.Add(descartable);
+                    }
+                },
                 nombre => this.Monitor.Log($"Módulo «{nombre}» registrado.", LogLevel.Trace),
                 fallo => this.Monitor.Log($"Módulo «{fallo.Nombre}» falló al registrarse y queda desactivado:\n{fallo.Error}", LogLevel.Error));
         }
@@ -169,6 +178,27 @@ namespace CorazonPelican
             this.context.MotorActivoEnPartida = false;
             this.context.CostesBucle.Reiniciar();
             this.context.UltimasObservaciones.Clear();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                foreach (var modulo in this.modulosDescartables)
+                {
+                    try
+                    {
+                        modulo.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                this.modulosDescartables.Clear();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

@@ -34,11 +34,11 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas cinco fichas están pendientes y tienen todas sus dependencias hechas.
+Estas seis fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-013 taller · CP-203 API motor · CP-212 agenda y rutina |
+| P1 | CP-013 taller · CP-204 mente sin cuerpo · CP-212 agenda y rutina · CP-301 validador intención |
 | P2 | CP-006 medición de lugares 🎮 · CP-106 búfer y diario |
 
 CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
@@ -70,7 +70,7 @@ CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/dec
 | [CP-109](tareas/CP-109-habitante-y-telemetria.md) | HabitanteModule, telemetría JSONL y comandos cp_escena / cp_pulso | F1 | P1 | CP-101, CP-104, CP-106 | pendiente |
 | [CP-201](tareas/CP-201-integrador-disparadores.md) | Integrador con fuga, refractario y disparadores de pulsión, incluidos los hitos de rutina | F2 | P1 | CP-102, CP-004, CP-003 | hecha |
 | [CP-202](tareas/CP-202-presupuesto-pulsos.md) | Presupuesto de pulsos aplicado por el motor, por modo de reloj, con reserva para las cadenas | F2 | P1 | CP-201 | hecha |
-| [CP-203](tareas/CP-203-api-motor.md) | API loopback del motor con long-poll, cola al hilo principal, idempotencia y época | F2 | P1 | CP-002, CP-005 | pendiente |
+| [CP-203](tareas/CP-203-api-motor.md) | API loopback del motor con long-poll, cola al hilo principal, idempotencia y época | F2 | P1 | CP-002, CP-005 | hecha |
 | [CP-204](tareas/CP-204-mente-sin-cuerpo.md) | Mente en Python que recibe pulsos y escribe pensamientos (sin cuerpo) | F2 | P1 | CP-203, CP-205 | pendiente |
 | [CP-205](tareas/CP-205-voz-y-rubrica.md) | Voz de Leah y rúbrica de coherencia de carácter | F2 | P1 | — | hecha |
 | [CP-206](tareas/CP-206-memoria-recuperacion-reflexion.md) | Recuperación de memoria y reflexión del día | F2 | P2 | CP-204, CP-107, CP-211 | pendiente |

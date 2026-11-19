@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CorazonPelican.Core.Api;
 using CorazonPelican.Core.Config;
 using CorazonPelican.Core.Perfil;
 using CorazonPelican.Core.Sensorio;
@@ -48,8 +49,11 @@ namespace CorazonPelican.Framework
         public ResultadoRegistroModulos EstadoModulos { get; internal set; } =
             new(Array.Empty<string>(), Array.Empty<FalloModulo>());
 
-        /// <summary>Estado observable de la API HTTP motor ↔ mente (lo actualizará <c>ApiModule</c> en CP-203).</summary>
-        public string EstadoApi { get; set; } = "no iniciada (ApiModule pendiente)";
+        /// <summary>Estado y cola de acciones de la API motor ↔ mente (CP-203).</summary>
+        public ApiMotor Api { get; }
+
+        /// <summary>Estado observable de la API HTTP motor ↔ mente (actualizado por <c>ApiModule</c>).</summary>
+        public string EstadoApi { get; set; } = "no iniciada";
 
         /// <summary>Contador de coste por paso del bucle del motor (ADS §4, CP-101).</summary>
         public MedidorCosteBucle CostesBucle { get; } = new();
@@ -63,6 +67,7 @@ namespace CorazonPelican.Framework
             this.Monitor = monitor;
             this.Manifest = manifest;
             this.Config = config;
+            this.Api = new ApiMotor(manifest.Version.ToString());
             this.EstaActivo = true;
         }
     }
