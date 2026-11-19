@@ -94,6 +94,18 @@ queda incumplido. La carta sigue disponible para lectura y desde ese momento ya 
 respuesta. CP-202 probará la
 contabilidad, CP-502 el vencimiento y CP-509 la petición y respuesta del destinatario.
 
+### P-9 · El humor recoge cómo el personaje interpreta lo vivido (2026-11-19)
+
+El personaje puede cambiar pequeñas pautas de conducta durante varios días a raíz de sus
+experiencias en el valle. La mente interpreta un episodio según su carácter y sus recuerdos.
+El motor guarda esa impresión con la partida y limita sus efectos. La huella de atención
+(P-8) sigue describiendo qué le llamó la atención desde la última pulsión.
+
+Por ejemplo, tras varias tardes trabajando a gusto en casa, Leah puede querer seguir allí un
+rato. Si vivió esas tardes como aislamiento, puede guardar antes el cuaderno para salir. El
+perfil permite ambas elecciones. La duración y la intensidad se calibrarán con muestras. CP-210
+prepara la prueba entre días, CP-208 evalúa la interpretación y CP-305 observa la conducta.
+
 ## 2. Pendiente de decidir
 
 | # | Propuesta o pregunta | Recomendación | Tarea |
@@ -105,7 +117,6 @@ contabilidad, CP-502 el vencimiento y CP-509 la petición y respuesta del destin
 | GSS §14.3 | Segundo personaje | Elliott: su obra es texto, obliga a que «obra» no sea «sprite» | CP-902 |
 | GSS §14.4 | ¿Leah inicia conversación en v1? | No como diálogo; sí acercarse + `murmurar`/`gesto` cuando la apertura lo permita | CP-902 |
 | GSS §14.5 | Cambios de rutina con efecto mecánico (Pierre cierra la tienda) | Fuera de v1; en v2 con aviso visible, límites en el perfil y coherencia con el canon (Pierre ya cierra los miércoles) | CP-902 |
-| P-9 | Tono: ejes del perfil (p. ej. calma–inquietud, inspiración) que lo atendido desplaza con decaimiento y viajan en el pulso | Esperar a CP-208: añadirlo solo si la huella no basta para teñir la perspectiva | CP-208 |
 | P-10 | Velocidad de consolidación del búfer y de fuga de la huella por personaje (alguien distraído olvida antes) | Parámetros del perfil con valores por defecto del motor | CP-106 |
 | — | Inscribir el proyecto en Dr4co Core | Decisión del usuario; el backlog ya usa su formato | — |
 | — | UniqueID del mod | `Dr4co.CorazonPelican` (propuesto) | CP-001 |

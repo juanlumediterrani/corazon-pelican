@@ -17,9 +17,10 @@
   dentro del mundo; decide qué quiere; su cuerpo lo hace; y lo que crea se queda en el valle.
 * **Primera instancia:** **Leah**, escultora y pintora. Su oficio (mirar y plasmar lo que
   mira) hace visible el sistema entero: percepción, atención, intención y obra.
-* **Escena fundacional:** Leah está en la pasarela de madera del lago, con el cuaderno en las
-  rodillas. Alguien se acerca y le pide que dibuje. Lo que dibuje nacerá de lo que *ve* ahora,
-  de lo que recuerda y de quién se lo pide — no de un menú.
+* **Escena fundacional.** Ayer Leah dejó un boceto a medias. Hoy, al disponerse a salir,
+  recuerda qué le costó captar. Si la luz le sirve, puede quedarse a trabajar un rato más.
+  Si le apetece salir de casa después de una mañana a solas, puede cerrar el cuaderno e ir al
+  Saloon como tenía previsto. Al cruzársela, el granjero la encuentra en mitad de su día.
 
 ### 1.1. Pilares
 
@@ -33,6 +34,11 @@
    validada o no se dice.
 5. **El peor caso es la Leah de siempre.** Si la mente falla, Leah vuelve a su rutina canónica.
    Nunca queda congelada, muda o rota.
+
+El personaje puede iniciar algo aunque nadie le hable. También puede seguir con lo que estaba
+haciendo. Para juzgar la iniciativa hay que conocer qué estaba haciendo, qué percibió y qué
+opciones tenía cuando eligió. Una tarde en que Leah sigue absorta en su mesa puede ser tan
+reveladora como otra en que cambia de planes.
 
 ### 1.2. Motor y personaje
 
@@ -109,6 +115,14 @@ Cada entidad recibe una saliencia que combina cinco capas:
 | **Relación** | Días (corazones) | Con pocos corazones el jugador es «alguien»; con muchos, lo nota llegar de lejos |
 
 Además, la **distancia y la línea de visión** atenúan toda saliencia física.
+
+**Humor entre días (P-9).** Dos tardes de lluvia pueden sentarle de forma distinta a Leah. Si
+llevaba tiempo deseando trabajar tranquila, quizá al día siguiente se demore a gusto en su mesa.
+Si echa de menos la compañía del Saloon, puede guardar antes el cuaderno. La mente interpreta
+lo que sucedió según su carácter y sus recuerdos. El motor guarda esa impresión, acota su
+influencia según el perfil y sigue validando cada acción. El jugador puede descubrir el cambio
+al cruzarse con ella varios días seguidos. Un recuerdo puede seguir disponible cuando aquel humor ya
+se ha disipado. La prueba de esta conducta queda en CP-210 y CP-305.
 
 ### 3.3. Gradiente de detalle (fóvea y periferia)
 
@@ -461,6 +475,7 @@ una memoria paralela del personaje.
 |---|---|
 | **Diario** | Episodios consolidados del búfer, con fecha de juego y saliencia |
 | **Recuerdos** | Reflexiones que la mente extrae del diario (lo que el episodio *significó*) |
+| **Humor** | Impresión actual ligada a episodios vividos que puede influir durante varios días en lo que decide hacer (P-9) |
 | **Relaciones** | Impresiones propias de cada persona, además de los corazones nativos |
 | **Portafolio** | Obras (§6.3) |
 | **Compromisos** | Promesas y citas con plazo y estado |
@@ -514,6 +529,8 @@ algo que el mundo no vivió.
 
 | Criterio | Medida observable |
 |---|---|
+| **Iniciativa propia** | En un tramo sin encargos ni conversación, el informe identifica qué llamó la atención del personaje, qué quiso hacer, qué permitía su horario y qué se observó después en el juego (CP-208, CP-305) |
+| **Humor y continuidad entre días** | Un observador describe un cambio pequeño en la conducta de Leah. El informe lo relaciona con un episodio anterior, la impresión que conservó y las opciones reales que tenía ese día (CP-210, CP-305) |
 | **Sin alucinación de mundo** | 100 % de las entidades nombradas por la mente existen en su escena o su memoria (R-15) |
 | **Promesas cumplidas** | Todo compromiso válido termina cumplido o recordado como incumplido; ninguno se pierde |
 | **Reflejo inmediato** | La primera reacción visible a una interlocución llega en < 300 ms |

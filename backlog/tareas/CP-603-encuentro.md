@@ -23,6 +23,7 @@ GSS §10 y ADS §14 fase 6. Ningún canal entre la mente de Leah y Dr4co (pilar 
 ## Criterios de aceptación
 
 - [ ] `backlog/reportes/CP-603.md` con la sesión, interlocutores atendidos y sus bandas.
+- [ ] Antes del encuentro, observar qué hacía Leah por su cuenta. Al separarse, registrar si retomó esa actividad, la cambió o siguió su horario, con un efecto visible en el mundo.
 - [ ] El granjero de Voyager opera las opciones de diálogo por menús nativos.
 - [ ] Auditoría: ninguna llamada de red entre la mente y Voyager (puertos y logs).
 

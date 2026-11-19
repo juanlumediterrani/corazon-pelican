@@ -26,8 +26,11 @@ F0 ──► F1 Sensorio ──► F2 Pulsión+mente ──► F3 Cuerpo ──�
 
 Los spikes sin juego (CP-012, CP-013, CP-014) pueden hacerse en paralelo a F0–F1. Para leer
 datos del juego (horarios, animaciones) está [`tools/xnbdump`](../tools/xnbdump/).
-CP-013 (taller: generador + script de asset) es el que más riesgo quita por menos coste:
-conviene hacerlo pronto.
+Para evaluar la vida propia de un habitante, la primera tarea creativa lista es **CP-205**.
+Sus escenas permiten juzgar qué elegiría Leah cuando nadie le pide nada. CP-210 conectará lo
+vivido con el humor de días posteriores. CP-208 observará la elección de la mente y CP-305
+seguirá su efecto en el cuerpo. CP-013 puede resolver en paralelo
+la legibilidad de los cuadros.
 
 ## Tareas listas
 
@@ -72,8 +75,9 @@ CP-902 está en curso. El [registro de decisiones](../docs/decisiones.md) recoge
 | [CP-205](tareas/CP-205-voz-y-rubrica.md) | Voz de Leah y rúbrica de coherencia de carácter | F2 | P1 | — | pendiente |
 | [CP-206](tareas/CP-206-memoria-recuperacion-reflexion.md) | Recuperación de memoria y reflexión del día | F2 | P2 | CP-204, CP-107 | pendiente |
 | [CP-207](tareas/CP-207-costes-tokens.md) | Presupuesto de tokens, caché de prompt y telemetría de costes | F2 | P2 | CP-204 | pendiente |
-| [CP-208](tareas/CP-208-aceptacion-pulsion.md) | Aceptación de fase 2 · medir la cadencia de pensamiento en vanilla y en Pelican 🎮 | F2 | P2 | CP-202, CP-204, CP-206, CP-207, CP-209, CP-108 | pendiente |
+| [CP-208](tareas/CP-208-aceptacion-pulsion.md) | Aceptación de fase 2 · medir la cadencia de pensamiento en vanilla y en Pelican 🎮 | F2 | P2 | CP-202, CP-204, CP-206, CP-207, CP-209, CP-210, CP-108 | pendiente |
 | [CP-209](tareas/CP-209-cadenas-despertar-acostarse.md) | Cadenas de pensamiento en los hitos, empezando por despertar y acostarse | F2 | P1 | CP-201, CP-204, CP-206 | pendiente |
+| [CP-210](tareas/CP-210-humor-y-conducta.md) | Conservar el humor nacido de lo vivido y observar su efecto en la conducta | F2 | P1 | CP-107, CP-206, CP-209 | pendiente |
 | [CP-301](tareas/CP-301-intencion-validador.md) | Intención con ciclo de vida, pesos de atención y validador de precondiciones | F3 | P1 | CP-105, CP-203 | pendiente |
 | [CP-302](tareas/CP-302-cuerpo-vocabulario.md) | CuerpoNpc · vocabulario de acciones v1 sobre Leah 🎮 | F3 | P1 | CP-011, CP-012, CP-301 | pendiente |
 | [CP-303](tareas/CP-303-reclamacion-y-degradacion.md) | Reclamación, volver_a_rutina y degradación a la Leah vanilla | F3 | P1 | CP-011, CP-302 | pendiente |
@@ -101,6 +105,7 @@ CP-902 está en curso. El [registro de decisiones](../docs/decisiones.md) recoge
 | [CP-901](tareas/CP-901-adrs.md) | Redactar ADR-0001 a ADR-0006 | D | P2 | CP-001 | hecha |
 | [CP-902](tareas/CP-902-preguntas-abiertas.md) | Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros) | D | P2 | — | en-curso |
 | [CP-903](tareas/CP-903-estado-y-ruta-del-proyecto.md) | Actualizar el estado del proyecto y la ruta de tareas listas | D | P2 | CP-901 | hecha |
+| [CP-904](tareas/CP-904-vida-propia-del-habitante.md) | Revisar el diseño y las aceptaciones desde la vida propia del habitante | D | P1 | — | hecha |
 | [CP-910](tareas/CP-910-catalogo-hitos.md) | Catálogo de hitos elegibles y variaciones de los existentes | Futuro | profunda | CP-306, CP-208 | dormida |
 | [CP-911](tareas/CP-911-intenciones-arnes-voyager.md) | Intenciones propias potenciadas con un ejecutor al estilo del arnés de Stardew Voyager | Futuro | profunda | CP-302, CP-306 | dormida |
 

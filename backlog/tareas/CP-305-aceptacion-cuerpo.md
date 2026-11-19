@@ -22,12 +22,14 @@ ADS §14 fase 3.
 
 ## Alcance
 
-- Día completo con mente real; al menos una intención bloqueada provocada (pasarela ocupada por el jugador).
+- Día completo con mente real y observación de la pauta en los días siguientes; al menos una intención bloqueada provocada (pasarela ocupada por el jugador).
 
 ## Criterios de aceptación
 
 - [ ] `backlog/reportes/CP-305.md` con intenciones por estado final y su causa.
 - [ ] R-06, R-11 y R-13 con tests verdes citados.
+- [ ] Observar un tramo sin conversaciones, encargos ni pulsos forzados. Conservar el horario vanilla previsto, el pulso natural, las opciones del perfil, la intención validada y el lugar o animación observados después. Quien prueba prepara las circunstancias y deja abierta la elección de Leah.
+- [ ] Observar el despertar siguiente tras un episodio guardado. Relacionar el episodio con lo que Leah decide retomar, cambiar o dejar y con el primer efecto visible. En los días observados, pedir a quien observa que describa primero el cambio pequeño que ha visto, antes de leer el diario o la telemetría. Contrastar después con la impresión de CP-210 y con el horario vanilla. Registrar también un tramo en que conservar el horario tenga sentido.
 - [ ] Al final del día Leah duerme en su casa como en vanilla.
 - [ ] Leah cambia al menos un hito de su rutina por decisión propia (p. ej. no va al Saloon) y el resto del día sigue su horario; R-16 con test verde citado.
 

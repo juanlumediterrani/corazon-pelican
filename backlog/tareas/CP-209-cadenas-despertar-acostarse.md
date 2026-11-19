@@ -37,6 +37,7 @@ En vanilla el guardado suele llegar antes de que termine la cadena de acostarse:
 - [ ] Todo recuerdo de la cadena de acostarse cita al menos una entrada del diario del día.
 - [ ] FakeWorld: con el guardado antes de la respuesta de acostarse, los recuerdos se aplican al llegar y aparecen tras el siguiente guardado y recarga.
 - [ ] El despertar devuelve una agenda que solo contiene entradas del horario de hoy (o planes de intención) y cuyos cambios pasan R-16.
+- [ ] pytest con FakeLLM: partir de un episodio propio sin interlocutor ni compromiso. Seguir su identificación desde la reflexión hasta el contexto que recibe el despertar siguiente y comprobar que la agenda admite continuar o revisar lo iniciado.
 - [ ] El despertar de un día con un compromiso pendiente lo coloca en la agenda o lo descarta de forma explícita.
 - [ ] Si un paso falla, la cadena termina con lo obtenido hasta entonces y lo registra; Leah sigue su rutina.
 

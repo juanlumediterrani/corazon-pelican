@@ -4,6 +4,12 @@ Motor de habitantes para Stardew Valley 1.6: un personaje del valle (primero, **
 mente que habita el juego. Percibe en prosa desde dentro del mundo, piensa cuando su rutina o lo
 que pasa a su alrededor lo pide, actúa con su propio cuerpo y deja obra en el valle.
 
+La primera escena que queremos poder observar sucede aunque el granjero pase el día en otra
+parte. Cómo le sentaron a Leah varias tardes en casa puede notarse después en algo pequeño.
+Un día se demora con el cuaderno. Otro lo guarda antes y sale en busca de compañía. Su oficio,
+sus recuerdos y lo que encuentra ese día dan sentido a la elección. El diseño concreta cómo observar esa iniciativa en la
+[aceptación de la fase de cuerpo](backlog/tareas/CP-305-aceptacion-cuerpo.md).
+
 La solución compila. El contrato motor ↔ mente ya se valida desde C# y Python. El mod incluye
 el cargador de perfiles y el perfil de Leah. En FakeWorld se prueban la saliencia, las bandas
 de detalle y los disparadores de pensamiento. La observación del juego, la API que entregará

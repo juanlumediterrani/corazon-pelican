@@ -226,6 +226,7 @@ fichero `assets/personajes/<id>.json` es un perfil (los que llevan otro punto, c
 | `version_esquema` | Entero; migraciones como en `ServerWorldState` de Pelican |
 | `diario[]` | `{ id, dia_juego, hora, resumen_prosa, saliencia, entidades[] }` |
 | `recuerdos[]` | `{ id, texto, importancia, origen_diario[] }` |
+| Humor (previsto en CP-210) | Impresión del personaje, episodios de origen y datos para limitar y actualizar su influencia con el tiempo de juego |
 | `relaciones{}` | `farmerId|npc → { impresion, ultima_vez }` |
 | `portafolio[]` | `{ obra_id, estado, decision, nota, escena_origen, png_base64?, destinatario? }` |
 | `compromisos[]` | Identidad, tipo, destinatario, objeto, plazo vigente y estado. Una prórroga pendiente conserva por separado el plazo propuesto (CP-502, CP-509) |
@@ -436,6 +437,13 @@ loop:
   cumplir el esquema, el modelo no puede escribir un id que no exista. `schemas/` sigue siendo el
   contrato: el esquema del pulso es siempre un subconjunto suyo. La validación del motor (§4.1) se
   mantiene, porque el mundo puede haber cambiado mientras pensaba.
+* **Humor entre días (P-9, CP-210).** En una pulsión ordinaria o una reflexión, la mente
+  interpreta un episodio a partir del perfil y de los recuerdos recuperados. Propone una
+  impresión separada de la acción. El host verifica la procedencia, acota su efecto y la
+  guarda con el personaje. Al preparar otra pulsión, la mente recibe la impresión vigente y
+  conserva libertad para seguir el horario, demorarse o elegir otra actividad permitida.
+  CP-206 y CP-210 deben ampliar los esquemas y DTO actuales para transportar las referencias
+  de origen. CP-305 observará la elección ejecutada en el juego.
 * **Recuperación de memoria:** puntuación por recencia × importancia × relevancia respecto a la
   escena (inspirada en *Generative Agents*, Park et al., 2023).
 * **Cadenas (GSS §4.1):** un pulso de hito con `forma: cadena` (siempre `despertar` y
@@ -664,8 +672,8 @@ Cada regla R-xx de la GSS §13 tiene su test en esta matriz antes de considerars
 | Fase | Entrega | Aceptación |
 |---|---|---|
 | **1. Sensorio** | Observación, saliencia, bandas, prosa y diario; `MenteHabilitada=false` | Un día completo de escenas legibles; R-01, R-02, R-03, R-14 y R-10 para el diario al recargar; costes por paso medidos |
-| **2. Pulsión y mente sin cuerpo** | Atención, pulsos, cadenas de despertar y acostarse, API, mente que solo escribe pensamientos | Cadencia medida en vanilla y Pelican; pulsos/día dentro de presupuesto; R-04, R-05 en FakeWorld |
-| **3. Cuerpo** | Vocabulario v1, reclamación y devolución del NPC | Intenciones cumplidas y rechazadas en vivo; R-06, R-11, R-13 |
+| **2. Pulsión y mente sin cuerpo** | Atención, pulsos, cadenas de despertar y acostarse, API, mente que solo escribe pensamientos | Cadencia en ambos modos, cupos respetados y una intención propia documentada desde su pulso de origen. R-04 y R-05 en FakeWorld |
+| **3. Cuerpo** | Vocabulario v1, reclamación y devolución del NPC | Decisión espontánea y efecto observado en DEV, con horario de referencia y continuidad al despertar. Intenciones rechazadas y guardas R-06, R-11, R-13 y R-16 |
 | **4. Taller y obras** | Render, registro, persistencia, sincronización | Obra colocada sobrevive a guardar/cargar y se ve en un cliente; R-10 |
 | **5. Diálogo con actos** | Intercepción, opciones, texto libre, compromisos | Promesa hecha y cumplida al día siguiente; R-07, R-08, R-09, R-12 |
 | **6. Encuentro** | Pelican + humanos + Voyager | Sesión en servidor de desarrollo con al menos un humano y el granjero agente |

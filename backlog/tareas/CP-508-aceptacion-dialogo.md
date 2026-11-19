@@ -14,7 +14,7 @@ vivo: si
 
 ## Objetivo
 
-La escena fundacional: alguien le pide a Leah que dibuje; ella promete; al día siguiente la obra existe y se la da.
+Probar el diálogo con consecuencias. Alguien que encuentra a Leah dibujando le pide una obra. Si ella acepta, al día siguiente puede entregársela.
 
 ## Contexto
 

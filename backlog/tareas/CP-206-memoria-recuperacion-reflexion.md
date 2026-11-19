@@ -27,7 +27,7 @@ GSS §9, ADS §6 (*Generative Agents*, Park et al., 2023). Una sola verdad: el m
 ## Criterios de aceptación
 
 - [ ] pytest: con 200 entradas de diario, la recuperación cabe en el presupuesto de tokens configurado.
-- [ ] Todo recuerdo creado cita al menos una entrada de diario existente.
+- [ ] Todo recuerdo creado cita al menos una entrada de diario existente. Cubrir el recorrido completo de una referencia desde el pulso hasta la respuesta validada y el estado guardado. Los esquemas actuales de `diario_dia` y `memoria.recordar` solo admiten prosa. Actualizar ejemplos, DTO y validación en C# y Python, incluida la lectura de datos anteriores. CP-210 reutiliza estas referencias para el humor.
 - [ ] La mente no escribe ningún fichero de memoria propio fuera de la caché descartable (test de sistema de ficheros).
 
 ## Fuera de alcance

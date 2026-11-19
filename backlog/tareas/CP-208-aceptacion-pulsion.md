@@ -4,7 +4,7 @@ titulo: Aceptación de fase 2 · medir la cadencia de pensamiento en vanilla y e
 estado: pendiente
 prioridad: P2
 hito: F2
-depende_de: [CP-202, CP-204, CP-206, CP-207, CP-209, CP-108]
+depende_de: [CP-202, CP-204, CP-206, CP-207, CP-209, CP-210, CP-108]
 tipo: review
 complejidad: media
 duracion_min: 120
@@ -37,7 +37,9 @@ Hallazgos de CP-201 con el perfil actual de Leah (a resolver aquí):
 
 - [ ] `backlog/reportes/CP-208.md` con, por modo: pulsos por motivo, intervalo entre pensamientos (mediana y p90) frente a la expectativa, coste total y puntuaciones.
 - [ ] Gasto ordinario y extra de compromisos por día dentro de sus respectivos cupos (R-04), con interlocuciones contabilizadas aparte y tick sin bloqueos con mente lenta (R-05), con tests citados.
+- [ ] Dentro de las 15 muestras, seguir un tramo sin interlocución ni encargos. Conservar el pulso de origen, el recuerdo o detalle atendido y la intención que propone la mente real. Comparar con un tramo tranquilo y comprobar si la deriva repetida al salir del refractario ahoga las decisiones de rutina. La ejecución corporal se revisa en CP-305.
 - [ ] Cada día medido tiene una cadena de despertar y una de acostarse completas.
+- [ ] Revisar dos muestras comparables con la mente real y experiencias previas distintas (P-9). Identificar si el humor conservado ayuda a explicar una preferencia pequeña. Anotar también una muestra plana o incoherente si la hay.
 - [ ] Ningún pensamiento menciona entidades fuera de escena o memoria en la muestra revisada.
 
 ## Fuera de alcance

@@ -22,7 +22,7 @@ ADS §14 fase 4.
 
 ## Criterios de aceptación
 
-- [ ] `backlog/reportes/CP-406.md` con la escena de origen, la decisión, la nota y capturas de la obra colgada.
+- [ ] `backlog/reportes/CP-406.md` con la escena de origen, la iniciativa de Leah antes de cualquier encargo, la decisión, la nota y capturas de la obra colgada. Identificar qué eligió plasmar y dónde se podía ver ese motivo cuando empezó.
 - [ ] R-10 con tests verdes citados.
 - [ ] La obra se ve en un cliente multijugador.
 

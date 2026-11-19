@@ -24,12 +24,14 @@ GSS §12 remite la rúbrica de coherencia «al backlog»: es esta tarea. Riesgo 
 - `assets/personajes/leah.voz.md`: biografía breve, valores, manías, cómo habla, de qué no habla, cuándo se niega, cómo cambia con los corazones.
 - Reglas comunes (no mencionar lo que no está en escena o memoria; puede negarse; no es asistente).
 - Rúbrica (1–4 por eje): fidelidad al canon, no servilismo, anclaje en la escena, coherencia con la memoria, economía (dice poco), oficio (mira como artista).
-- 12 escenas de prueba fijas para evaluarla (incluidas tres en las que lo correcto es negarse).
+- 12 escenas fijas, con tres negativas y al menos seis momentos en que nadie le pide nada. Incluir una mañana en casa, un cambio de luz mientras trabaja y la decisión de salir tras una tarde a solas.
+- Emparejar dos de esas escenas: misma tarde de lluvia y mismas opciones, con recuerdos previos distintos. Describir qué pequeño hábito podría variar los días siguientes y qué vería alguien que pasara por allí.
+- En las escenas abiertas, describir también una segunda elección plausible. Puntuar qué detalle del momento y del carácter la sostiene. Que Leah dibuje en todas las escenas empobrecería la muestra.
 
 ## Criterios de aceptación
 
 - [ ] `leah.voz.md` y `docs/rubrica-caracter.md` existen y están enlazados desde el perfil.
-- [ ] Las 12 escenas de prueba están en `mente/tests/escenas_caracter/` con la respuesta ideal resumida.
+- [ ] Las 12 escenas de prueba están en `mente/tests/escenas_caracter/` con la conducta esperable resumida y, cuando quepan varias elecciones, el motivo que haría creíble cada una.
 - [ ] La rúbrica tiene ejemplos de puntuación 1 y 4 para cada eje.
 
 ## Fuera de alcance
