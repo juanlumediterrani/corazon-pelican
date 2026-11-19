@@ -4,7 +4,7 @@ titulo: Aceptación de fase 1 · un día completo de escenas legibles 🎮
 estado: pendiente
 prioridad: P2
 hito: F1
-depende_de: [CP-101, CP-104, CP-107, CP-006]
+depende_de: [CP-101, CP-104, CP-107, CP-109, CP-006]
 tipo: review
 complejidad: media
 duracion_min: 120

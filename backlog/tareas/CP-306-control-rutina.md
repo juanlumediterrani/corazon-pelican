@@ -4,7 +4,7 @@ titulo: El personaje controla su rutina · agenda del día, reequilibrio en casc
 estado: pendiente
 prioridad: P2
 hito: F3
-depende_de: [CP-011, CP-301, CP-303]
+depende_de: [CP-011, CP-212, CP-301, CP-303]
 tipo: code-light
 complejidad: media
 duracion_min: 150
@@ -22,11 +22,8 @@ GSS §5.3: el personaje es dueño de su rutina. Leah: «hoy no voy al Saloon, qu
 
 ## Alcance
 
-- `Rutina.cs` en Core: validar `cambios_rutina` de la intención contra las entradas del horario de hoy y las anotaciones del perfil (`cambios`, `limites`, condiciones como «nunca en festival»).
-- Agenda del día en el motor: la fija la respuesta al `despertar` (CP-209), viaja en cada pulso de hito y se reequilibra con los `cambios_rutina` de cada respuesta (GSS §4.1, pensamiento en cascada).
-- Aplicación con el mecanismo de CP-011: saltar una entrada, moverla de hora o sustituirla por el plan de la intención.
-- Efecto limitado a la intención y al día; al día siguiente, la rutina canónica.
-- Registro en memoria («hoy no fui al Saloon») y en `eventos`.
+- Conectar `AgendaDia` y `ValidadorCambiosRutina` de Core (`CP-212`, R-16) al adaptador del juego: fijar la agenda en el despertar (`CP-209`), reequilibrarla en cada pulso de hito con `cambios_rutina` y ejecutar saltar/mover/sustituir mediante el mecanismo de `CP-011`.
+- Registro en memoria («hoy no fui al Saloon») y en `eventos`, más degradación a horario vanilla si la mente cae (`CP-303`).
 
 ## Criterios de aceptación
 

@@ -34,11 +34,11 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas cinco fichas están pendientes y tienen todas sus dependencias hechas.
+Estas seis fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-013 taller · CP-101 observador · CP-203 API motor |
+| P1 | CP-013 taller · CP-101 observador · CP-203 API motor · CP-212 agenda y rutina |
 | P2 | CP-006 medición de lugares 🎮 · CP-106 búfer y diario |
 
 CP-014 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
@@ -66,7 +66,8 @@ CP-014 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.
 | [CP-105](tareas/CP-105-lexico-unico.md) | Léxico único compartido por percepción, acción y diálogo | F1 | P2 | CP-003 | hecha |
 | [CP-106](tareas/CP-106-bufer-diario.md) | Búfer de prosa de acción, huella de atención y diario con consolidación temporal | F1 | P2 | CP-104 | pendiente |
 | [CP-107](tareas/CP-107-persistencia-estado.md) | Estado del personaje persistido con la partida, con versión y migraciones | F1 | P1 | CP-106 | pendiente |
-| [CP-108](tareas/CP-108-aceptacion-sensorio.md) | Aceptación de fase 1 · un día completo de escenas legibles 🎮 | F1 | P2 | CP-101, CP-104, CP-107, CP-006 | pendiente |
+| [CP-108](tareas/CP-108-aceptacion-sensorio.md) | Aceptación de fase 1 · un día completo de escenas legibles 🎮 | F1 | P2 | CP-101, CP-104, CP-107, CP-109, CP-006 | pendiente |
+| [CP-109](tareas/CP-109-habitante-y-telemetria.md) | HabitanteModule, telemetría JSONL y comandos cp_escena / cp_pulso | F1 | P1 | CP-101, CP-104, CP-106 | pendiente |
 | [CP-201](tareas/CP-201-integrador-disparadores.md) | Integrador con fuga, refractario y disparadores de pulsión, incluidos los hitos de rutina | F2 | P1 | CP-102, CP-004, CP-003 | hecha |
 | [CP-202](tareas/CP-202-presupuesto-pulsos.md) | Presupuesto de pulsos aplicado por el motor, por modo de reloj, con reserva para las cadenas | F2 | P1 | CP-201 | hecha |
 | [CP-203](tareas/CP-203-api-motor.md) | API loopback del motor con long-poll, cola al hilo principal, idempotencia y época | F2 | P1 | CP-002, CP-005 | pendiente |
@@ -75,15 +76,16 @@ CP-014 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.
 | [CP-206](tareas/CP-206-memoria-recuperacion-reflexion.md) | Recuperación de memoria y reflexión del día | F2 | P2 | CP-204, CP-107, CP-211 | pendiente |
 | [CP-207](tareas/CP-207-costes-tokens.md) | Presupuesto de tokens, caché de prompt y telemetría de costes | F2 | P2 | CP-204 | pendiente |
 | [CP-208](tareas/CP-208-aceptacion-pulsion.md) | Aceptación de fase 2 · medir la cadencia de pensamiento en vanilla y en Pelican 🎮 | F2 | P2 | CP-202, CP-204, CP-206, CP-207, CP-209, CP-210, CP-108 | pendiente |
-| [CP-209](tareas/CP-209-cadenas-despertar-acostarse.md) | Cadenas de pensamiento en los hitos, empezando por despertar y acostarse | F2 | P1 | CP-201, CP-204, CP-206 | pendiente |
+| [CP-209](tareas/CP-209-cadenas-despertar-acostarse.md) | Cadenas de pensamiento en los hitos, empezando por despertar y acostarse | F2 | P1 | CP-201, CP-204, CP-206, CP-212 | pendiente |
 | [CP-210](tareas/CP-210-humor-y-conducta.md) | Conservar el humor nacido de lo vivido y observar su efecto en la conducta | F2 | P1 | CP-107, CP-206, CP-209 | pendiente |
 | [CP-211](tareas/CP-211-origen-de-las-reflexiones.md) | Transportar y comprobar el origen de las reflexiones del diario | F2 | P1 | CP-002 | hecha |
+| [CP-212](tareas/CP-212-agenda-y-cambios-rutina.md) | Agenda del día y validador de cambios de rutina en Core (R-16) | F2 | P1 | CP-003, CP-201 | pendiente |
 | [CP-301](tareas/CP-301-intencion-validador.md) | Intención con ciclo de vida, pesos de atención y validador de precondiciones | F3 | P1 | CP-105, CP-203 | pendiente |
 | [CP-302](tareas/CP-302-cuerpo-vocabulario.md) | CuerpoNpc · vocabulario de acciones v1 sobre Leah 🎮 | F3 | P1 | CP-011, CP-012, CP-301 | pendiente |
 | [CP-303](tareas/CP-303-reclamacion-y-degradacion.md) | Reclamación, volver_a_rutina y degradación a la Leah vanilla | F3 | P1 | CP-011, CP-302 | pendiente |
 | [CP-304](tareas/CP-304-reflejos.md) | Reflejos del perfil en menos de 100 ms | F3 | P2 | CP-302 | pendiente |
 | [CP-305](tareas/CP-305-aceptacion-cuerpo.md) | Aceptación de fase 3 · intenciones cumplidas y rechazadas en vivo 🎮 | F3 | P2 | CP-303, CP-304, CP-306, CP-208 | pendiente |
-| [CP-306](tareas/CP-306-control-rutina.md) | El personaje controla su rutina · agenda del día, reequilibrio en cascada y cambios de hitos | F3 | P2 | CP-011, CP-301, CP-303 | pendiente |
+| [CP-306](tareas/CP-306-control-rutina.md) | El personaje controla su rutina · agenda del día, reequilibrio en cascada y cambios de hitos | F3 | P2 | CP-011, CP-212, CP-301, CP-303 | pendiente |
 | [CP-401](tareas/CP-401-taller.md) | Taller · generador enchufable y script de asset de la prosa a la PNG | F4 | P2 | CP-013, CP-002 | pendiente |
 | [CP-402](tareas/CP-402-decision-autocritica.md) | Decisión de obra y autocrítica de la mente | F4 | P2 | CP-401, CP-204 | pendiente |
 | [CP-403](tareas/CP-403-obras-y-portafolio.md) | ObrasModule · portafolio persistido y obras colocables como muebles | F4 | P2 | CP-015, CP-107, CP-401 | pendiente |
@@ -130,7 +132,7 @@ Ninguna regla está vigente hasta que su guarda exista (moratoria de prosa).
 | R-13 | `EsquemaIntencionTests` | CP-002, CP-301 |
 | R-14 | `LexicoUnicoTests` | CP-105 |
 | R-15 | `MencionesAncladasTests` | CP-506 |
-| R-16 | `CambioRutinaTests` | CP-306 |
+| R-16 | `CambioRutinaTests` | CP-212, CP-306 |
 
 ## Verificaciones
 

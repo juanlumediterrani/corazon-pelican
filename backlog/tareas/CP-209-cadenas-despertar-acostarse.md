@@ -4,7 +4,7 @@ titulo: Cadenas de pensamiento en los hitos, empezando por despertar y acostarse
 estado: pendiente
 prioridad: P1
 hito: F2
-depende_de: [CP-201, CP-204, CP-206]
+depende_de: [CP-201, CP-204, CP-206, CP-212]
 tipo: code-light
 complejidad: media
 duracion_min: 180
