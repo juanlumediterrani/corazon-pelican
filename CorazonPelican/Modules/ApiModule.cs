@@ -24,6 +24,10 @@ namespace CorazonPelican.Modules
         {
             this.context = contexto;
 
+            contexto.Api.RegistrarProveedorEstado(
+                personaje => contexto.EstadoPartida.ObtenerSiExiste(personaje),
+                enHiloPrincipal: true);
+
             contexto.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
             contexto.Helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
             contexto.Helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;

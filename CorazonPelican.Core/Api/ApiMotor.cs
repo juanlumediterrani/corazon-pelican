@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CorazonPelican.Core.Atencion;
 using CorazonPelican.Core.Contrato;
+using CorazonPelican.Core.Memoria;
 
 namespace CorazonPelican.Core.Api
 {
@@ -510,6 +511,29 @@ namespace CorazonPelican.Core.Api
                 this.proveedorMemoria = proveedor;
                 this.proveedorMemoriaEnHiloPrincipal = enHiloPrincipal;
             }
+        }
+
+        /// <summary>
+        /// Registra un selector de <see cref="EstadoPersonaje"/> para proyectarlo automáticamente hacia
+        /// <see cref="InstantaneaMemoria"/> en <c>GET /api/v1/memoria/{personaje}</c> (CP-206).
+        /// </summary>
+        public void RegistrarProveedorEstado(Func<string, EstadoPersonaje?>? selectorEstado, bool enHiloPrincipal = false)
+        {
+            if (selectorEstado is null)
+            {
+                this.RegistrarProveedorMemoria(null, enHiloPrincipal);
+                return;
+            }
+
+            this.RegistrarProveedorMemoria(
+                personaje =>
+                {
+                    var estado = selectorEstado(personaje);
+                    return estado is null
+                        ? null
+                        : Consolidacion.ProyectarInstantaneaMemoria(estado, personaje, this.EpocaVigente ?? string.Empty);
+                },
+                enHiloPrincipal);
         }
 
         /// <summary>Registra el proveedor de escena actual para <c>GET /api/v1/escena/{personaje}</c>.</summary>

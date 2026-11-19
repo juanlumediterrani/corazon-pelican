@@ -206,11 +206,46 @@ namespace CorazonPelican.Core.Memoria
                 cambiado = true;
             }
 
+            var idsRecuerdosExistentes = new HashSet<string>(
+                estado.Recuerdos.Where(r => !string.IsNullOrWhiteSpace(r.Id)).Select(r => r.Id),
+                StringComparer.Ordinal);
+            var siguienteRecuerdo = 1;
+            foreach (var r in estado.Recuerdos)
+            {
+                if (!string.IsNullOrWhiteSpace(r.Id)
+                    && r.Id.StartsWith("rec-", StringComparison.Ordinal)
+                    && int.TryParse(r.Id.AsSpan(4), NumberStyles.None, CultureInfo.InvariantCulture, out var numRec)
+                    && numRec >= siguienteRecuerdo)
+                {
+                    siguienteRecuerdo = numRec + 1;
+                }
+            }
+
             foreach (var recuerdo in estado.Recuerdos)
             {
                 if (recuerdo.OrigenDiario is null)
                 {
                     recuerdo.OrigenDiario = new List<string>();
+                    cambiado = true;
+                }
+
+                if (recuerdo.Importancia < 0)
+                {
+                    recuerdo.Importancia = 0;
+                    cambiado = true;
+                }
+
+                if (string.IsNullOrWhiteSpace(recuerdo.Id))
+                {
+                    string nuevoRecId;
+                    do
+                    {
+                        nuevoRecId = $"rec-{siguienteRecuerdo}";
+                        siguienteRecuerdo++;
+                    }
+                    while (!idsRecuerdosExistentes.Add(nuevoRecId));
+
+                    recuerdo.Id = nuevoRecId;
                     cambiado = true;
                 }
             }

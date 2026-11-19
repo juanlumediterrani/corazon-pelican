@@ -38,8 +38,8 @@ Estas tres fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-501 actos y validador |
-| P2 | CP-006 medición de lugares 🎮 · CP-206 memoria y reflexión |
+| P1 | CP-209 cadenas despertar/acostarse · CP-501 actos y validador |
+| P2 | CP-006 medición de lugares 🎮 |
 
 CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
 
@@ -73,7 +73,7 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-203](tareas/CP-203-api-motor.md) | API loopback del motor con long-poll, cola al hilo principal, idempotencia y época | F2 | P1 | CP-002, CP-005 | hecha |
 | [CP-204](tareas/CP-204-mente-sin-cuerpo.md) | Mente en Python que recibe pulsos y escribe pensamientos (sin cuerpo) | F2 | P1 | CP-203, CP-205 | hecha |
 | [CP-205](tareas/CP-205-voz-y-rubrica.md) | Voz de Leah y rúbrica de coherencia de carácter | F2 | P1 | — | hecha |
-| [CP-206](tareas/CP-206-memoria-recuperacion-reflexion.md) | Recuperación de memoria y reflexión del día | F2 | P2 | CP-204, CP-107, CP-211 | pendiente |
+| [CP-206](tareas/CP-206-memoria-recuperacion-reflexion.md) | Recuperación de memoria y reflexión del día | F2 | P2 | CP-204, CP-107, CP-211 | hecha |
 | [CP-207](tareas/CP-207-costes-tokens.md) | Presupuesto de tokens, caché de prompt y telemetría de costes | F2 | P2 | CP-204 | hecha |
 | [CP-208](tareas/CP-208-aceptacion-pulsion.md) | Aceptación de fase 2 · medir la cadencia de pensamiento en vanilla y en Pelican 🎮 | F2 | P2 | CP-202, CP-204, CP-206, CP-207, CP-209, CP-210, CP-108 | pendiente |
 | [CP-209](tareas/CP-209-cadenas-despertar-acostarse.md) | Cadenas de pensamiento en los hitos, empezando por despertar y acostarse | F2 | P1 | CP-201, CP-204, CP-206, CP-212 | pendiente |

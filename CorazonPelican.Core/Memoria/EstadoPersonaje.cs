@@ -110,6 +110,60 @@ namespace CorazonPelican.Core.Memoria
             this.Diario.Add(episodio);
             return episodio;
         }
+
+        /// <summary>
+        /// Registra un nuevo recuerdo consolidado en el estado del personaje con identificador único
+        /// y la lista deduplicada de episodios de origen (<c>origen_diario</c>).
+        /// </summary>
+        public Recuerdo AgregarRecuerdo(
+            string texto,
+            double importancia = 0.5,
+            IEnumerable<string>? origenDiario = null)
+        {
+            if (string.IsNullOrWhiteSpace(texto))
+            {
+                throw new ArgumentException("El texto del recuerdo no puede estar vacío.", nameof(texto));
+            }
+
+            if (importancia < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(importancia), "La importancia no puede ser negativa.");
+            }
+
+            var existentes = new HashSet<string>(this.Recuerdos.Select(r => r.Id), StringComparer.Ordinal);
+            var numero = Math.Max(1, this.Recuerdos.Count + 1);
+            foreach (var r in this.Recuerdos)
+            {
+                if (r.Id.StartsWith("rec-", StringComparison.Ordinal)
+                    && int.TryParse(r.Id.AsSpan(4), out var n)
+                    && n >= numero)
+                {
+                    numero = n + 1;
+                }
+            }
+
+            string id;
+            do
+            {
+                id = $"rec-{numero}";
+                numero++;
+            }
+            while (!existentes.Add(id));
+
+            var origenLista = origenDiario is null
+                ? new List<string>()
+                : origenDiario.Where(o => !string.IsNullOrWhiteSpace(o)).Distinct(StringComparer.Ordinal).ToList();
+
+            var recuerdo = new Recuerdo
+            {
+                Id = id,
+                Texto = texto,
+                Importancia = Math.Clamp(importancia, 0.0, 1.0),
+                OrigenDiario = origenLista,
+            };
+            this.Recuerdos.Add(recuerdo);
+            return recuerdo;
+        }
     }
 
     [DataContract]
