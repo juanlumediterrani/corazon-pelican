@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace CorazonPelican.Core.Contrato
@@ -29,6 +31,9 @@ namespace CorazonPelican.Core.Contrato
         [JsonPropertyName("tipo")] public string? Tipo { get; set; }
         [JsonPropertyName("texto")] public string? Texto { get; set; }
         [JsonPropertyName("duracion_min")] public int? DuracionMin { get; set; }
+
+        /// <summary>Captura propiedades no permitidas por el esquema (p. ej. coordenadas) para poder rechazarlas en Core (R-13).</summary>
+        [JsonExtensionData] public Dictionary<string, JsonElement>? CamposExtra { get; set; }
     }
 
     /// <summary>Decisión de una obra (GSS §6.1): todo prosa, el taller la convierte en imagen.</summary>

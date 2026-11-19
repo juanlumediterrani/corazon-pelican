@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CorazonPelican.Core.Intencion;
+using CorazonPelican.Core.Perfil;
 
 namespace CorazonPelican.Core.Sensorio
 {
@@ -25,7 +27,30 @@ namespace CorazonPelican.Core.Sensorio
         IReadOnlyDictionary<string, double> Rasgos,
         EstadoAtencion Estado,
         double UmbralPeriferia,
-        IReadOnlyDictionary<string, double>? PesosIntencion = null);
+        IReadOnlyDictionary<string, double>? PesosIntencion = null)
+    {
+        /// <summary>Devuelve un contexto con los pesos de atención de <paramref name="intencion"/> si está activa; si no, restaura 1.</summary>
+        public ContextoSaliencia ConIntencion(IntencionPersonaje? intencion)
+            => this with { PesosIntencion = intencion?.PesosAtencionActivos };
+
+        /// <summary>Construye el contexto de saliencia a partir del perfil y, opcionalmente, la intención activa.</summary>
+        public static ContextoSaliencia DesdePerfil(
+            PerfilPersonaje perfil,
+            EstadoAtencion? estado = null,
+            IntencionPersonaje? intencionActiva = null)
+        {
+            if (perfil is null)
+            {
+                throw new ArgumentNullException(nameof(perfil));
+            }
+
+            return new ContextoSaliencia(
+                perfil.Rasgos,
+                estado ?? EstadoAtencion.Abierta,
+                perfil.Umbrales.Periferia,
+                intencionActiva?.PesosAtencionActivos);
+        }
+    }
 
     /// <summary>Saliencia de una entidad con cada capa por separado, para explicarla y depurarla.</summary>
     public sealed record DesgloseSaliencia(

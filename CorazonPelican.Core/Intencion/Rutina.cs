@@ -193,7 +193,7 @@ namespace CorazonPelican.Core.Intencion
                     break;
                 case TiposCambioRutina.Sustituir:
                     entrada.Estado = EstadoHito.Sustituido;
-                    entrada.PlanSustituto = cambio.Plan!.Select(ClonarPaso).ToList();
+                    entrada.PlanSustituto = cambio.Plan!.Select(IntencionPersonaje.ClonarPaso).ToList();
                     break;
                 default:
                     throw new InvalidOperationException($"Tipo de cambio desconocido: «{cambio.Cambio}».");
@@ -242,17 +242,6 @@ namespace CorazonPelican.Core.Intencion
 
             return !string.IsNullOrWhiteSpace(entrada.Ubicacion) ? entrada.Ubicacion : hito.Id;
         }
-
-        private static PasoPlan ClonarPaso(PasoPlan paso) => new()
-        {
-            Accion = paso.Accion,
-            Lugar = paso.Lugar,
-            Objetivo = paso.Objetivo,
-            Obra = paso.Obra,
-            Tipo = paso.Tipo,
-            Texto = paso.Texto,
-            DuracionMin = paso.DuracionMin,
-        };
     }
 
     /// <summary>Registro de un cambio de rutina aplicado en un día de juego concreto.</summary>
@@ -702,6 +691,17 @@ namespace CorazonPelican.Core.Intencion
                     $"{campoPaso}.accion",
                     "cada paso del plan debe indicar una acción"));
                 return;
+            }
+
+            if (paso.CamposExtra is { Count: > 0 })
+            {
+                foreach (var claveExtra in paso.CamposExtra.Keys)
+                {
+                    motivos.Add(new MotivoRechazo(
+                        "argumento_invalido",
+                        $"{campoPaso}.{claveExtra}",
+                        $"el campo «{claveExtra}» no está permitido en un paso del plan (no se admiten coordenadas, casillas ni rutas)"));
+                }
             }
 
             if (!Acciones.VocabularioV1.Contains(paso.Accion) || !perfil.Acciones.Contains(paso.Accion))

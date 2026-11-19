@@ -34,11 +34,11 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas cuatro fichas están pendientes y tienen todas sus dependencias hechas.
+Estas tres fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-107 persistencia · CP-301 validador intención |
+| P1 | CP-107 persistencia |
 | P2 | CP-006 medición de lugares 🎮 · CP-207 presupuesto de tokens |
 
 CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
@@ -80,7 +80,7 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-210](tareas/CP-210-humor-y-conducta.md) | Conservar el humor nacido de lo vivido y observar su efecto en la conducta | F2 | P1 | CP-107, CP-206, CP-209 | pendiente |
 | [CP-211](tareas/CP-211-origen-de-las-reflexiones.md) | Transportar y comprobar el origen de las reflexiones del diario | F2 | P1 | CP-002 | hecha |
 | [CP-212](tareas/CP-212-agenda-y-cambios-rutina.md) | Agenda del día y validador de cambios de rutina en Core (R-16) | F2 | P1 | CP-003, CP-201 | hecha |
-| [CP-301](tareas/CP-301-intencion-validador.md) | Intención con ciclo de vida, pesos de atención y validador de precondiciones | F3 | P1 | CP-105, CP-203 | pendiente |
+| [CP-301](tareas/CP-301-intencion-validador.md) | Intención con ciclo de vida, pesos de atención y validador de precondiciones | F3 | P1 | CP-105, CP-203 | hecha |
 | [CP-302](tareas/CP-302-cuerpo-vocabulario.md) | CuerpoNpc · vocabulario de acciones v1 sobre Leah 🎮 | F3 | P1 | CP-011, CP-012, CP-301 | pendiente |
 | [CP-303](tareas/CP-303-reclamacion-y-degradacion.md) | Reclamación, volver_a_rutina y degradación a la Leah vanilla | F3 | P1 | CP-011, CP-302 | pendiente |
 | [CP-304](tareas/CP-304-reflejos.md) | Reflejos del perfil en menos de 100 ms | F3 | P2 | CP-302 | pendiente |
