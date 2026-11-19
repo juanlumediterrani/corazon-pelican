@@ -11,6 +11,7 @@ from typing import Any, Protocol, runtime_checkable
 from jsonschema import Draft202012Validator
 
 from mente import contrato
+from mente.costes import UsoTokens, estimar_uso_prompt, hash_prefijo_sistema
 from mente.ensamblador import PromptEnsamblado
 
 
@@ -177,6 +178,9 @@ class LlamadaModelo:
     esquema: dict[str, Any]
     respuesta: dict[str, Any] | str
     tokens_estimados: int = 0
+    uso: UsoTokens | None = None
+    en_cache: bool = False
+    modelo: str = "fake-mente"
 
 
 @runtime_checkable
@@ -199,12 +203,20 @@ class FakeLLM:
         generador: GeneradorFake | None = None,
         pensamiento_por_defecto: str = "Observo la escena en silencio antes de decidir.",
         presupuesto_tokens_dia: int | None = None,
+        modelo: str = "fake-mente",
+        usos: Iterable[UsoTokens] | None = None,
+        simular_cache: bool = True,
     ) -> None:
         self._cola: list[dict[str, Any] | str | GeneradorFake | Exception] = list(respuestas or [])
         self._generador = generador
         self.pensamiento_por_defecto = pensamiento_por_defecto
         self.presupuesto_tokens_dia = presupuesto_tokens_dia
+        self.modelo = modelo
+        self._usos: list[UsoTokens] = list(usos or [])
+        self.simular_cache = simular_cache
+        self._prefijos_cache: set[str] = set()
         self.tokens_usados = 0
+        self.ultimo_uso: UsoTokens | None = None
         self.llamadas: list[LlamadaModelo] = []
 
     def generar(self, prompt: PromptEnsamblado, esquema: dict[str, Any]) -> dict[str, Any] | str:
@@ -224,13 +236,26 @@ class FakeLLM:
         else:
             salida = {"pensamiento": self.pensamiento_por_defecto}
 
-        self.tokens_usados += tokens
+        if self._usos:
+            uso = self._usos.pop(0)
+        else:
+            huella = hash_prefijo_sistema(prompt.sistema) if (self.simular_cache and prompt.sistema) else ""
+            cache_activa = bool(huella and huella in self._prefijos_cache)
+            uso = estimar_uso_prompt(prompt, salida, cache_activa=cache_activa)
+            if huella:
+                self._prefijos_cache.add(huella)
+
+        self.ultimo_uso = uso
+        self.tokens_usados += uso.total_tokens
         self.llamadas.append(
             LlamadaModelo(
                 prompt=prompt,
                 esquema=esquema,
                 respuesta=copy.deepcopy(salida) if isinstance(salida, dict) else salida,
-                tokens_estimados=tokens,
+                tokens_estimados=uso.total_tokens,
+                uso=uso,
+                en_cache=uso.en_cache,
+                modelo=self.modelo,
             )
         )
         return salida
@@ -249,6 +274,8 @@ class ModeloProveedorConfigurado:
 
     def __init__(self, config: ConfigModelo) -> None:
         self.config = config
+        self.modelo = config.modelo
+        self.ultimo_uso: UsoTokens | None = None
 
     def generar(self, prompt: PromptEnsamblado, esquema: dict[str, Any]) -> dict[str, Any] | str:
         env_var = self.config.api_key_env or _ENV_POR_PROVEEDOR.get(self.config.proveedor)
@@ -260,6 +287,26 @@ class ModeloProveedorConfigurado:
             f"El transporte de red para el proveedor '{self.config.proveedor}' "
             f"(modelo '{self.config.modelo}') requiere un adaptador activo."
         )
+
+
+def obtener_modelo_y_uso(
+    modelo: ModeloMente,
+    prompt: PromptEnsamblado,
+    respuesta: dict[str, Any] | str | None,
+    *,
+    cache_activa: bool = False,
+) -> tuple[str, UsoTokens]:
+    """Extrae el nombre de modelo y `UsoTokens` reportado o los estima si el proveedor no informa."""
+    nombre_modelo = getattr(modelo, "modelo", None)
+    if not nombre_modelo:
+        cfg = getattr(modelo, "config", None)
+        nombre_modelo = getattr(cfg, "modelo", None) or "desconocido"
+
+    uso = getattr(modelo, "ultimo_uso", None)
+    if not isinstance(uso, UsoTokens):
+        uso = estimar_uso_prompt(prompt, respuesta, cache_activa=cache_activa)
+
+    return str(nombre_modelo), uso
 
 
 def crear_modelo(
@@ -276,6 +323,7 @@ def crear_modelo(
             respuestas=fake_respuestas,
             generador=fake_generador,
             presupuesto_tokens_dia=cfg.presupuesto_tokens_dia,
+            modelo=cfg.modelo,
         )
     if proveedor in {"openai", "anthropic", "gemini", "google", "local"}:
         return ModeloProveedorConfigurado(cfg)

@@ -10,9 +10,19 @@ from typing import Any
 
 import httpx
 
-from mente.ensamblador import ensamblar_prompt
+from mente.costes import (
+    PresupuestoTokens,
+    RegistroCostes,
+    UsoTokens,
+    calcular_coste_usd,
+    estimar_uso_prompt,
+    hash_prefijo_sistema,
+    obtener_tarifa,
+)
+from mente.ensamblador import PromptEnsamblado, ensamblar_prompt
 from mente.modelos import (
     ModeloMente,
+    PresupuestoTokensAgotadoError,
     estrechar_esquema,
     validar_respuesta_estrechada,
 )
@@ -232,6 +242,15 @@ def _extraer_pensamiento(bruto: Any) -> str | None:
     return None
 
 
+def _es_pulso_cadena(pulso: dict[str, Any], es_cadena: bool | None = None) -> bool:
+    if es_cadena is not None:
+        return bool(es_cadena)
+    hito = pulso.get("hito")
+    if isinstance(hito, dict) and hito.get("forma") == "cadena":
+        return True
+    return bool(pulso.get("es_cadena", False))
+
+
 class CicloMente:
     """Bucle de la mente sin cuerpo propio (ADS §6): consulta pulsos, piensa, valida y responde."""
 
@@ -243,6 +262,8 @@ class CicloMente:
         *,
         almacen_cursor: AlmacenCursor | None = None,
         telemetria: RegistroTelemetria | None = None,
+        presupuesto_tokens: PresupuestoTokens | None = None,
+        registro_costes: RegistroCostes | None = None,
         max_reintentos_locales: int = 1,
         max_reformulaciones: int = 1,
     ) -> None:
@@ -251,10 +272,13 @@ class CicloMente:
         self.voz = voz
         self.almacen_cursor = almacen_cursor or AlmacenCursor()
         self.telemetria = telemetria or RegistroTelemetria()
+        self.presupuesto_tokens = presupuesto_tokens
+        self.registro_costes = registro_costes
         self.max_reintentos_locales = max(0, max_reintentos_locales)
         self.max_reformulaciones = max(0, max_reformulaciones)
         self.cursor = self.almacen_cursor.cargar()
         self.cache_memoria: dict[str, dict[str, Any]] = {}
+        self._prefijos_cache_costes: set[str] = set()
 
     def _reiniciar_por_cambio_epoca(self, nueva_epoca: str | None) -> None:
         self.cache_memoria.clear()
@@ -284,6 +308,96 @@ class CicloMente:
         self.cache_memoria[personaje] = memoria
         return memoria
 
+    def _puede_llamar_modelo(self, motivo: str, es_cadena: bool) -> bool:
+        if self.presupuesto_tokens is None:
+            return True
+        return self.presupuesto_tokens.puede_gastar(motivo, es_cadena=es_cadena)
+
+    def _registrar_salto_presupuesto(
+        self,
+        *,
+        pulso: dict[str, Any],
+        es_cadena: bool,
+        reformulacion: bool = False,
+    ) -> None:
+        self.telemetria.registrar(
+            {
+                "tipo": "pulso_omitido_presupuesto",
+                "pulso_id": pulso.get("id"),
+                "epoca": pulso.get("epoca"),
+                "motivo_pulso": pulso.get("motivo"),
+                "es_cadena": es_cadena,
+                "reformulacion": reformulacion,
+            }
+        )
+
+    def _registrar_coste_llamada(
+        self,
+        *,
+        pulso: dict[str, Any],
+        prompt: PromptEnsamblado,
+        respuesta: dict[str, Any] | str,
+        es_cadena: bool,
+    ) -> None:
+        if self.presupuesto_tokens is None and self.registro_costes is None:
+            return
+
+        modelo_nombre = getattr(self.modelo, "modelo", None) or getattr(
+            getattr(self.modelo, "config", None), "modelo", None
+        )
+        ultimo_uso = getattr(self.modelo, "ultimo_uso", None)
+        if isinstance(ultimo_uso, UsoTokens):
+            uso = ultimo_uso
+            if self.presupuesto_tokens is not None:
+                self.presupuesto_tokens.registrar_prefijo_en_cache(prompt)
+            if prompt.sistema:
+                self._prefijos_cache_costes.add(hash_prefijo_sistema(prompt.sistema))
+        elif self.presupuesto_tokens is not None:
+            uso = self.presupuesto_tokens.estimar_uso_para_prompt(prompt, respuesta)
+        else:
+            huella = hash_prefijo_sistema(prompt.sistema) if prompt.sistema else ""
+            cache_activa = bool(huella and huella in self._prefijos_cache_costes)
+            uso = estimar_uso_prompt(prompt, respuesta, cache_activa=cache_activa)
+            if huella:
+                self._prefijos_cache_costes.add(huella)
+
+        epoca = str(pulso.get("epoca") or "")
+        pulso_id = int(pulso["id"])
+        motivo = str(pulso.get("motivo") or "")
+
+        if self.presupuesto_tokens is not None:
+            entrada = self.presupuesto_tokens.registrar_llamada(
+                epoca=epoca,
+                pulso_id=pulso_id,
+                motivo=motivo,
+                uso=uso,
+                modelo=str(modelo_nombre) if modelo_nombre else None,
+                es_cadena=es_cadena,
+            )
+            if self.registro_costes is not None and self.registro_costes is not self.presupuesto_tokens.registro:
+                self.registro_costes.registrar_llamada(
+                    epoca=entrada["epoca"],
+                    pulso_id=entrada["pulso_id"],
+                    motivo=entrada["motivo"],
+                    modelo=entrada["modelo"],
+                    uso=uso,
+                    coste_usd=entrada["coste_usd"],
+                    es_cadena=entrada["es_cadena"],
+                    en_cache=entrada["en_cache"],
+                )
+        elif self.registro_costes is not None:
+            nombre_efectivo = str(modelo_nombre or "desconocido")
+            coste = calcular_coste_usd(uso, obtener_tarifa(nombre_efectivo))
+            self.registro_costes.registrar_llamada(
+                epoca=epoca,
+                pulso_id=pulso_id,
+                motivo=motivo,
+                modelo=nombre_efectivo,
+                uso=uso,
+                coste_usd=coste,
+                es_cadena=es_cadena,
+            )
+
     def _generar_y_validar(
         self,
         pulso: dict[str, Any],
@@ -292,19 +406,37 @@ class CicloMente:
         recuerdos: list[Any] | None,
         motivos_rechazo: list[Any] | None,
         es_reformulacion: bool,
-    ) -> tuple[dict[str, Any] | None, list[str], int]:
+        es_cadena: bool,
+    ) -> tuple[dict[str, Any] | None, list[str], int, bool]:
         intentos = 0
         motivos_actuales = list(motivos_rechazo or [])
+        motivo = str(pulso.get("motivo") or "")
 
         for intento in range(self.max_reintentos_locales + 1):
-            intentos += 1
+            if intento > 0 and not self._puede_llamar_modelo(motivo, es_cadena):
+                self._registrar_salto_presupuesto(pulso=pulso, es_cadena=es_cadena, reformulacion=es_reformulacion)
+                return None, ["Presupuesto diario de tokens agotado antes del reintento."], intentos, True
+
             prompt = ensamblar_prompt(
                 self.voz,
                 pulso,
                 recuerdos=recuerdos,
                 motivos_rechazo=motivos_actuales or None,
             )
-            bruto = self.modelo.generar(prompt, esquema)
+            try:
+                bruto = self.modelo.generar(prompt, esquema)
+            except PresupuestoTokensAgotadoError as exc:
+                self._registrar_salto_presupuesto(pulso=pulso, es_cadena=es_cadena, reformulacion=es_reformulacion)
+                return None, [str(exc)], intentos, True
+
+            intentos += 1
+            self._registrar_coste_llamada(
+                pulso=pulso,
+                prompt=prompt,
+                respuesta=bruto,
+                es_cadena=es_cadena,
+            )
+
             candidata, error_parseo = _normalizar_respuesta(bruto, pulso)
             if error_parseo is not None or candidata is None:
                 errores = [error_parseo or "Salida inválida del modelo."]
@@ -312,7 +444,7 @@ class CicloMente:
                 errores = validar_respuesta_estrechada(pulso, candidata, esquema)
 
             if not errores and candidata is not None:
-                return candidata, [], intentos
+                return candidata, [], intentos, False
 
             pensamiento = _extraer_pensamiento(bruto)
             if intento < self.max_reintentos_locales:
@@ -350,33 +482,48 @@ class CicloMente:
                         "errores": errores,
                     }
                 )
-                return None, errores, intentos
+                return None, errores, intentos, False
 
-        return None, ["Error inesperado de validación."], intentos
+        return None, ["Error inesperado de validación."], intentos, False
 
     def procesar_pulso(
         self,
         pulso: dict[str, Any],
         *,
         recuerdos: list[Any] | None = None,
+        es_cadena: bool | None = None,
     ) -> ResultadoPulso:
         """Procesa un pulso individual: estrecha esquema, valida localmente, envía y reformula una vez si hay rechazo."""
-        esquema = estrechar_esquema(pulso)
         pulso_id = int(pulso["id"])
         epoca = str(pulso["epoca"])
+        motivo = str(pulso.get("motivo") or "")
+        cadena = _es_pulso_cadena(pulso, es_cadena)
 
-        respuesta, errores, intentos = self._generar_y_validar(
+        if not self._puede_llamar_modelo(motivo, cadena):
+            self._registrar_salto_presupuesto(pulso=pulso, es_cadena=cadena, reformulacion=False)
+            return ResultadoPulso(
+                pulso_id=pulso_id,
+                epoca=epoca,
+                estado="presupuesto_agotado",
+                respuesta=None,
+                intentos_modelo=0,
+            )
+
+        esquema = estrechar_esquema(pulso)
+
+        respuesta, errores, intentos, agotado = self._generar_y_validar(
             pulso,
             esquema,
             recuerdos=recuerdos,
             motivos_rechazo=None,
             es_reformulacion=False,
+            es_cadena=cadena,
         )
         if respuesta is None:
             return ResultadoPulso(
                 pulso_id=pulso_id,
                 epoca=epoca,
-                estado="rechazada_local",
+                estado="presupuesto_agotado" if agotado else "rechazada_local",
                 respuesta=None,
                 intentos_modelo=intentos,
                 errores_locales=errores,
@@ -416,7 +563,9 @@ class CicloMente:
             }
         )
 
-        if self.max_reformulaciones <= 0:
+        if self.max_reformulaciones <= 0 or not self._puede_llamar_modelo(motivo, cadena):
+            if self.max_reformulaciones > 0:
+                self._registrar_salto_presupuesto(pulso=pulso, es_cadena=cadena, reformulacion=True)
             return ResultadoPulso(
                 pulso_id=pulso_id,
                 epoca=epoca,
@@ -426,19 +575,20 @@ class CicloMente:
                 motivos_rechazo=motivos,
             )
 
-        respuesta_ref, errores_ref, intentos_ref = self._generar_y_validar(
+        respuesta_ref, errores_ref, intentos_ref, agotado_ref = self._generar_y_validar(
             pulso,
             esquema,
             recuerdos=recuerdos,
             motivos_rechazo=motivos,
             es_reformulacion=True,
+            es_cadena=cadena,
         )
         total_intentos = intentos + intentos_ref
         if respuesta_ref is None:
             return ResultadoPulso(
                 pulso_id=pulso_id,
                 epoca=epoca,
-                estado="rechazada_local",
+                estado="presupuesto_agotado" if agotado_ref else "rechazada_local",
                 respuesta=None,
                 intentos_modelo=total_intentos,
                 motivos_rechazo=motivos,
