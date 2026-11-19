@@ -1,7 +1,8 @@
 # `ARCHITECTURE.md` — ADS · Especificación de Arquitectura (*Corazón Pelican*)
 
-> **Estado:** propuesta, 2026-11-03; revisada el 2026-11-04 (decisiones P-1, P-2, P-3 y P-11 en
-> [`docs/decisiones.md`](docs/decisiones.md)). Nada de lo descrito existe todavía.
+> **Estado al 2026-11-19.** Existen el contrato compartido, el cargador de perfiles, FakeWorld,
+> la saliencia, las bandas y los disparadores. La tabla del [backlog](backlog/README.md) indica
+> qué partes de esta arquitectura esperan implementación o verificación en el juego.
 > **Hechos del juego comprobados:** [`docs/notas-juego.md`](docs/notas-juego.md).
 > **Documento hermano:** [`design.md`](design.md) (GSS: qué hace y por qué).
 > **Convención:** lo marcado **[verificar]** depende de un detalle de Stardew Valley 1.6.15 o de

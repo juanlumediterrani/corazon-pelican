@@ -29,18 +29,17 @@ datos del juego (horarios, animaciones) está [`tools/xnbdump`](../tools/xnbdump
 CP-013 (taller: generador + script de asset) es el que más riesgo quita por menos coste:
 conviene hacerlo pronto.
 
-## Primeras tareas listas
+## Tareas listas
 
-Hechas: CP-001…CP-004, CP-102, CP-103, CP-201. Listas ahora, por prioridad:
+Estas ocho fichas están pendientes y tienen todas sus dependencias hechas.
 
-1. **CP-013** spike del taller (P1, sin juego).
-2. **CP-205** voz de Leah y rúbrica (P1, creativo).
-3. **CP-202** presupuesto de pulsos con reserva para las cadenas (P1).
-4. **CP-105** léxico único (P2; desbloquea CP-104, la prosa).
-5. **CP-005** configuración, módulos y `cp_estado` (P2; trae el modo de desarrollo).
-6. **CP-006** partida de desarrollo y medición de lugares (P2, 🎮).
+| Prioridad | Tareas por hito e identificador |
+|---|---|
+| P1 | CP-013 taller · CP-202 presupuesto de pulsos · CP-205 voz de Leah y rúbrica |
+| P2 | CP-005 configuración y consola · CP-006 medición de lugares 🎮 · CP-012 animaciones de Leah · CP-105 léxico único |
+| P3 | CP-014 entrada de texto libre |
 
-CP-902 está en curso con el autor del diseño.
+CP-902 está en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
 
 ## Tareas
 
@@ -101,6 +100,7 @@ CP-902 está en curso con el autor del diseño.
 | [CP-603](tareas/CP-603-encuentro.md) | Sesión de encuentro · Pelican, un humano y el granjero de Voyager con Leah 🎮 | F6 | P3 | CP-508, CP-601, CP-602 | pendiente |
 | [CP-901](tareas/CP-901-adrs.md) | Redactar ADR-0001 a ADR-0006 | D | P2 | CP-001 | hecha |
 | [CP-902](tareas/CP-902-preguntas-abiertas.md) | Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros) | D | P2 | — | en-curso |
+| [CP-903](tareas/CP-903-estado-y-ruta-del-proyecto.md) | Actualizar el estado del proyecto y la ruta de tareas listas | D | P2 | CP-901 | hecha |
 | [CP-910](tareas/CP-910-catalogo-hitos.md) | Catálogo de hitos elegibles y variaciones de los existentes | Futuro | profunda | CP-306, CP-208 | dormida |
 | [CP-911](tareas/CP-911-intenciones-arnes-voyager.md) | Intenciones propias potenciadas con un ejecutor al estilo del arnés de Stardew Voyager | Futuro | profunda | CP-302, CP-306 | dormida |
 

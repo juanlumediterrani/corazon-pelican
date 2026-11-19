@@ -23,7 +23,7 @@ Candidatos sin probar, con enlaces y licencias: [notas](../../docs/notas-juego.m
 
 ## Alcance
 
-- Medir V-04: tamaños de los cuadros vanilla en `Data/Furniture` (campo 2) y su textura (campo 9, confirmado como índice de textura en `FurnitureDataDefinition`).
+- Medir V-04: tamaños de los cuadros vanilla en `Data/Furniture` (campo 2) y localizar cada cuadro en la hoja con el índice de sprite (campo 8) y la textura (campo 9).
 - Extraer una paleta candidata de `TileSheets/furniture` y retratos.
 - Primer borrador de `taller/asset.py` (CLI `python -m taller.asset`): imagen bruta → recorte → reducción → cuantización a paleta → limpieza → PNG del formato + vista a ×4.
 - Comparar con 5 temas fijos (lago gris de otoño, sauce, retrato del granjero, bodegón, playa al atardecer), todas por el mismo script de asset:
@@ -36,7 +36,7 @@ Candidatos sin probar, con enlaces y licencias: [notas](../../docs/notas-juego.m
 
 ## Criterios de aceptación
 
-- [ ] `docs/spikes/taller-resolucion.md` con tamaños vanilla citados, las imágenes de las tres vías y la decisión razonada.
+- [ ] `docs/spikes/taller-resolucion.md` con tamaños vanilla citados, las imágenes de las cuatro vías y la decisión razonada.
 - [ ] Las imágenes se ven a escala de juego (×4) al lado de un cuadro vanilla.
 - [ ] Se fija el formato de `boceto`, `cuadro_pequeno` y `cuadro_mediano` (lienzo en px y casillas) para CP-401.
 - [ ] Se elige el generador principal y el orden de respaldo, con la licencia de cada uno registrada.

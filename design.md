@@ -1,7 +1,7 @@
 # `DESIGN.md` — GSS · Especificación de Diseño del Sistema (*Corazón Pelican*)
 
-> **Estado:** propuesta, 2026-11-03; revisada el 2026-11-04 (decisiones P-2, P-4, P-8 y P-11 en
-> [`docs/decisiones.md`](docs/decisiones.md)). Nada de lo descrito existe todavía.
+> **Estado al 2026-11-19.** R-03 y R-13 tienen guardas en las suites del repositorio. La §13
+> y el [backlog](backlog/README.md) relacionan cada regla con su prueba y su tarea.
 > **Documento hermano:** [`architecture.md`](architecture.md) (ADS: cómo se construye).
 > **Regla de la casa:** como en Stardew Voyager (moratoria de prosa), ninguna regla de
 > este documento se considera vigente hasta que exista la guarda o el test que la hace
