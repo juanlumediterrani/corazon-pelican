@@ -4,7 +4,7 @@ titulo: Actos de habla y validador «todos válidos o ninguno»
 estado: pendiente
 prioridad: P1
 hito: F5
-depende_de: [CP-301, CP-403]
+depende_de: [CP-107, CP-301]
 tipo: code-light
 complejidad: media
 duracion_min: 150

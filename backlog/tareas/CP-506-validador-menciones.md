@@ -9,6 +9,7 @@ tipo: code-light
 complejidad: media
 duracion_min: 120
 sensibilidad: public
+reglas: [R-15]
 ---
 
 ## Objetivo
