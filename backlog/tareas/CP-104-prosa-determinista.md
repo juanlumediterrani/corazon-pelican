@@ -18,7 +18,7 @@ Convertir observación y bandas en prosa de segunda persona sin LLM, con el apé
 
 ## Contexto
 
-GSS §3.4 y ADR-0002 propuesto. Riesgo de monotonía perceptiva (GSS §14): las plantillas necesitan variantes, elegidas de forma determinista (semilla = día + entidad), no aleatoria.
+GSS §3.4 y [ADR-0002](../../docs/adr/0002-percepcion-por-plantillas.md). Riesgo de monotonía perceptiva (GSS §14): las plantillas necesitan variantes, elegidas de forma determinista (semilla = día + entidad), no aleatoria.
 
 ## Alcance
 

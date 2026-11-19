@@ -97,7 +97,7 @@ Hechas: CP-001…CP-004, CP-102, CP-103, CP-201. Listas ahora, por prioridad:
 | [CP-601](tareas/CP-601-pelican-micro-wandering.md) | Pelican 4Ever · WorldLifeModule ignora NPCs reclamados por Corazón Pelican | F6 | P3 | CP-303 | pendiente |
 | [CP-602](tareas/CP-602-sucesos-pelican.md) | IntegracionPelicanModule · sucesos del servidor como percepción | F6 | P3 | CP-101 | pendiente |
 | [CP-603](tareas/CP-603-encuentro.md) | Sesión de encuentro · Pelican, un humano y el granjero de Voyager con Leah 🎮 | F6 | P3 | CP-508, CP-601, CP-602 | pendiente |
-| [CP-901](tareas/CP-901-adrs.md) | Redactar ADR-0001 a ADR-0006 | D | P2 | CP-001 | pendiente |
+| [CP-901](tareas/CP-901-adrs.md) | Redactar ADR-0001 a ADR-0006 | D | P2 | CP-001 | hecha |
 | [CP-902](tareas/CP-902-preguntas-abiertas.md) | Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros) | D | P2 | — | pendiente |
 | [CP-910](tareas/CP-910-catalogo-hitos.md) | Catálogo de hitos elegibles y variaciones de los existentes | Futuro | profunda | CP-306, CP-208 | dormida |
 | [CP-911](tareas/CP-911-intenciones-arnes-voyager.md) | Intenciones propias potenciadas con un ejecutor al estilo del arnés de Stardew Voyager | Futuro | profunda | CP-302, CP-306 | dormida |

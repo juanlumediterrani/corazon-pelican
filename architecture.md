@@ -656,15 +656,14 @@ Cada regla R-xx de la GSS §13 tiene su test en esta matriz antes de considerars
 
 ---
 
-## 15. ADRs Iniciales Propuestos
+## 15. Decisiones de arquitectura
 
-* **ADR-0001:** Motor en el host, mente fuera del proceso; el juego es servidor y nunca espera.
-* **ADR-0002:** Percepción con plantillas deterministas; ningún LLM narra el mundo.
-* **ADR-0003:** Actos validados antes de mostrar la frase.
-* **ADR-0004:** Memoria única que viaja con la partida (`WriteSaveData`), obras incluidas.
-* **ADR-0005:** Contrato en JSON Schema como fuente única para C# y Python, con época de mundo.
-* **ADR-0006:** La cadencia de pensamiento emerge de los disparadores y se mide; no hay
-  temporizador de pensamiento (GSS §4.2, §7).
+* [ADR-0001 · El host gobierna el cuerpo y la mente trabaja fuera del juego](docs/adr/0001-motor-en-el-host.md).
+* [ADR-0002 · La escena se escribe con plantillas deterministas](docs/adr/0002-percepcion-por-plantillas.md).
+* [ADR-0003 · El motor valida los actos antes de mostrar la frase](docs/adr/0003-actos-antes-de-la-frase.md).
+* [ADR-0004 · La memoria del personaje viaja con la partida](docs/adr/0004-memoria-con-la-partida.md).
+* [ADR-0005 · Un solo contrato y una época por carga de mundo](docs/adr/0005-contrato-y-epoca.md).
+* [ADR-0006 · Los sucesos y la rutina determinan cuándo pensar](docs/adr/0006-cadencia-por-disparadores.md).
 
 ---
 

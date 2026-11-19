@@ -2,7 +2,7 @@
 
 Registro de las decisiones tomadas sobre la GSS ([`design.md`](../design.md)) y la ADS
 ([`architecture.md`](../architecture.md)) y de lo que falta por decidir. Los identificadores
-P-x se citan desde los documentos y las tareas. Las decisiones estables pasarán a ADR (CP-901).
+P-x se citan desde los documentos y las tareas. La [ADS §15](../architecture.md#15-decisiones-de-arquitectura) enlaza las seis decisiones de arquitectura documentadas en CP-901.
 
 ## 1. Decisiones tomadas (2026-11-04)
 

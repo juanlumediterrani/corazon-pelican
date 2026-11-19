@@ -14,7 +14,7 @@ reglas: [R-07, R-08]
 
 ## Objetivo
 
-Una frase de Leah solo se muestra si todos sus actos son válidos (ADR-0003 propuesto).
+Una frase de Leah solo se muestra si todos sus actos son válidos ([ADR-0003](../../docs/adr/0003-actos-antes-de-la-frase.md)).
 
 ## Contexto
 
