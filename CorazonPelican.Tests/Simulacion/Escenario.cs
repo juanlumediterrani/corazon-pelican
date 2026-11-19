@@ -1,4 +1,5 @@
 using CorazonPelican.Core.Intencion;
+using CorazonPelican.Core.Perfil;
 using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Tiempo;
 
@@ -32,9 +33,9 @@ public sealed class Escenario
     /// <summary>La escena fundacional (GSS §1): el personaje en la pasarela del lago, otoño, última hora de la tarde.</summary>
     public static Escenario Pasarela()
     {
-        var escenario = new Escenario(new LugarSimulado("pasarela_lago", "Mountain", 40, 30))
-            .ConLugar(new LugarSimulado("orilla_norte", "Mountain", 40, 18))
-            .ConLugar(new LugarSimulado("tu_casa", "LeahHouse", 8, 5));
+        var escenario = new Escenario(new LugarSimulado("pasarela_lago", "Mountain", 40, 30, "la pasarela de madera del lago"))
+            .ConLugar(new LugarSimulado("orilla_norte", "Mountain", 40, 18, "la orilla norte"))
+            .ConLugar(new LugarSimulado("tu_casa", "LeahHouse", 8, 5, "tu casa"));
         escenario.entidades.Add(new EntidadSimulada
         {
             Ref = "agua:Mountain:lago", Categoria = CategoriaEntidad.Terreno, Nombre = "el lago", Ubicacion = "Mountain",
@@ -132,11 +133,11 @@ public sealed class Escenario
     }
 
     /// <summary>Cada llamada da un mundo independiente (copia entidades y posición).</summary>
-    public FakeWorld Construir()
+    public FakeWorld Construir(Lexico? lexico = null)
         => new(
             new RelojVirtual(this.modo, this.dia, this.hora),
             new PosicionPersonaje { Ubicacion = this.personaje.Ubicacion, X = this.personaje.X, Y = this.personaje.Y },
-            new Dictionary<string, LugarSimulado>(this.lugares),
+            lexico ?? new Lexico { Lugares = this.lugares.Values.Select(lugar => lugar.AlLexico()).ToList() },
             this.entidades.Select(e => e.Clonar()).ToList(),
             this.clima,
             this.semilla,

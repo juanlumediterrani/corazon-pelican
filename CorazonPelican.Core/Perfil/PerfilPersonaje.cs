@@ -64,12 +64,6 @@ namespace CorazonPelican.Core.Perfil
         [DataMember(Name = "reservados_cadenas")] public int ReservadosCadenas { get; set; }
     }
 
-    [DataContract]
-    public sealed class Lexico
-    {
-        [DataMember(Name = "lugares")] public List<Lugar> Lugares { get; set; } = new();
-    }
-
     /// <summary>Lugar del léxico (GSS §3.5). <c>area</c> es <c>[x, y, ancho, alto]</c> en casillas; <c>[0,0,0,0]</c> = pendiente de medir.</summary>
     [DataContract]
     public sealed class Lugar

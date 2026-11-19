@@ -1,4 +1,5 @@
 using CorazonPelican.Core.Contrato;
+using CorazonPelican.Core.Perfil;
 
 namespace CorazonPelican.Tests.Simulacion;
 
@@ -110,9 +111,10 @@ public sealed class FakeBody
         switch (paso.Accion)
         {
             case "ir_a":
-                if (paso.Lugar is null || !this.mundo.Lugares.TryGetValue(paso.Lugar, out var destino))
+                var destino = this.mundo.LugaresOfrecidos.DestinoDe(paso);
+                if (destino is null || PerfilValidator.AreaPendiente(destino))
                 {
-                    this.Sucesos.Add(new(ahoraMs, TipoSuceso.AccionBloqueada, paso.Accion, $"lugar desconocido: {paso.Lugar}"));
+                    this.Sucesos.Add(new(ahoraMs, TipoSuceso.AccionBloqueada, paso.Accion, destino is null ? $"lugar desconocido: {paso.Lugar}" : $"área pendiente: {paso.Lugar}"));
                     this.pendientes.Clear();
                     this.planEnCurso = false;
                     return null;
@@ -120,7 +122,7 @@ public sealed class FakeBody
 
                 this.Continua = null;
                 this.Sentada = false;
-                var casillas = Math.Abs(destino.X - this.mundo.Personaje.X) + Math.Abs(destino.Y - this.mundo.Personaje.Y)
+                var casillas = Math.Abs(destino.Area[0] - this.mundo.Personaje.X) + Math.Abs(destino.Area[1] - this.mundo.Personaje.Y)
                     + (destino.Ubicacion == this.mundo.Personaje.Ubicacion ? 0 : CasillasPorCambioDeUbicacion);
                 this.mundo.MoverPersonaje(destino);
                 return (long)(casillas * MsPorCasilla);

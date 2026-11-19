@@ -46,7 +46,7 @@ namespace CorazonPelican.Core.Perfil
         /// <summary>Hitos del motor, comunes a todos los personajes: no salen del horario y siempre abren cadena.</summary>
         public static readonly IReadOnlyCollection<string> HitosDelMotor = new HashSet<string> { "despertar", "acostarse" };
 
-        private static readonly Regex IdLexico = new("^[a-z][a-z0-9_]*$", RegexOptions.Compiled);
+        private static readonly Regex IdLexico = new(@"\A[a-z][a-z0-9_]*\z", RegexOptions.Compiled);
 
         public static ResultadoValidacionPerfil Validar(PerfilPersonaje perfil, ModoValidacion modo)
         {

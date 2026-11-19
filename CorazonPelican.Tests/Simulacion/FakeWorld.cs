@@ -1,12 +1,17 @@
 using CorazonPelican.Core.Contrato;
 using CorazonPelican.Core.Intencion;
+using CorazonPelican.Core.Perfil;
 using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Tiempo;
 
 namespace CorazonPelican.Tests.Simulacion;
 
 /// <summary>Un lugar del escenario, con la casilla a la que se va al pedir <c>ir_a</c>.</summary>
-public sealed record LugarSimulado(string Id, string Ubicacion, int X, int Y);
+public sealed record LugarSimulado(string Id, string Ubicacion, int X, int Y, string? Prosa = null)
+{
+    public Lugar AlLexico()
+        => new() { Id = this.Id, Ubicacion = this.Ubicacion, Area = new() { this.X, this.Y, 1, 1 }, Prosa = this.Prosa ?? this.Id };
+}
 
 /// <summary>Posición del personaje gobernado en el mundo simulado.</summary>
 public sealed class PosicionPersonaje
@@ -59,13 +64,13 @@ public sealed class FakeWorld
     private readonly Func<int, string, HorarioDia?> horarios;
     private long ultimoDeambularMs;
 
-    internal FakeWorld(RelojVirtual reloj, PosicionPersonaje personaje, IReadOnlyDictionary<string, LugarSimulado> lugares,
+    internal FakeWorld(RelojVirtual reloj, PosicionPersonaje personaje, Lexico lexico,
         List<EntidadSimulada> entidades, string clima, int semilla, FakeMind mente, Func<int, string, HorarioDia?>? horarios = null)
     {
         this.horarios = horarios ?? ((_, _) => null);
         this.Reloj = reloj;
         this.Personaje = personaje;
-        this.Lugares = lugares;
+        this.LugaresOfrecidos = lexico.OfrecerLugares(_ => true);
         this.entidades = entidades;
         this.Clima = clima;
         this.azar = new Random(semilla);
@@ -77,7 +82,7 @@ public sealed class FakeWorld
 
     public PosicionPersonaje Personaje { get; }
 
-    public IReadOnlyDictionary<string, LugarSimulado> Lugares { get; }
+    public LugaresOfrecidos LugaresOfrecidos { get; }
 
     public string Clima { get; set; }
 
@@ -124,11 +129,11 @@ public sealed class FakeWorld
         return minutos >= Noche ? 0.2 : 1.0 - (0.8 * (minutos - Ocaso) / (Noche - Ocaso));
     }
 
-    internal void MoverPersonaje(LugarSimulado destino)
+    internal void MoverPersonaje(Lugar destino)
     {
         this.Personaje.Ubicacion = destino.Ubicacion;
-        this.Personaje.X = destino.X;
-        this.Personaje.Y = destino.Y;
+        this.Personaje.X = destino.Area[0];
+        this.Personaje.Y = destino.Area[1];
     }
 
     private List<Observacion> AvanzarObservando(TimeSpan duracion, bool observar)
