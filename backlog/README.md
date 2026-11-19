@@ -38,8 +38,8 @@ Estas cinco fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-013 taller · CP-204 mente sin cuerpo · CP-301 validador intención |
-| P2 | CP-006 medición de lugares 🎮 · CP-106 búfer y diario |
+| P1 | CP-013 taller · CP-107 persistencia · CP-204 mente sin cuerpo · CP-301 validador intención |
+| P2 | CP-006 medición de lugares 🎮 |
 
 CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
 
@@ -64,7 +64,7 @@ CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/dec
 | [CP-103](tareas/CP-103-bandas-gradiente.md) | Bandas de detalle foco/mención/periferia/ausente | F1 | P1 | CP-102 | hecha |
 | [CP-104](tareas/CP-104-prosa-determinista.md) | Plantillas de prosa deterministas, escena y prosa de acción, con escenas doradas | F1 | P1 | CP-103, CP-105 | hecha |
 | [CP-105](tareas/CP-105-lexico-unico.md) | Léxico único compartido por percepción, acción y diálogo | F1 | P2 | CP-003 | hecha |
-| [CP-106](tareas/CP-106-bufer-diario.md) | Búfer de prosa de acción, huella de atención y diario con consolidación temporal | F1 | P2 | CP-104 | pendiente |
+| [CP-106](tareas/CP-106-bufer-diario.md) | Búfer de prosa de acción, huella de atención y diario con consolidación temporal | F1 | P2 | CP-104 | hecha |
 | [CP-107](tareas/CP-107-persistencia-estado.md) | Estado del personaje persistido con la partida, con versión y migraciones | F1 | P1 | CP-106 | pendiente |
 | [CP-108](tareas/CP-108-aceptacion-sensorio.md) | Aceptación de fase 1 · un día completo de escenas legibles 🎮 | F1 | P2 | CP-101, CP-104, CP-107, CP-109, CP-006 | pendiente |
 | [CP-109](tareas/CP-109-habitante-y-telemetria.md) | HabitanteModule, telemetría JSONL y comandos cp_escena / cp_pulso | F1 | P1 | CP-101, CP-104, CP-106 | pendiente |
