@@ -98,8 +98,10 @@ contabilidad, CP-502 el vencimiento y CP-509 la petición y respuesta del destin
 
 El personaje puede cambiar pequeñas pautas de conducta durante varios días a raíz de sus
 experiencias en el valle. La mente interpreta un episodio según su carácter y sus recuerdos.
-El motor guarda esa impresión con la partida y limita sus efectos. La huella de atención
-(P-8) sigue describiendo qué le llamó la atención desde la última pulsión.
+El motor guarda esa impresión con la partida y limita sus efectos. En los días tranquilos que
+siguen, ese efecto se atenúa poco a poco con el tiempo vivido; una experiencia significativa
+puede cambiarlo antes. La huella de atención (P-8) sigue describiendo qué le llamó la atención
+desde la última pulsión.
 
 Por ejemplo, tras varias tardes trabajando a gusto en casa, Leah puede querer seguir allí un
 rato. Si vivió esas tardes como aislamiento, puede guardar antes el cuaderno para salir. El

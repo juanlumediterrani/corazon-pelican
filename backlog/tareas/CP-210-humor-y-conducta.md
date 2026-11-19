@@ -19,13 +19,13 @@ Una experiencia que el personaje interpreta a la luz de su historia puede influi
 
 - Partir de episodios identificables del diario y recuerdos disponibles en la pulsión. La mente puede explicar cómo le sentaron, conservar su humor previo o revisarlo. Reutilizar los pensamientos y reflexiones del día.
 - Ampliar el contrato compartido con la impresión y sus límites. Reutilizar los episodios identificados y la comprobación de origen de CP-211. CP-206 conserva sus referencias al guardar un recuerdo. Mantener la lectura de perfiles y partidas anteriores.
-- El host comprueba origen, época y límites del perfil, persiste la impresión con el personaje y la devuelve en pulsos posteriores. Concretar en el perfil su duración e intensidad y documentar los valores ensayados. Una impresión puede perder fuerza antes de que se olvide el episodio.
+- El host comprueba origen, época y límites del perfil, persiste la impresión con el personaje y la devuelve en pulsos posteriores. Concretar en el perfil su duración e intensidad y documentar los valores ensayados. En los días tranquilos que siguen, el efecto se atenúa poco a poco con el tiempo vivido; una experiencia significativa puede cambiarlo antes (aunque el episodio siga recordándose).
 - La mente puede elegir una atención, una pausa o una pequeña variación permitida de la rutina. Toda acción efectiva sigue el camino normal de intención y validación. Los detalles de Leah pertenecen a su perfil y a sus escenas.
 
 ## Criterios de aceptación
 
 - [ ] `HumorPersonajeTests` y pruebas de contrato. Una impresión vinculada a un episodio que el personaje vivió llega al despertar siguiente tras guardar y cargar. Un origen desconocido o una respuesta de otra época se rechaza. Reintentar la respuesta conserva un solo efecto.
-- [ ] Con reloj virtual, comprobar la evolución durante varios días, el límite elegido y el comportamiento de una partida anterior sin impresión. Cambiar de día o recargar conserva la evolución que corresponde al tiempo de juego.
+- [ ] Con reloj virtual, comprobar la atenuación gradual durante varios días tranquilos, su sustitución anticipada ante una experiencia significativa, el límite elegido y el comportamiento de una partida anterior sin impresión. Cambiar de día o recargar conserva la evolución que corresponde al tiempo de juego.
 - [ ] Con FakeWorld y mente guionizada, repetir la misma tarde con el mismo perfil, horario, lugar y oportunidades. Variar solo la experiencia anterior. Comprobar que el contexto llega a la mente y que las dos elecciones propuestas por la mente guionizada solo usan las opciones del pulso.
 
 ## Verificación en fases posteriores

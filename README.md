@@ -11,13 +11,15 @@ sus recuerdos y lo que encuentra ese día dan sentido a la elección. El diseño
 [aceptación de la fase de cuerpo](backlog/tareas/CP-305-aceptacion-cuerpo.md).
 
 La solución compila. El contrato motor ↔ mente ya se valida desde C# y Python. El mod incluye
-el cargador de perfiles y el perfil de Leah. En FakeWorld se prueban la saliencia, las bandas
-de detalle y los disparadores de pensamiento. La observación del juego, la API que entregará
-los pulsos a la mente y la ejecución de intenciones siguen pendientes.
+el cargador de perfiles, el perfil y la voz de Leah (`leah.voz.md` y la rúbrica de carácter).
+En FakeWorld se prueban la saliencia, las bandas de detalle, los disparadores de pensamiento,
+el presupuesto de pulsos y el léxico único. La observación del juego, las plantillas de prosa,
+la API que entregará los pulsos a la mente y la ejecución de intenciones siguen pendientes.
 
-Dos reglas del diseño cuentan con guarda: el nivel de detalle según la banda de percepción
-(R-03, CP-103) y la exclusión de coordenadas y rutas en los planes de la mente (R-13, CP-002).
-Las tareas y sus pruebas están en el [backlog](backlog/README.md).
+Cuatro reglas del diseño cuentan con guarda: el nivel de detalle según la banda de percepción
+(R-03, CP-103), el presupuesto diario aplicado por el motor (R-04, CP-202), la exclusión de
+coordenadas y rutas en los planes de la mente (R-13, CP-002) y el léxico único compartido
+(R-14, CP-105). Las tareas y sus pruebas están en el [backlog](backlog/README.md).
 
 | Documento | Para qué |
 |---|---|
@@ -29,10 +31,10 @@ Las tareas y sus pruebas están en el [backlog](backlog/README.md).
 | [`backlog/README.md`](backlog/README.md) | Índice de tareas (formato Dr4co Core), trazabilidad de reglas |
 | [`tools/xnbdump/`](tools/xnbdump/) | Lector de datos `.xnb` del juego (horarios, animaciones) |
 
-Las tres tareas P1 listas son la prueba de legibilidad de los cuadros (CP-013), el presupuesto
-diario de pensamientos (CP-202) y la voz de Leah con su rúbrica (CP-205). El índice recoge
-las [tareas listas](backlog/README.md#tareas-listas) y [AGENTS.md](AGENTS.md) contiene los
-comandos para verificar la solución.
+Las dos tareas P1 listas son la prueba de legibilidad de los cuadros (CP-013) y las plantillas
+de prosa deterministas (CP-104); en P2, CP-005 desbloquea la observación y la API del motor.
+El índice recoge las [tareas listas](backlog/README.md#tareas-listas) y [AGENTS.md](AGENTS.md)
+contiene los comandos para verificar la solución.
 
 Proyectos hermanos: Pelican 4Ever (`../Stardew Valley MORPG`) y Stardew Voyager
 (`../stardew-voyager`).
