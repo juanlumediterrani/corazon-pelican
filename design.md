@@ -1,6 +1,6 @@
 # `DESIGN.md` — GSS · Especificación de Diseño del Sistema (*Corazón Pelican*)
 
-> **Estado al 2026-11-19.** R-01, R-02, R-03, R-04, R-05, R-06, R-13, R-14 y R-16 tienen guardas en las suites del repositorio. La §13
+> **Estado al 2026-11-19.** R-01, R-02, R-03, R-04, R-05, R-06, R-10 (diario), R-13, R-14 y R-16 tienen guardas en las suites del repositorio. La §13
 > y el [backlog](backlog/README.md) relacionan cada regla con su prueba y su tarea.
 > **Documento hermano:** [`architecture.md`](architecture.md) (ADS: cómo se construye).
 > **Regla de la casa:** como en Stardew Voyager (moratoria de prosa), ninguna regla de

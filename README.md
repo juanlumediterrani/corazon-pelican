@@ -16,11 +16,14 @@ En FakeWorld se prueban la saliencia, las bandas de detalle, los disparadores de
 el presupuesto de pulsos y el léxico único. La observación del juego, las plantillas de prosa,
 la API que entregará los pulsos a la mente y la ejecución de intenciones siguen pendientes.
 
-Seis reglas del diseño cuentan con guarda: las plantillas deterministas (R-01, CP-104),
+Diez reglas del diseño cuentan con guarda: las plantillas deterministas (R-01, CP-104),
 la ausencia de alucinaciones en escena (R-02, CP-104), el nivel de detalle según la banda de
 percepción (R-03, CP-103), el presupuesto diario aplicado por el motor (R-04, CP-202), la
-exclusión de coordenadas y rutas en los planes de la mente (R-13, CP-002) y el léxico único
-compartido (R-14, CP-105). Las tareas y sus pruebas están en el [backlog](backlog/README.md).
+no obstrucción del cuerpo (R-05, CP-203), las precondiciones de intención (R-06, CP-301),
+la persistencia del diario con la partida (R-10, CP-107), la exclusión de coordenadas y rutas
+en los planes (R-13, CP-002), el léxico único compartido (R-14, CP-105) y los cambios de
+rutina acotados por el perfil (R-16, CP-212). Las tareas y sus pruebas están en el
+[backlog](backlog/README.md).
 
 | Documento | Para qué |
 |---|---|
@@ -32,9 +35,9 @@ compartido (R-14, CP-105). Las tareas y sus pruebas están en el [backlog](backl
 | [`backlog/README.md`](backlog/README.md) | Índice de tareas (formato Dr4co Core), trazabilidad de reglas |
 | [`tools/xnbdump/`](tools/xnbdump/) | Lector de datos `.xnb` del juego (horarios, animaciones) |
 
-Las tareas P1 listas sin juego vivo son la prueba de legibilidad de los cuadros (CP-013),
-el observador del juego (CP-101) y la API loopback del motor (CP-203); en P2, CP-106 desbloquea
-la persistencia del diario (CP-107). El índice recoge las
+Las tareas listas sin juego vivo son la recuperación de memoria y reflexión (CP-206) y el
+presupuesto de tokens y costes (CP-207), junto con `HabitanteModule` y telemetría (CP-109,
+con `CP-101` pendiente solo de medición DEV en vivo). El índice recoge las
 [tareas listas](backlog/README.md#tareas-listas) y [AGENTS.md](AGENTS.md) contiene los comandos
 para verificar la solución.
 

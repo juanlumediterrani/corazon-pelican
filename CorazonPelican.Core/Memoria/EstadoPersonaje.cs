@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using CorazonPelican.Core.Atencion;
 using CorazonPelican.Core.Contrato;
@@ -9,35 +10,45 @@ using CorazonPelican.Core.Tiempo;
 namespace CorazonPelican.Core.Memoria
 {
     /// <summary>Estado persistido por personaje junto con la partida (ADS §3.2, P-6).</summary>
+    [DataContract]
     public sealed class EstadoPersonaje
     {
-        public const int VersionActual = 1;
+        public const int VersionActual = 2;
 
         [JsonPropertyName("version_esquema")]
+        [DataMember(Name = "version_esquema")]
         public int VersionEsquema { get; set; } = VersionActual;
 
         [JsonPropertyName("siguiente_id_episodio")]
+        [DataMember(Name = "siguiente_id_episodio")]
         public int SiguienteIdEpisodio { get; set; } = 1;
 
         [JsonPropertyName("diario")]
+        [DataMember(Name = "diario")]
         public List<EpisodioDiario> Diario { get; set; } = new();
 
         [JsonPropertyName("recuerdos")]
+        [DataMember(Name = "recuerdos")]
         public List<Recuerdo> Recuerdos { get; set; } = new();
 
         [JsonPropertyName("relaciones")]
+        [DataMember(Name = "relaciones")]
         public Dictionary<string, RelacionEstado> Relaciones { get; set; } = new();
 
         [JsonPropertyName("portafolio")]
+        [DataMember(Name = "portafolio")]
         public List<ObraPortafolio> Portafolio { get; set; } = new();
 
         [JsonPropertyName("compromisos")]
+        [DataMember(Name = "compromisos")]
         public List<CompromisoEstado> Compromisos { get; set; } = new();
 
         [JsonPropertyName("contadores")]
+        [DataMember(Name = "contadores")]
         public ContadoresPulsos? Contadores { get; set; }
 
         [JsonPropertyName("intencion_activa")]
+        [DataMember(Name = "intencion_activa")]
         public IntencionActiva? IntencionActiva { get; set; }
 
         /// <summary>
@@ -101,96 +112,127 @@ namespace CorazonPelican.Core.Memoria
         }
     }
 
+    [DataContract]
     public sealed class EpisodioDiario
     {
         [JsonPropertyName("id")]
+        [DataMember(Name = "id")]
         public string Id { get; set; } = "";
 
         [JsonPropertyName("dia_juego")]
+        [DataMember(Name = "dia_juego")]
         public int DiaJuego { get; set; }
 
         [JsonPropertyName("hora")]
+        [DataMember(Name = "hora")]
         public int Hora { get; set; }
 
         [JsonPropertyName("resumen_prosa")]
+        [DataMember(Name = "resumen_prosa")]
         public string ResumenProsa { get; set; } = "";
 
         [JsonPropertyName("saliencia")]
+        [DataMember(Name = "saliencia")]
         public double Saliencia { get; set; }
 
         [JsonPropertyName("entidades")]
+        [DataMember(Name = "entidades")]
         public List<string> Entidades { get; set; } = new();
     }
 
+    [DataContract]
     public sealed class Recuerdo
     {
         [JsonPropertyName("id")]
+        [DataMember(Name = "id")]
         public string Id { get; set; } = "";
 
         [JsonPropertyName("texto")]
+        [DataMember(Name = "texto")]
         public string Texto { get; set; } = "";
 
         [JsonPropertyName("importancia")]
+        [DataMember(Name = "importancia")]
         public double Importancia { get; set; }
 
         [JsonPropertyName("origen_diario")]
+        [DataMember(Name = "origen_diario")]
         public List<string> OrigenDiario { get; set; } = new();
     }
 
+    [DataContract]
     public sealed class RelacionEstado
     {
         [JsonPropertyName("impresion")]
+        [DataMember(Name = "impresion")]
         public string Impresion { get; set; } = "";
 
         [JsonPropertyName("ultima_vez")]
+        [DataMember(Name = "ultima_vez")]
         public TiempoJuego? UltimaVez { get; set; }
     }
 
+    [DataContract]
     public sealed class ObraPortafolio
     {
         [JsonPropertyName("obra_id")]
+        [DataMember(Name = "obra_id")]
         public string ObraId { get; set; } = "";
 
         [JsonPropertyName("estado")]
+        [DataMember(Name = "estado")]
         public string Estado { get; set; } = "";
 
         [JsonPropertyName("decision")]
+        [DataMember(Name = "decision")]
         public DecisionObra? Decision { get; set; }
 
         [JsonPropertyName("nota")]
+        [DataMember(Name = "nota")]
         public string Nota { get; set; } = "";
 
         [JsonPropertyName("escena_origen")]
+        [DataMember(Name = "escena_origen")]
         public string EscenaOrigen { get; set; } = "";
 
         [JsonPropertyName("png_base64")]
+        [DataMember(Name = "png_base64")]
         public string? PngBase64 { get; set; }
 
         [JsonPropertyName("destinatario")]
+        [DataMember(Name = "destinatario")]
         public string? Destinatario { get; set; }
     }
 
+    [DataContract]
     public sealed class CompromisoEstado
     {
         [JsonPropertyName("id")]
+        [DataMember(Name = "id")]
         public string Id { get; set; } = "";
 
         [JsonPropertyName("tipo")]
+        [DataMember(Name = "tipo")]
         public string Tipo { get; set; } = "";
 
         [JsonPropertyName("destinatario")]
+        [DataMember(Name = "destinatario")]
         public string Destinatario { get; set; } = "";
 
         [JsonPropertyName("objeto")]
+        [DataMember(Name = "objeto")]
         public string Objeto { get; set; } = "";
 
         [JsonPropertyName("plazo_vigente")]
+        [DataMember(Name = "plazo_vigente")]
         public TiempoJuego PlazoVigente { get; set; } = new();
 
         [JsonPropertyName("estado")]
+        [DataMember(Name = "estado")]
         public string Estado { get; set; } = "";
 
         [JsonPropertyName("plazo_propuesto")]
+        [DataMember(Name = "plazo_propuesto")]
         public TiempoJuego? PlazoPropuesto { get; set; }
     }
 }

@@ -19,10 +19,14 @@ public sealed class BucleAtencion
     private int sucesosVistos;
     private string? planEnCurso;
 
-    public BucleAtencion(FakeWorld mundo, PerfilPersonaje perfil, ContextoSaliencia? contexto = null)
+    public BucleAtencion(
+        FakeWorld mundo,
+        PerfilPersonaje perfil,
+        ContextoSaliencia? contexto = null,
+        ContadoresPulsos? guardados = null)
     {
         this.Mundo = mundo;
-        this.Disparadores = new Disparadores(perfil, mundo.Reloj.Modo);
+        this.Disparadores = new Disparadores(perfil, mundo.Reloj.Modo, guardados);
         this.bandas = new ClasificadorBandas(perfil.Umbrales);
         this.contexto = contexto ?? new ContextoSaliencia(perfil.Rasgos, EstadoAtencion.Abierta, perfil.Umbrales.Periferia);
     }

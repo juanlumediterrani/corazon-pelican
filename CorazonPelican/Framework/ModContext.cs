@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CorazonPelican.Core.Api;
 using CorazonPelican.Core.Config;
+using CorazonPelican.Core.Memoria;
 using CorazonPelican.Core.Perfil;
 using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Tiempo;
@@ -60,6 +61,16 @@ namespace CorazonPelican.Framework
 
         /// <summary>Última observación recogida por personaje gobernado.</summary>
         public Dictionary<string, Observacion> UltimasObservaciones { get; } = new(StringComparer.Ordinal);
+
+        /// <summary>Estado persistido por partida de todos los personajes gobernados (ADS §9, CP-107).</summary>
+        public EstadoPartida EstadoPartida { get; internal set; } = new();
+
+        /// <summary>
+        /// Devuelve el estado persistido de <paramref name="personajeId"/> en la partida actual,
+        /// creándolo si aún no existía (compartido entre <c>PersistenciaModule</c>, <c>HabitanteModule</c> y <c>ApiModule</c>).
+        /// </summary>
+        public EstadoPersonaje ObtenerOIniciarEstado(string personajeId)
+            => this.EstadoPartida.ObtenerOIniciar(personajeId);
 
         public ModContext(IModHelper helper, IMonitor monitor, IManifest manifest, CorazonConfig config)
         {

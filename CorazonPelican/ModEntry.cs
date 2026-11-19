@@ -58,6 +58,7 @@ namespace CorazonPelican
             this.observador = new ObservadorJuego();
 
             this.RegistrarModulos(
+                new PersistenciaModule(),
                 new ApiModule(),
                 new ConsolaModule());
 
