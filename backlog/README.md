@@ -34,12 +34,12 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas seis fichas están pendientes y tienen todas sus dependencias hechas.
+Estas siete fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-013 taller · CP-104 prosa determinista |
-| P2 | CP-005 configuración y consola · CP-006 medición de lugares 🎮 · CP-012 animaciones de Leah |
+| P1 | CP-013 taller · CP-101 observador · CP-104 prosa determinista · CP-203 API motor |
+| P2 | CP-006 medición de lugares 🎮 · CP-012 animaciones de Leah |
 | P3 | CP-014 entrada de texto libre |
 
 CP-902 está en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
@@ -52,7 +52,7 @@ CP-902 está en curso. El [registro de decisiones](../docs/decisiones.md) recoge
 | [CP-002](tareas/CP-002-contrato-json-schema.md) | Contrato v1 en JSON Schema, con época de mundo, validado desde C# y Python | F0 | P1 | CP-001 | hecha |
 | [CP-003](tareas/CP-003-perfil-leah.md) | Perfil de personaje cargado como asset y validado; perfil inicial de Leah | F0 | P1 | CP-002 | hecha |
 | [CP-004](tareas/CP-004-fakeworld.md) | FakeWorld para probar el bucle completo sin juego | F0 | P1 | CP-001 | hecha |
-| [CP-005](tareas/CP-005-config-modulos-consola.md) | Configuración validada, registro de módulos y comando cp_estado | F0 | P2 | CP-001 | pendiente |
+| [CP-005](tareas/CP-005-config-modulos-consola.md) | Configuración validada, registro de módulos y comando cp_estado | F0 | P2 | CP-001 | hecha |
 | [CP-006](tareas/CP-006-partida-dev-y-lugares.md) | Partida de desarrollo separada y medición de los lugares de Leah (V-09) 🎮 | F0 | P2 | CP-003 | pendiente |
 | [CP-010](tareas/CP-010-spike-interceptar-conversacion.md) | Spike V-01 · interceptar la conversación sin perder amistad, regalos ni misiones 🎮 | S | P1 | CP-006 | pendiente |
 | [CP-011](tareas/CP-011-spike-reclamar-npc.md) | Spike V-02 · reclamar a Leah y devolverla a su horario sin romperlo 🎮 | S | P1 | CP-006 | pendiente |

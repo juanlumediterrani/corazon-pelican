@@ -48,6 +48,8 @@ namespace CorazonPelican.Core.Perfil
 
         private static readonly Regex IdLexico = new(@"\A[a-z][a-z0-9_]*\z", RegexOptions.Compiled);
 
+        internal static bool EsIdValido(string? id) => IdLexico.IsMatch(id ?? "");
+
         public static ResultadoValidacionPerfil Validar(PerfilPersonaje perfil, ModoValidacion modo)
         {
             var r = new ResultadoValidacionPerfil();
