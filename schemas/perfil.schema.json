@@ -101,7 +101,8 @@
       "type": "object",
       "properties": {
         "pulsos_por_dia_juego": { "type": "integer", "minimum": 1 },
-        "reservados_cadenas": { "type": "integer", "minimum": 0 }
+        "reservados_cadenas": { "type": "integer", "minimum": 0 },
+        "extra_compromisos": { "type": "integer", "minimum": 0, "default": 1 }
       },
       "required": ["pulsos_por_dia_juego", "reservados_cadenas"], "additionalProperties": false
     },

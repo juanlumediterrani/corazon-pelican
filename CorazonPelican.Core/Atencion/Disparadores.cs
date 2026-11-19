@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CorazonPelican.Core.Intencion;
@@ -41,10 +42,9 @@ namespace CorazonPelican.Core.Atencion
     /// <list type="bullet">
     /// <item>Estímulos (pico, deriva, transición): sujetos al período refractario.</item>
     /// <item>Rutina e interlocución (hitos, despertar, acostarse, fin de intención, compromiso, alguien
-    /// que habla): pasan siempre; la rutina no se aplaza para no llegar tarde a lo que toca.</item>
+    /// que habla): atraviesan el refractario y consultan su cupo.</item>
     /// </list>
-    /// Toda pulsión, de cualquier familia, reinicia el integrador y abre una ventana refractaria. El
-    /// presupuesto de pulsos es otra pieza (CP-202).
+    /// Toda pulsión admitida reinicia el integrador y abre una ventana refractaria.
     /// </summary>
     public sealed class Disparadores
     {
@@ -52,6 +52,7 @@ namespace CorazonPelican.Core.Atencion
         public const double LuzAnochecer = 0.5;
 
         private readonly PerfilPersonaje perfil;
+        private readonly PresupuestoPulsos presupuesto;
         private readonly Integrador integrador;
         private readonly Refractario refractario;
         private readonly Queue<Disparo> transicionesPendientes = new();
@@ -59,18 +60,23 @@ namespace CorazonPelican.Core.Atencion
         private readonly List<Disparo> rutinaPendiente = new();
         private HashSet<string> sobrePico = new();
         private int? dia;
-        private bool acostarseEmitido;
         private int siguienteEntrada;
         private long inicioPlanRutinaMs;
         private bool? deDia;
         private string? clima;
 
-        public Disparadores(PerfilPersonaje perfil)
+        public Disparadores(PerfilPersonaje perfil, ModoReloj modo = ModoReloj.Vanilla, ContadoresPulsos? guardados = null)
         {
             this.perfil = perfil;
+            this.presupuesto = new PresupuestoPulsos(perfil.Presupuesto, modo, guardados);
             this.integrador = new Integrador(perfil.Umbrales.DerivaSemividaMin);
             this.refractario = new Refractario(perfil.Refractario);
         }
+
+        public ContadoresPulsos? Contadores => this.presupuesto.Estado;
+
+        /// <summary>CP-502 recibe el identificador del compromiso que necesita una prórroga.</summary>
+        public event Action<Disparo>? CompromisoSinCupo;
 
         public double ValorIntegrador => this.integrador.Valor;
 
@@ -88,7 +94,11 @@ namespace CorazonPelican.Core.Atencion
             var salida = new List<Disparo>();
             this.CambioDeDia(observacion, horario, ahoraMs, salida);
             this.Rutina(observacion, horario, ahoraMs, salida);
-            salida.AddRange(this.rutinaPendiente);
+            foreach (var disparo in this.rutinaPendiente)
+            {
+                this.AgregarSiHayCupo(salida, disparo);
+            }
+
             this.rutinaPendiente.Clear();
 
             this.DetectarTransiciones(observacion, ahoraMs);
@@ -98,9 +108,9 @@ namespace CorazonPelican.Core.Atencion
             this.Estimulos(observacion, bandas, ahoraMs, salida);
 
             this.sobrePico = bandas.Where(b => b.Saliencia >= this.perfil.Umbrales.Pico).Select(b => b.Ref).ToHashSet();
-            foreach (var disparo in salida)
+            if (salida.Count > 0)
             {
-                this.Registrar(disparo.MilisegundosReales);
+                this.Registrar(ahoraMs);
             }
 
             return salida;
@@ -110,6 +120,7 @@ namespace CorazonPelican.Core.Atencion
         public Disparo Interlocucion(string interlocutor, Observacion observacion, long ahoraMs)
         {
             var disparo = new Disparo(Motivos.Interlocucion, ahoraMs, observacion.Dia, observacion.Hora, Ref: interlocutor);
+            this.presupuesto.Admitir(disparo);
             this.Registrar(ahoraMs);
             return disparo;
         }
@@ -149,14 +160,13 @@ namespace CorazonPelican.Core.Atencion
         /// </summary>
         public Disparo? FinDeDia(Observacion observacion, long ahoraMs)
         {
-            if (this.acostarseEmitido)
+            var disparo = new Disparo(Motivos.Hito, ahoraMs, observacion.Dia, observacion.Hora,
+                Hito: HitosRutina.DelMotor(HitosRutina.Acostarse, this.perfil.Rutina), Detalle: "fin_de_dia");
+            if (!this.presupuesto.Admitir(disparo))
             {
                 return null;
             }
 
-            this.acostarseEmitido = true;
-            var disparo = new Disparo(Motivos.Hito, ahoraMs, observacion.Dia, observacion.Hora,
-                Hito: HitosRutina.DelMotor(HitosRutina.Acostarse, this.perfil.Rutina), Detalle: "fin_de_dia");
             this.Registrar(ahoraMs);
             return disparo;
         }
@@ -168,33 +178,33 @@ namespace CorazonPelican.Core.Atencion
                 return;
             }
 
-            if (this.dia is not null && !this.acostarseEmitido)
+            if (this.dia is not null)
             {
-                salida.Add(new Disparo(Motivos.Hito, ahoraMs, this.dia.Value, HoraJuego.FinDia,
+                this.AgregarSiHayCupo(salida, new Disparo(Motivos.Hito, ahoraMs, this.dia.Value, HoraJuego.FinDia,
                     Hito: HitosRutina.DelMotor(HitosRutina.Acostarse, this.perfil.Rutina), Detalle: "fin_de_dia"));
             }
 
             var empiezaElDia = this.dia is not null || o.Hora == HoraJuego.InicioDia;
             this.dia = o.Dia;
+            this.presupuesto.AbrirDia(o.Dia);
 
             // Amanecer con lluvia no es «empezar a llover»: luz y clima se toman de nuevo como referencia.
             this.deDia = null;
             this.clima = null;
-            this.acostarseEmitido = false;
             this.inicioPlanRutinaMs = ahoraMs;
 
             // Si el motor arranca a media jornada, las entradas ya pasadas no son hitos.
             this.siguienteEntrada = horario?.Entradas.Count(e => e.Hora <= o.Hora) ?? 0;
             if (empiezaElDia)
             {
-                salida.Add(new Disparo(Motivos.Hito, ahoraMs, o.Dia, o.Hora,
+                this.AgregarSiHayCupo(salida, new Disparo(Motivos.Hito, ahoraMs, o.Dia, o.Hora,
                     Hito: HitosRutina.DelMotor(HitosRutina.Despertar, this.perfil.Rutina), Agenda: Agenda(horario, 0)));
             }
         }
 
         private void Rutina(Observacion o, HorarioDia? horario, long ahoraMs, List<Disparo> salida)
         {
-            if (horario is null || this.acostarseEmitido)
+            if (horario is null || this.Contadores!.AcostarseEmitido)
             {
                 return;
             }
@@ -209,8 +219,7 @@ namespace CorazonPelican.Core.Atencion
                 if (indice == horario.Entradas.Count - 1)
                 {
                     // La última entrada del día es irse a dormir: es el propio acostarse.
-                    this.acostarseEmitido = true;
-                    salida.Add(new Disparo(Motivos.Hito, ahoraMs, o.Dia, o.Hora,
+                    this.AgregarSiHayCupo(salida, new Disparo(Motivos.Hito, ahoraMs, o.Dia, o.Hora,
                         Hito: HitosRutina.DelMotor(HitosRutina.Acostarse, this.perfil.Rutina), Agenda: Agenda(horario, indice + 1)));
                     return;
                 }
@@ -223,7 +232,7 @@ namespace CorazonPelican.Core.Atencion
                     continue;
                 }
 
-                salida.Add(new Disparo(Motivos.Hito, ahoraMs, o.Dia, o.Hora, Hito: hito, Agenda: Agenda(horario, indice + 1)));
+                this.AgregarSiHayCupo(salida, new Disparo(Motivos.Hito, ahoraMs, o.Dia, o.Hora, Hito: hito, Agenda: Agenda(horario, indice + 1)));
             }
         }
 
@@ -254,7 +263,7 @@ namespace CorazonPelican.Core.Atencion
             if (this.transicionesPendientes.Count > 0)
             {
                 var transicion = this.transicionesPendientes.Dequeue();
-                salida.Add(transicion with { MilisegundosReales = ahoraMs, Dia = o.Dia, Hora = o.Hora });
+                this.AgregarSiHayCupo(salida, transicion with { MilisegundosReales = ahoraMs, Dia = o.Dia, Hora = o.Hora });
                 return;
             }
 
@@ -265,13 +274,25 @@ namespace CorazonPelican.Core.Atencion
                 .FirstOrDefault();
             if (pico is not null)
             {
-                salida.Add(new Disparo(Motivos.Pico, ahoraMs, o.Dia, o.Hora, Ref: pico.Ref));
+                this.AgregarSiHayCupo(salida, new Disparo(Motivos.Pico, ahoraMs, o.Dia, o.Hora, Ref: pico.Ref));
                 return;
             }
 
             if (this.integrador.Valor >= this.perfil.Umbrales.Deriva * factor)
             {
-                salida.Add(new Disparo(Motivos.Deriva, ahoraMs, o.Dia, o.Hora, Detalle: $"{this.integrador.Valor:0.##}"));
+                this.AgregarSiHayCupo(salida, new Disparo(Motivos.Deriva, ahoraMs, o.Dia, o.Hora, Detalle: $"{this.integrador.Valor:0.##}"));
+            }
+        }
+
+        private void AgregarSiHayCupo(List<Disparo> salida, Disparo candidato)
+        {
+            if (this.presupuesto.Admitir(candidato))
+            {
+                salida.Add(candidato);
+            }
+            else if (candidato.Motivo == Motivos.Compromiso)
+            {
+                this.CompromisoSinCupo?.Invoke(candidato);
             }
         }
 

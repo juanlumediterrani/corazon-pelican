@@ -62,6 +62,9 @@ namespace CorazonPelican.Core.Perfil
     {
         [DataMember(Name = "pulsos_por_dia_juego")] public int PulsosPorDiaJuego { get; set; }
         [DataMember(Name = "reservados_cadenas")] public int ReservadosCadenas { get; set; }
+
+        /// <summary>Plazas diarias adicionales exclusivas de compromisos. Por defecto una (P-12).</summary>
+        [DataMember(Name = "extra_compromisos")] public int ExtraCompromisos { get; set; } = 1;
     }
 
     /// <summary>Lugar del léxico (GSS §3.5). <c>area</c> es <c>[x, y, ancho, alto]</c> en casillas; <c>[0,0,0,0]</c> = pendiente de medir.</summary>

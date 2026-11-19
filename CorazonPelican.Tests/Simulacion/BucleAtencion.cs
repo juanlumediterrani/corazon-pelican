@@ -22,7 +22,7 @@ public sealed class BucleAtencion
     public BucleAtencion(FakeWorld mundo, PerfilPersonaje perfil, ContextoSaliencia? contexto = null)
     {
         this.Mundo = mundo;
-        this.Disparadores = new Disparadores(perfil);
+        this.Disparadores = new Disparadores(perfil, mundo.Reloj.Modo);
         this.bandas = new ClasificadorBandas(perfil.Umbrales);
         this.contexto = contexto ?? new ContextoSaliencia(perfil.Rasgos, EstadoAtencion.Abierta, perfil.Umbrales.Periferia);
     }

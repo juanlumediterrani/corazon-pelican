@@ -5,8 +5,8 @@
   "umbrales": { "foco": 0.70, "mencion": 0.40, "periferia": 0.15, "pico": 0.85, "deriva": 3.0, "deriva_semivida_min": 10, "histeresis": 0.02 },
   "refractario": { "subida": 0.5, "semivida_s": 30 },
   "presupuesto": {
-    "vanilla": { "pulsos_por_dia_juego": 12, "reservados_cadenas": 2 },
-    "pelican": { "pulsos_por_dia_juego": 12, "reservados_cadenas": 2 }
+    "vanilla": { "pulsos_por_dia_juego": 12, "reservados_cadenas": 2, "extra_compromisos": 1 },
+    "pelican": { "pulsos_por_dia_juego": 12, "reservados_cadenas": 2, "extra_compromisos": 1 }
   },
   "lexico": {
     "lugares": [

@@ -153,6 +153,11 @@ namespace CorazonPelican.Core.Perfil
 
         private static void ValidarPresupuesto(string campo, PresupuestoModo m, ResultadoValidacionPerfil r)
         {
+            if (m.ExtraCompromisos < 0)
+            {
+                r.Errores.Add(new($"{campo}.extra_compromisos", "la bolsa extra de compromisos debe ser cero o mayor."));
+            }
+
             if (m.ReservadosCadenas < HitosDelMotor.Count)
             {
                 r.Errores.Add(new($"{campo}.reservados_cadenas", $"debe reservar al menos {HitosDelMotor.Count} pulsos (despertar y acostarse)."));

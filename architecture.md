@@ -160,8 +160,8 @@ de modo que un pack de Content Patcher pueda editar o añadir personajes sin có
   "umbrales": { "foco": 0.70, "mencion": 0.40, "periferia": 0.15, "pico": 0.85, "deriva": 3.0, "deriva_semivida_min": 10, "histeresis": 0.02 },
   "refractario": { "subida": 0.5, "semivida_s": 30 },
   "presupuesto": {
-    "vanilla": { "pulsos_por_dia_juego": 24, "reservados_cadenas": 2 },
-    "pelican": { "pulsos_por_dia_juego": 24, "reservados_cadenas": 2 }
+    "vanilla": { "pulsos_por_dia_juego": 24, "reservados_cadenas": 2, "extra_compromisos": 1 },
+    "pelican": { "pulsos_por_dia_juego": 24, "reservados_cadenas": 2, "extra_compromisos": 1 }
   },
   "lexico": {
     "lugares": [
@@ -202,8 +202,10 @@ personaje con tienda, `contexto: ["ventas_dia"]` exigiría una fuente nueva en e
 
 La cadencia de pensamiento no se programa: emerge de los disparadores (GSS §4.1) y se mide en
 la fase 2 en ambos modos. Los valores de `presupuesto` son provisionales hasta esa medición.
-CP-202 ampliará el perfil y su esquema con el cupo extra de compromisos por modo (P-12).
-El motor comprobará el saldo antes de emitir un pulso. Un compromiso puede usar saldo ordinario
+El campo opcional `extra_compromisos` del perfil fija las plazas extra por modo (P-12).
+Su valor inicial es 1, también en los perfiles anteriores que omiten el campo. Un cero agota
+la bolsa desde el comienzo del día.
+El motor comprueba el saldo antes de emitir un pulso. Un compromiso puede usar saldo ordinario
 libre y, al agotarlo, saldo extra. Las reservas de las dos cadenas se mantienen. La
 interlocución queda fuera de ambos cupos.
 
