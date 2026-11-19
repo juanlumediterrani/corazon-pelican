@@ -34,14 +34,14 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas cinco fichas están pendientes y tienen todas sus dependencias hechas.
+Estas cuatro fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-013 taller · CP-107 persistencia · CP-204 mente sin cuerpo · CP-301 validador intención |
+| P1 | CP-107 persistencia · CP-204 mente sin cuerpo · CP-301 validador intención |
 | P2 | CP-006 medición de lugares 🎮 |
 
-CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
+CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
 
 ## Tareas
 
@@ -56,7 +56,7 @@ CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/dec
 | [CP-010](tareas/CP-010-spike-interceptar-conversacion.md) | Spike V-01 · interceptar la conversación sin perder amistad, regalos ni misiones 🎮 | S | P1 | CP-006 | pendiente |
 | [CP-011](tareas/CP-011-spike-reclamar-npc.md) | Spike V-02 · reclamar a Leah y devolverla a su horario sin romperlo 🎮 | S | P1 | CP-006 | pendiente |
 | [CP-012](tareas/CP-012-spike-animaciones-leah.md) | Spike V-07 · mapear las animaciones de Leah a las acciones del cuerpo | S | P2 | CP-001 | hecha |
-| [CP-013](tareas/CP-013-spike-taller-32px.md) | Spike del taller · ¿se reconoce una obra a la resolución de un cuadro vanilla? (V-04) | S | P1 | CP-001 | pendiente |
+| [CP-013](tareas/CP-013-spike-taller-32px.md) | Spike del taller · ¿se reconoce una obra a la resolución de un cuadro vanilla? (V-04) | S | P1 | CP-001 | en-curso |
 | [CP-014](tareas/CP-014-spike-texto-libre.md) | Spike V-06 · menú nativo para «Decir otra cosa…» operable por humanos y por Voyager | S | P3 | CP-001 | en-curso |
 | [CP-015](tareas/CP-015-spike-obra-como-mueble.md) | Spike V-03/V-05 · una textura generada como mueble colocable que sobrevive a guardar, cargar y multijugador 🎮 | S | P1 | CP-006 | pendiente |
 | [CP-101](tareas/CP-101-observador-juego.md) | ObservadorJuego · del estado del juego a una Observacion de solo lectura | F1 | P1 | CP-003, CP-005 | en-curso |

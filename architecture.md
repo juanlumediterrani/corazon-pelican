@@ -704,7 +704,7 @@ Detalle y fuentes en [`docs/notas-juego.md`](docs/notas-juego.md).
 | V-01 | Punto de enganche para interceptar la conversación | Localizado (`NPC.checkAction`, virtual); falta validar efectos laterales en vivo | CP-010 |
 | V-02 | Suspender y reanudar el horario de un NPC sin romperlo | Mecanismo entendido (entradas a hora exacta, `lastAttemptedSchedule`); falta prototipo | CP-011 |
 | V-03 | Campo de textura en `Data/Furniture` | **Resuelta**: campo 9 (sprite en el 8) | CP-015 |
-| V-04 | Tamaños de los cuadros vanilla por formato | Pendiente | CP-013 |
+| V-04 | Tamaños de los cuadros vanilla por formato | **Resuelta** ([taller-resolucion.md](docs/spikes/taller-resolucion.md)): `1×2` (`16×32`, `12×16` útil), `2×2` (`32×32`, `28×24` útil), `3×2` (`48×32`); pipeline `taller.asset` y paleta fija listos | CP-013 |
 | V-05 | `WriteSaveData` en multijugador | Casi resuelta: solo el jugador principal; confirmar en vivo | CP-015 |
 | V-06 | Menú para texto libre | Análisis estático cerrado en [v06-texto-libre.md](docs/spikes/v06-texto-libre.md): `MenuTextoLibre : IClickableMenu` + `TextBox` (y `TextEntryMenu` automático en mando); falta prueba interactiva en vivo | CP-014, CP-504 |
 | V-07 | Animaciones de dibujo de Leah | **Resuelta** ([v07-animaciones.md](docs/spikes/v07-animaciones.md)): `leah_draw` (`2` abajo), `Start/EndActivityRouteEndBehavior`, `sentarse` ausente | CP-012 |
