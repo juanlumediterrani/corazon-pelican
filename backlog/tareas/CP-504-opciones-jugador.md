@@ -22,7 +22,7 @@ GSS §8.4, ADS §8.3. Pregunta nativa con respuestas (`responses`), operable por
 ## Alcance
 
 - `OpcionesJugador` en Core: inventario regalable, encargos según apertura, lugares para citas.
-- Texto libre con el componente elegido en CP-014.
+- Texto libre con `MenuTextoLibre` según [`docs/spikes/v06-texto-libre.md`](../../docs/spikes/v06-texto-libre.md) (mitigar `limitWidth = false`, `textLimit` en pegado, `Keys.E` de `menuButton` mientras `Selected == true`, filtro de glifos en `_font.Characters` y apertura automática de `TextEntryMenu` en mando) más la comprobación interactiva en vivo de «¿Me dibujarías el lago?» y los identificadores estables para Voyager (`CP-014`).
 
 ## Criterios de aceptación
 

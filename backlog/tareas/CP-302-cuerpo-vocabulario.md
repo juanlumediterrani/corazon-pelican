@@ -18,7 +18,7 @@ Leah ejecuta `ir_a`, `sentarse`, `mirar`, `levantar_la_vista`, `dibujar`, `guard
 
 ## Contexto
 
-GSS §5.2. La mente decide qué; el cuerpo decide cómo. Mecanismos de CP-011 (rutas, reclamación) y CP-012 (animaciones). Nativos disponibles: `doEmote`, `showTextAboveHead`, `PathFindController`.
+GSS §5.2. La mente decide qué; el cuerpo decide cómo. Mecanismos de CP-011 (rutas, reclamación) y CP-012 ([`docs/spikes/v07-animaciones.md`](../../docs/spikes/v07-animaciones.md)). Nativos disponibles: `doEmote`, `showTextAboveHead`, `PathFindController`, `StartActivityRouteEndBehavior` / `EndActivityRouteEndBehavior` (esperar `!doingEndOfRouteAnimation.Value` antes de mover para no dejar `freezeMotion = true`; en `sentarse`, sin frame de sentado en Leah, v1 usa `ir_a` + `Halt()` + orientación del lugar).
 
 ## Alcance
 
@@ -32,7 +32,7 @@ GSS §5.2. La mente decide qué; el cuerpo decide cómo. Mecanismos de CP-011 (r
 - [ ] FakeWorld: cada acción termina en cumplida o bloqueada con motivo; ninguna queda colgada más de su duración máxima.
 - [ ] En vivo: `ir_a(orilla_norte)` desde la casa de Leah llega por rutas nativas sin teletransporte visible.
 - [ ] En vivo: `dibujar` muestra la animación elegida en CP-012 y `guardar_cuaderno` la detiene.
-- [ ] En vivo: «voy a sentarme en la pasarela del lago» termina con Leah sentada y una pulsión de hito en telemetría.
+- [ ] En vivo: «voy a sentarme en la pasarela del lago» lleva a Leah hasta el punto `sentable` de la pasarela, se detiene orientada al lugar (fallback v1 de `sentarse` según CP-012) y emite una pulsión de hito en telemetría.
 
 ## Fuera de alcance
 
