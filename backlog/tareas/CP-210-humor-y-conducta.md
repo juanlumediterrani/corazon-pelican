@@ -24,6 +24,8 @@ Una experiencia que el personaje interpreta a la luz de su historia puede influi
 
 ## Criterios de aceptación
 
+- [ ] Reproducir la [prueba de dos días de CP-905](CP-905-revision-argon.md#prueba-de-dos-días) con la configuración de componentes del mod y la entrada normal de la mente. Seguir el id del episodio hasta el prompt de un hito ordinario después de recargar.
+
 - [ ] `HumorPersonajeTests` y pruebas de contrato. Una impresión vinculada a un episodio que el personaje vivió llega al despertar siguiente tras guardar y cargar. Un origen desconocido o una respuesta de otra época se rechaza. Reintentar la respuesta conserva un solo efecto.
 - [ ] Con reloj virtual, comprobar la atenuación gradual durante varios días tranquilos, su sustitución anticipada ante una experiencia significativa, el límite elegido y el comportamiento de una partida anterior sin impresión. Cambiar de día o recargar conserva la evolución que corresponde al tiempo de juego.
 - [ ] Con FakeWorld y mente guionizada, repetir la misma tarde con el mismo perfil, horario, lugar y oportunidades. Variar solo la experiencia anterior. Comprobar que el contexto llega a la mente y que las dos elecciones propuestas por la mente guionizada solo usan las opciones del pulso.

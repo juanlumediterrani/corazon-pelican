@@ -33,6 +33,8 @@ En vanilla el guardado suele llegar antes de que termine la cadena de acostarse:
 
 ## Criterios de aceptación
 
+- [ ] Emitir `acostarse`, avanzar al amanecer y entregar tarde la reflexión en la misma época. Comprobar que se aplica una sola vez antes de resolver el despertar. Una reflexión de otra época sigue recibiendo `epoca_obsoleta`. Caso reproducido en [CP-905](CP-905-revision-argon.md).
+
 - [ ] pytest con FakeLLM: cada cadena hace los pasos definidos en orden, pasando la salida de cada uno al siguiente, y envía una sola respuesta.
 - [ ] Todo recuerdo de la cadena de acostarse cita al menos una entrada del diario del día.
 - [ ] FakeWorld: con el guardado antes de la respuesta de acostarse, los recuerdos se aplican al llegar y aparecen tras el siguiente guardado y recarga.

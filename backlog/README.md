@@ -34,12 +34,12 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas cuatro fichas están pendientes y tienen todas sus dependencias hechas.
+Estas nueve fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-209 cadenas despertar/acostarse · CP-502 compromisos |
-| P2 | CP-006 medición de lugares 🎮 · CP-506 validador de menciones |
+| P1 | CP-110 protección del guardado · CP-209 cadenas despertar/acostarse · CP-213 aplicación de respuestas · CP-214 memoria en hitos · CP-215 proveedor de la mente · CP-502 compromisos |
+| P2 | CP-006 medición de lugares 🎮 · CP-216 tokens de cadenas · CP-506 validador de menciones |
 
 CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
 
@@ -68,6 +68,7 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-107](tareas/CP-107-persistencia-estado.md) | Estado del personaje persistido con la partida, con versión y migraciones | F1 | P1 | CP-106 | hecha |
 | [CP-108](tareas/CP-108-aceptacion-sensorio.md) | Aceptación de fase 1 · un día completo de escenas legibles 🎮 | F1 | P2 | CP-101, CP-104, CP-107, CP-109, CP-006 | pendiente |
 | [CP-109](tareas/CP-109-habitante-y-telemetria.md) | HabitanteModule, telemetría JSONL y comandos cp_escena / cp_pulso | F1 | P1 | CP-101, CP-104, CP-106 | hecha |
+| [CP-110](tareas/CP-110-proteger-memoria-tras-fallo-de-carga.md) | Proteger la memoria guardada si falla la carga o la migración | F1 | P1 | CP-107 | pendiente |
 | [CP-201](tareas/CP-201-integrador-disparadores.md) | Integrador con fuga, refractario y disparadores de pulsión, incluidos los hitos de rutina | F2 | P1 | CP-102, CP-004, CP-003 | hecha |
 | [CP-202](tareas/CP-202-presupuesto-pulsos.md) | Presupuesto de pulsos aplicado por el motor, por modo de reloj, con reserva para las cadenas | F2 | P1 | CP-201 | hecha |
 | [CP-203](tareas/CP-203-api-motor.md) | API loopback del motor con long-poll, cola al hilo principal, idempotencia y época | F2 | P1 | CP-002, CP-005 | hecha |
@@ -80,6 +81,10 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-210](tareas/CP-210-humor-y-conducta.md) | Conservar el humor nacido de lo vivido y observar su efecto en la conducta | F2 | P1 | CP-107, CP-206, CP-209 | pendiente |
 | [CP-211](tareas/CP-211-origen-de-las-reflexiones.md) | Transportar y comprobar el origen de las reflexiones del diario | F2 | P1 | CP-002 | hecha |
 | [CP-212](tareas/CP-212-agenda-y-cambios-rutina.md) | Agenda del día y validador de cambios de rutina en Core (R-16) | F2 | P1 | CP-003, CP-201 | hecha |
+| [CP-213](tareas/CP-213-aplicar-respuestas-en-el-host.md) | Confirmar las respuestas de memoria después de aplicarlas en el host | F2 | P1 | CP-203, CP-206, CP-109 | pendiente |
+| [CP-214](tareas/CP-214-recuperar-recuerdos-en-hitos.md) | Llevar los recuerdos pertinentes al prompt de un hito ordinario | F2 | P1 | CP-204, CP-206 | pendiente |
+| [CP-215](tareas/CP-215-conectar-proveedor-de-la-mente.md) | Conectar un proveedor de modelo al ciclo de la mente | F2 | P1 | CP-204 | pendiente |
+| [CP-216](tareas/CP-216-computar-tokens-de-cadenas.md) | Contabilizar las cadenas contra el límite diario de tokens | F2 | P2 | CP-207 | pendiente |
 | [CP-301](tareas/CP-301-intencion-validador.md) | Intención con ciclo de vida, pesos de atención y validador de precondiciones | F3 | P1 | CP-105, CP-203 | hecha |
 | [CP-302](tareas/CP-302-cuerpo-vocabulario.md) | CuerpoNpc · vocabulario de acciones v1 sobre Leah 🎮 | F3 | P1 | CP-011, CP-012, CP-301 | pendiente |
 | [CP-303](tareas/CP-303-reclamacion-y-degradacion.md) | Reclamación, volver_a_rutina y degradación a la Leah vanilla | F3 | P1 | CP-011, CP-302 | pendiente |
@@ -108,6 +113,7 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-902](tareas/CP-902-preguntas-abiertas.md) | Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros) | D | P2 | — | en-curso |
 | [CP-903](tareas/CP-903-estado-y-ruta-del-proyecto.md) | Actualizar el estado del proyecto y la ruta de tareas listas | D | P2 | CP-901 | hecha |
 | [CP-904](tareas/CP-904-vida-propia-del-habitante.md) | Revisar el diseño y las aceptaciones desde la vida propia del habitante | D | P1 | — | hecha |
+| [CP-905](tareas/CP-905-revision-argon.md) | Registrar la revisión de Argón y la prueba de continuidad entre días | D | P1 | — | hecha |
 | [CP-910](tareas/CP-910-catalogo-hitos.md) | Catálogo de hitos elegibles y variaciones de los existentes | Futuro | profunda | CP-306, CP-208 | dormida |
 | [CP-911](tareas/CP-911-intenciones-arnes-voyager.md) | Intenciones propias potenciadas con un ejecutor al estilo del arnés de Stardew Voyager | Futuro | profunda | CP-302, CP-306 | dormida |
 
