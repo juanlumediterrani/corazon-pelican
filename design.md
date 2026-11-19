@@ -236,14 +236,14 @@ que Leah siempre empieza y cierra el día pensando, aunque se haya agotado el re
 * Tras cada pulsión se abre un **período refractario** en tiempo real: durante una ventana no pasan
   los disparadores de estímulo (pico, deriva, transición; las transiciones esperan su turno) y
   después sus umbrales siguen elevados y decaen hacia su valor base. La rutina (hitos, despertar,
-  acostarse, fin de intención, compromiso) y la interlocución pasan siempre, para no llegar tarde a
-  lo que toca.
+  acostarse, fin de intención, compromiso) y la interlocución atraviesan el refractario. El presupuesto se aplica después.
 * Un hito de rutina se dispara **diez minutos de juego antes** de la hora de su entrada: al
   disponerse, cuando todavía se puede cambiar. La luz y el clima con que amanece un día no cuentan
   como transición.
-* Hay un **presupuesto de pulsiones** por personaje y día de juego, con dos reservadas para
-  las cadenas de despertar y acostarse. Agotado, solo pasan esas dos y la interlocución; el resto
-  del tiempo Leah vive de intención, hábito y reflejo.
+* Cada personaje tiene un **cupo ordinario por día de juego y modo de reloj**. Dos plazas se
+  reservan para despertar y acostarse. Un compromiso usa primero una plaza ordinaria libre y
+  después, si hace falta, una plaza de su bolsa extra diaria. Cuando ambas se agotan, se abre
+  una petición de prórroga (§9.3). La interlocución sigue disponible con cualquier saldo.
 * **El presupuesto lo controla el motor, nunca la mente.**
 * La **cadencia de pensamiento no se programa: emerge** de los disparadores y se mide (§7).
 
@@ -471,14 +471,17 @@ La condensación del día ocurre en la cadena de acostarse (§4.1).
 ### 9.3. Compromisos
 
 Al validarse un `promete` o una `cita`, nace un compromiso con plazo. A medida que el plazo se
-acerca, **su saliencia sube** hasta provocar una pulsión de compromiso. Las promesas vuelven
-a la conciencia por el mismo mecanismo de atención que todo lo demás, sin un planificador
-aparte. Un compromiso incumplido no se oculta: Leah lo recuerda y puede disculparse.
+acerca, **su saliencia sube**. Al alcanzar el umbral, el motor emite una pulsión de compromiso
+si dispone de una plaza ordinaria libre o de una extra. Si ambas bolsas están agotadas,
+Leah pide una prórroga al destinatario. La petición
+conserva el plazo original hasta que el jugador acepte la nueva fecha. Si está ausente, recibe
+una carta y puede aceptar o rechazar mientras siga vigente el plazo. Al vencer sin acuerdo, el
+compromiso pendiente se cierra como incumplido y la carta queda disponible solo para lectura. Leah recuerda el incumplimiento y puede disculparse.
 
 ### 9.4. La memoria viaja con el mundo
 
-La memoria se guarda en el mismo momento y lugar que la partida. Si la partida se recarga o se
-pierde un día por un cierre abrupto, **la memoria vuelve al mismo punto**: Leah nunca recuerda
+Desde la fase de percepción se guarda el diario junto con la partida. La fase de obras añade el
+portafolio al mismo guardado (P-6). Si la partida se recarga o se pierde un día por un cierre abrupto, **la memoria vuelve al mismo punto**: Leah nunca recuerda
 algo que el mundo no vivió.
 
 ---
@@ -515,7 +518,7 @@ algo que el mundo no vivió.
 | **Promesas cumplidas** | Todo compromiso válido termina cumplido o recordado como incumplido; ninguno se pierde |
 | **Reflejo inmediato** | La primera reacción visible a una interlocución llega en < 300 ms |
 | **Respuesta pensada** | p50 < 3 s en vanilla (con anticipación); p95 < 8 s |
-| **Coste acotado** | Pulsiones por día de juego ≤ presupuesto configurado (cada cadena cuenta como una), sin excepciones salvo interlocución |
+| **Coste acotado** | Gasto ordinario y gasto extra de compromisos dentro de sus respectivos límites diarios. Cada cadena consume una plaza. Las interlocuciones se cuentan aparte |
 | **Degradación** | Con la mente apagada, ninguna diferencia de comportamiento con la Leah vanilla |
 | **Coherencia de carácter** | Evaluación humana sobre muestras de escenas/pensamientos (rúbrica en el backlog) |
 
@@ -535,7 +538,7 @@ Cada regla entra en vigor con su guarda. Los nombres de test son previstos.
 | R-06 | Intención con precondiciones falsas se rechaza | `ValidadorIntencionTests` |
 | R-07 | Una frase solo se muestra si todos sus actos son válidos | `ActosAntesDeFraseTests` |
 | R-08 | `regala` solo acepta obras existentes y disponibles | `ActoRegalaTests` |
-| R-09 | Todo compromiso válido genera una pulsión antes de su plazo | `CompromisoSalienciaTests` |
+| R-09 | Antes del plazo, un compromiso pendiente provoca una pulsión o, agotados ambos cupos, una petición de prórroga. Solo el destinatario puede aceptar el nuevo plazo | `CompromisoSalienciaTests` y `ProrrogaCompromisoTests` |
 | R-10 | La memoria se persiste y se restaura con la partida | `MemoriaConPartidaTests` (guardar/cargar/recargar) |
 | R-11 | Sin mente, el comportamiento es el vanilla | `DegradacionVanillaTests` |
 | R-12 | Con ValleyTalk activo para un personaje, el motor no lo intercepta | `ConvivenciaValleyTalkTests` |

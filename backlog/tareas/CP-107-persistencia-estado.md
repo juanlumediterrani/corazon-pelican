@@ -18,19 +18,19 @@ reglas: [R-10]
 
 ## Contexto
 
-GSS §9.4, ADS §9. La ADS sitúa R-10 en la fase 4, pero el diario existe desde la fase 1; se propone persistirlo ya (propuesta P-6, pendiente en [decisiones](../../docs/decisiones.md)) y ampliar el estado con obras en CP-403. Pelican tiene el patrón de `ServerWorldState` con migraciones.
+GSS §9.4, ADS §9. P-6 fija la persistencia del diario en F1. CP-403 ampliará el mismo estado con obras en F4. Véase el [registro de decisiones](../../docs/decisiones.md). Pelican tiene el patrón de `ServerWorldState` con migraciones.
 
 ## Alcance
 
 - `PersistenciaModule` con `WriteSaveData("CorazonPelican.Estado", …)` y guarda `Context.IsMainPlayer`.
 - `version_esquema` y migradores puros en Core con test por versión.
-- Contador de pulsos del día y día del contador.
+- Día del contador y gasto por personaje de cupo ordinario, reservas y bolsa extra de compromisos (P-12, CP-202).
 
 ## Criterios de aceptación
 
 - [ ] `MemoriaConPartidaTests` (FakeWorld): guardar, añadir episodios, recargar sin guardar → los episodios nuevos no están.
 - [ ] Un estado v1 serializado a mano migra a la versión actual en un test.
-- [ ] En vivo: guardar en DEV, cerrar, cargar → `cp_estado` muestra el mismo número de entradas de diario.
+- [ ] En FakeWorld, dos días con episodios distinguibles recuperan las entradas guardadas en su día y orden. La comprobación en DEV corresponde a CP-108.
 
 ## Fuera de alcance
 

@@ -32,6 +32,7 @@ Punto de partida de la calibración (CP-102, escenario de la pasarela con los ra
 
 - [ ] Informe `backlog/reportes/CP-108.md` con al menos 10 escenas de distintos tramos y su valoración.
 - [ ] Costes medidos por paso frente a los objetivos de ADS §4.
+- [ ] Guardar en DEV, cerrar y cargar. Contrastar los episodios y el recuento del diario con el último guardado, y citar la guarda de CP-107 para R-10 (P-6).
 - [ ] R-01, R-02, R-03 y R-14 tienen test verde citado.
 
 ## Fuera de alcance

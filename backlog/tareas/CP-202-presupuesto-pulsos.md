@@ -14,7 +14,7 @@ reglas: [R-04]
 
 ## Objetivo
 
-Ninguna pulsión sale si el presupuesto está agotado, salvo interlocución y las dos cadenas del día, que tienen plaza reservada.
+El motor asigna cada pulsión al cupo que le corresponde. Reserva despertar y acostarse, da a los compromisos una bolsa extra diaria y deja pasar la interlocución con cualquier saldo (P-2, P-12).
 
 ## Contexto
 
@@ -23,12 +23,13 @@ GSS §4.2 y §7 (decisión P-2). La cadencia emerge de los disparadores y se mid
 ## Alcance
 
 - `PresupuestoPulsos.cs`: límite por día de juego y modo, con `reservados_cadenas` para despertar y acostarse (cada cadena cuenta como una pulsión).
-- Contador persistido con la partida (CP-107) y reinicio por día de juego.
+- Ampliar esquema de perfil, DTO, validador y perfil de Leah con el cupo extra por modo. Documentar el valor por defecto y cubrir perfiles anteriores que omiten el campo.
+- Contadores por personaje y día que CP-107 pueda restaurar. Informar a CP-502 cuando un compromiso agota ambas vías de admisión.
 
 ## Criterios de aceptación
 
-- [ ] `PresupuestoPulsionesTests`: agotado el presupuesto, solo pasan interlocución, despertar y acostarse (R-04).
-- [ ] Una deriva o un hito ordinario no pueden consumir las plazas reservadas a las cadenas.
+- [ ] `PresupuestoPulsionesTests`: con una plaza ordinaria libre y una extra, dos compromisos consecutivos gastan una de cada tipo, en ese orden. El tercero da lugar a una solicitud de prórroga en CP-502. Una interlocución sigue pasando sin gastar de ninguna bolsa (R-04).
+- [ ] Ni deriva ni hitos ordinarios gastan de la bolsa extra. Ningún compromiso consume las dos reservas de cadena. El cambio de día restablece cada saldo y los gastos de un personaje no afectan al otro.
 - [ ] La mente no tiene ningún campo en el contrato que modifique el presupuesto (test sobre el esquema).
 - [ ] Con `ModoReloj` vanilla y pelican se aplica el presupuesto del modo correspondiente.
 

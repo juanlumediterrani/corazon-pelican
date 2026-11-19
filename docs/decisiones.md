@@ -4,7 +4,9 @@ Registro de las decisiones tomadas sobre la GSS ([`design.md`](../design.md)) y 
 ([`architecture.md`](../architecture.md)) y de lo que falta por decidir. Los identificadores
 P-x se citan desde los documentos y las tareas. La [ADS §15](../architecture.md#15-decisiones-de-arquitectura) enlaza las seis decisiones de arquitectura documentadas en CP-901.
 
-## 1. Decisiones tomadas (2026-11-04)
+## 1. Decisiones tomadas
+
+P-1 a P-4, P-8 y P-11 se acordaron el 2026-11-04.
 
 ### P-1 · Época de mundo en el contrato
 
@@ -71,12 +73,32 @@ ofrece, como subconjunto del contrato de `schemas/`; el motor sigue validando co
 vigente. Los rechazos vuelven con código (arnés) y prosa (personaje). Nunca se inventa un lugar.
 → GSS §3.5, §8.3 · ADS §3.3, §3.4, §4.1, §5, §6 · CP-002, CP-104, CP-204, CP-301, CP-501.
 
+### P-6 · El diario se guarda desde la fase de percepción (2026-11-19)
+
+El diario de cada personaje viaja con la partida desde F1. Al cargar, reaparecen los episodios
+del último guardado y se pierden los posteriores. F4 amplía ese mismo estado con las obras.
+CP-107 cubrirá el diario con `MemoriaConPartidaTests`, CP-108 lo comprobará en DEV y CP-403
+ampliará la prueba al portafolio.
+
+### P-12 · Cupo extra para compromisos y prórroga acordada (2026-11-19)
+
+Cuando un compromiso requiere pensar, el motor usa primero una plaza ordinaria disponible para
+ese fin. Al agotarse esas plazas puede gastar una de la bolsa diaria exclusiva de compromisos,
+configurable por personaje y modo de reloj. Las dos reservas de despertar y acostarse siguen
+protegidas. La interlocución pasa siempre y se contabiliza aparte.
+
+Si tampoco queda cupo extra, Leah pide más tiempo. Solo la aceptación del jugador cambia el
+plazo. Si el destinatario está ausente, Leah le envía una carta con la propuesta y una vía
+para aceptar o rechazar. Al vencer la fecha vigente sin acuerdo, el compromiso pendiente
+queda incumplido. La carta sigue disponible para lectura y desde ese momento ya no admite
+respuesta. CP-202 probará la
+contabilidad, CP-502 el vencimiento y CP-509 la petición y respuesta del destinatario.
+
 ## 2. Pendiente de decidir
 
 | # | Propuesta o pregunta | Recomendación | Tarea |
 |---|---|---|---|
 | P-5 | La espera en el diálogo se mide en paciencia, no en tiempo de juego: en un jugador, la `DialogueBox` del reflejo para el reloj; en multijugador, no | Diseñar el reflejo como «está pensando» visible y medir la latencia real en ambos modos | CP-503 |
-| P-6 | Persistir el diario desde la fase 1 (R-10 en dos pasos: diario en F1, obras en F4) | Aceptar: sin diario persistido no se puede evaluar de un día a otro | CP-107, CP-403 |
 | P-7 | Interceptar sin sustituir: dejar al juego amistad diaria, misiones, regalos, cónyuge y eventos; el motor solo cambia qué se dice | Aceptar (ver [notas-juego](notas-juego.md) §2) | CP-010, CP-503 |
 | GSS §14.1 | ¿Obras con efecto? | Fuera de v1; reabrir tras CP-508 | CP-902 |
 | GSS §14.2 | Venta de obras | Precio fijo por formato en v1 | CP-902 |
@@ -85,7 +107,6 @@ vigente. Los rechazos vuelven con código (arnés) y prosa (personaje). Nunca se
 | GSS §14.5 | Cambios de rutina con efecto mecánico (Pierre cierra la tienda) | Fuera de v1; en v2 con aviso visible, límites en el perfil y coherencia con el canon (Pierre ya cierra los miércoles) | CP-902 |
 | P-9 | Tono: ejes del perfil (p. ej. calma–inquietud, inspiración) que lo atendido desplaza con decaimiento y viajan en el pulso | Esperar a CP-208: añadirlo solo si la huella no basta para teñir la perspectiva | CP-208 |
 | P-10 | Velocidad de consolidación del búfer y de fuga de la huella por personaje (alguien distraído olvida antes) | Parámetros del perfil con valores por defecto del motor | CP-106 |
-| — | Compromiso con el presupuesto agotado | Decidir si pasa siempre o solo en la ventana final del plazo | CP-502 |
 | — | Inscribir el proyecto en Dr4co Core | Decisión del usuario; el backlog ya usa su formato | — |
 | — | UniqueID del mod | `Dr4co.CorazonPelican` (propuesto) | CP-001 |
 

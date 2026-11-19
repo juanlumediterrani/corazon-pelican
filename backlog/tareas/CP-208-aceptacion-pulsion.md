@@ -36,7 +36,7 @@ Hallazgos de CP-201 con el perfil actual de Leah (a resolver aquí):
 ## Criterios de aceptación
 
 - [ ] `backlog/reportes/CP-208.md` con, por modo: pulsos por motivo, intervalo entre pensamientos (mediana y p90) frente a la expectativa, coste total y puntuaciones.
-- [ ] Pulsos/día ≤ presupuesto (R-04) y tick sin bloqueos con mente lenta (R-05), con tests citados.
+- [ ] Gasto ordinario y extra de compromisos por día dentro de sus respectivos cupos (R-04), con interlocuciones contabilizadas aparte y tick sin bloqueos con mente lenta (R-05), con tests citados.
 - [ ] Cada día medido tiene una cadena de despertar y una de acostarse completas.
 - [ ] Ningún pensamiento menciona entidades fuera de escena o memoria en la muestra revisada.
 

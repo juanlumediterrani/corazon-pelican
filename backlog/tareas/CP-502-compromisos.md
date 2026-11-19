@@ -4,7 +4,7 @@ titulo: Compromisos con plazo cuya saliencia sube hasta provocar una pulsión
 estado: pendiente
 prioridad: P1
 hito: F5
-depende_de: [CP-501, CP-201]
+depende_de: [CP-501, CP-201, CP-202]
 tipo: code-light
 complejidad: media
 duracion_min: 120
@@ -23,11 +23,11 @@ GSS §9.3. Un compromiso incumplido no se oculta: se recuerda y puede disculpars
 ## Alcance
 
 - `Compromisos.cs`: curva de saliencia por plazo, estados cumplido / incumplido.
-- Disparador de compromiso que ignora el presupuesto agotado solo en la ventana final del plazo (decisión a documentar). La cadena de despertar también repasa los compromisos del día (CP-209).
+- Al acercarse el plazo, consultar el presupuesto de CP-202. Si quedan plazas ordinarias libres o extra, emitir el pulso. Si ambas se agotan, registrar una petición de prórroga para ese compromiso y destinatario, conservando el plazo vigente (P-12, CP-509). La cadena de despertar también repasa los compromisos del día (CP-209).
 
 ## Criterios de aceptación
 
-- [ ] `CompromisoSalienciaTests`: todo compromiso válido genera una pulsión antes de su plazo (R-09), también con presupuesto agotado si se decide así.
+- [ ] `CompromisoSalienciaTests`: al acercarse el plazo se emite un pulso ordinario, uno extra o se registra una petición según los saldos (R-09). Repetir la observación del mismo compromiso pendiente de prórroga conserva una única petición y el plazo original.
 - [ ] Un compromiso vencido sin cumplir pasa a la memoria como incumplido y aparece en el siguiente pulso con esa persona.
 - [ ] Guardar y cargar conserva compromisos y su estado.
 

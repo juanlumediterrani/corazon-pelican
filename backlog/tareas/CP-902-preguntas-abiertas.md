@@ -1,7 +1,7 @@
 ---
 id: CP-902
 titulo: Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros)
-estado: pendiente
+estado: en-curso
 prioridad: P2
 hito: D
 depende_de: []
@@ -17,12 +17,19 @@ Que cada punto pendiente de [`docs/decisiones.md`](../../docs/decisiones.md) §2
 
 ## Contexto
 
-Son decisiones del autor del diseño. El registro, con una recomendación para cada punto, vive en `docs/decisiones.md` §2: propuestas P-5, P-6, P-7, P-9 y P-10; preguntas abiertas de la GSS §14 (obras con efecto, venta, segundo personaje, iniciativa de Leah, cambios de rutina con efecto mecánico); compromiso con el presupuesto agotado; inscripción en Dr4co Core; UniqueID del mod. P-1 a P-4, P-8 y P-11 ya están decididas y aplicadas (§1 del mismo documento); P-9 y P-10 están en la tabla.
+Son decisiones del autor del diseño. El registro, con una recomendación para cada punto, vive en `docs/decisiones.md` §2: propuestas P-5, P-7, P-9 y P-10; preguntas abiertas de la GSS §14 (obras con efecto, venta, segundo personaje, iniciativa de Leah, cambios de rutina con efecto mecánico); inscripción en Dr4co Core y confirmación del UniqueID que CP-001 ya usa en el manifiesto.
 
 ## Alcance
 
 - Repasar la tabla de pendientes con el autor y decidir cada fila.
 - Llevar cada decisión a la GSS, la ADS o una ADR, y ajustar las tareas afectadas.
+
+## Acuerdos del 2026-11-19
+
+- P-6. El diario se persiste desde F1. CP-107 lo verifica con FakeWorld, CP-108 en la partida DEV y CP-403 extiende la guarda a las obras.
+- P-12. El motor dispone de una bolsa extra diaria para compromisos. Si se agota, Leah pide una prórroga y solo el jugador destinatario puede aceptarla. Queda repartido entre CP-202 (presupuesto), CP-502 (compromiso) y CP-509 (carta al destinatario ausente, aceptación o rechazo antes del vencimiento y lectura posterior).
+
+Los demás pendientes siguen en el registro de decisiones. Las guardas de P-6 y P-12 corresponden a las tareas de implementación.
 
 ## Criterios de aceptación
 

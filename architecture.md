@@ -201,6 +201,10 @@ personaje con tienda, `contexto: ["ventas_dia"]` exigiría una fuente nueva en e
 
 La cadencia de pensamiento no se programa: emerge de los disparadores (GSS §4.1) y se mide en
 la fase 2 en ambos modos. Los valores de `presupuesto` son provisionales hasta esa medición.
+CP-202 ampliará el perfil y su esquema con el cupo extra de compromisos por modo (P-12).
+El motor comprobará el saldo antes de emitir un pulso. Un compromiso puede usar saldo ordinario
+libre y, al agotarlo, saldo extra. Las reservas de las dos cadenas se mantienen. La
+interlocución queda fuera de ambos cupos.
 
 `area` es `[x, y, ancho, alto]` en casillas de su `ubicacion`. `[0,0,0,0]` es el marcador de
 «pendiente de medir en vivo» **[verificar: CP-006]**: `PerfilValidator` lo reporta como aviso en
@@ -223,8 +227,8 @@ fichero `assets/personajes/<id>.json` es un perfil (los que llevan otro punto, c
 | `recuerdos[]` | `{ id, texto, importancia, origen_diario[] }` |
 | `relaciones{}` | `farmerId|npc → { impresion, ultima_vez }` |
 | `portafolio[]` | `{ obra_id, estado, decision, nota, escena_origen, png_base64?, destinatario? }` |
-| `compromisos[]` | `{ id, tipo, con, objeto, plazo_juego, estado }` |
-| `contadores` | Pulsos del día, día de juego del contador |
+| `compromisos[]` | Identidad, tipo, destinatario, objeto, plazo vigente y estado. Una prórroga pendiente conserva por separado el plazo propuesto (CP-502, CP-509) |
+| `contadores` | Día de juego, gasto ordinario, uso de las reservas de cadena y gasto extra de compromisos |
 | `intencion_activa?` | Para reanudar tras cargar |
 
 ### 3.3. Pulso (motor → mente)
@@ -500,7 +504,7 @@ decisión de obra ─▶ prompt de imagen ─▶ Generador ───────
   **[verificar en vivo: CP-010]**.
 * **Regalos:** si el jugador sostiene un objeto regalable, se deja actuar al juego (amistad,
   reacción nativa) y el regalo entra al sensorio como suceso. Corazón no reimplementa regalos.
-* **Condiciones para interceptar:** mente disponible, presupuesto de interlocución, ValleyTalk
+* **Condiciones para interceptar:** mente disponible, ValleyTalk
   no activo para ese personaje (R-12), ningún evento con guion en curso.
 
 ### 8.2. Secuencia
@@ -525,6 +529,16 @@ si el jugador se aleja antes de la respuesta ──▶ la frase se guarda como �
   el teclado en pantalla para mando); candidatos: `NamingMenu` o un menú propio con `TextBox`
   **[verificar: CP-014]**.
 
+### 8.4. Prórrogas por carta (P-12)
+
+Cuando CP-202 deniega el pulso de compromiso por falta de saldo en ambos cupos, CP-502 registra
+una petición asociada al compromiso. Para un destinatario ausente, CP-509 la entrega por carta
+con la fecha original, la propuesta y una vía de respuesta. El host valida el destinatario y el
+plazo vigente al recibir la respuesta, aunque la carta se hubiera abierto antes. Una aceptación
+a tiempo actualiza el compromiso una vez. Al vencer sin acuerdo, el compromiso pendiente pasa
+a incumplido y la carta se conserva para lectura. CP-509 verificará el mecanismo de entrega y
+respuesta de la interfaz del juego.
+
 ---
 
 ## 9. Persistencia (`PersistenciaModule`)
@@ -534,6 +548,7 @@ si el jugador se aleja antes de la respuesta ──▶ la frase se guarda como �
   Solo el jugador principal puede usar `ReadSaveData`/`WriteSaveData` (SMAPI lanza
   `InvalidOperationException` en granjeros), coherente con la autoridad del host **[verificar en
   vivo: CP-015]**.
+* Desde F1 el host guarda y restaura el diario (P-6, CP-107). F4 incorpora el portafolio al mismo estado (CP-403).
 * **Obras:** PNG en base64 dentro del portafolio. Un cuadro de 32×32 px ocupa unos pocos KB; el
   tope total (`TamanoMaxMemoriaKB`) protege el tamaño de la partida.
 * **Al cargar:** reconstruir texturas desde el portafolio, registrarlas como assets
@@ -647,7 +662,7 @@ Cada regla R-xx de la GSS §13 tiene su test en esta matriz antes de considerars
 
 | Fase | Entrega | Aceptación |
 |---|---|---|
-| **1. Sensorio** | Observación, saliencia, bandas, prosa y diario; `MenteHabilitada=false` | Un día completo de escenas legibles; R-01, R-02, R-03, R-14; costes por paso medidos |
+| **1. Sensorio** | Observación, saliencia, bandas, prosa y diario; `MenteHabilitada=false` | Un día completo de escenas legibles; R-01, R-02, R-03, R-14 y R-10 para el diario al recargar; costes por paso medidos |
 | **2. Pulsión y mente sin cuerpo** | Atención, pulsos, cadenas de despertar y acostarse, API, mente que solo escribe pensamientos | Cadencia medida en vanilla y Pelican; pulsos/día dentro de presupuesto; R-04, R-05 en FakeWorld |
 | **3. Cuerpo** | Vocabulario v1, reclamación y devolución del NPC | Intenciones cumplidas y rechazadas en vivo; R-06, R-11, R-13 |
 | **4. Taller y obras** | Render, registro, persistencia, sincronización | Obra colocada sobrevive a guardar/cargar y se ve en un cliente; R-10 |

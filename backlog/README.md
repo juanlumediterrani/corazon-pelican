@@ -39,7 +39,8 @@ Hechas: CP-001…CP-004, CP-102, CP-103, CP-201. Listas ahora, por prioridad:
 4. **CP-105** léxico único (P2; desbloquea CP-104, la prosa).
 5. **CP-005** configuración, módulos y `cp_estado` (P2; trae el modo de desarrollo).
 6. **CP-006** partida de desarrollo y medición de lugares (P2, 🎮).
-7. **CP-902** decisiones abiertas.
+
+CP-902 está en curso con el autor del diseño.
 
 ## Tareas
 
@@ -87,18 +88,19 @@ Hechas: CP-001…CP-004, CP-102, CP-103, CP-201. Listas ahora, por prioridad:
 | [CP-405](tareas/CP-405-desinstalacion.md) | cp_preparar_desinstalacion · exportar obras y sustituirlas por cuadros vanilla | F4 | P3 | CP-403 | pendiente |
 | [CP-406](tareas/CP-406-aceptacion-obras.md) | Aceptación de fase 4 · una obra nacida de la escena, colgada y vista en un cliente 🎮 | F4 | P2 | CP-402, CP-404, CP-305 | pendiente |
 | [CP-501](tareas/CP-501-actos-validador.md) | Actos de habla y validador «todos válidos o ninguno» | F5 | P1 | CP-301, CP-403 | pendiente |
-| [CP-502](tareas/CP-502-compromisos.md) | Compromisos con plazo cuya saliencia sube hasta provocar una pulsión | F5 | P1 | CP-501, CP-201 | pendiente |
+| [CP-502](tareas/CP-502-compromisos.md) | Compromisos con plazo cuya saliencia sube hasta provocar una pulsión | F5 | P1 | CP-501, CP-201, CP-202 | pendiente |
 | [CP-503](tareas/CP-503-dialogo-intercepcion.md) | DialogoModule · reflejo inmediato, respuesta pensada y caída a vanilla 🎮 | F5 | P1 | CP-010, CP-501, CP-304 | pendiente |
 | [CP-504](tareas/CP-504-opciones-jugador.md) | Opciones del jugador desde affordances reales y texto libre | F5 | P2 | CP-503, CP-014 | pendiente |
 | [CP-505](tareas/CP-505-valleytalk.md) | Convivencia con ValleyTalk · nunca dos voces para la misma persona | F5 | P3 | CP-503 | pendiente |
 | [CP-506](tareas/CP-506-validador-menciones.md) | Validador de menciones · la mente no nombra lo que no existe para Leah | F5 | P2 | CP-501, CP-206 | pendiente |
 | [CP-507](tareas/CP-507-pensamiento-anticipado.md) | Pensamiento anticipado y su cancelación | F5 | P2 | CP-503, CP-201 | pendiente |
-| [CP-508](tareas/CP-508-aceptacion-dialogo.md) | Aceptación de fase 5 · una promesa hecha hoy y cumplida mañana 🎮 | F5 | P2 | CP-502, CP-504, CP-505, CP-506, CP-507, CP-406 | pendiente |
+| [CP-508](tareas/CP-508-aceptacion-dialogo.md) | Aceptación de fase 5 · una promesa hecha hoy y cumplida mañana 🎮 | F5 | P2 | CP-502, CP-504, CP-505, CP-506, CP-507, CP-509, CP-406 | pendiente |
+| [CP-509](tareas/CP-509-prorroga-por-carta.md) | Pedir una prórroga por carta y aplicar la respuesta del destinatario | F5 | P2 | CP-502 | pendiente |
 | [CP-601](tareas/CP-601-pelican-micro-wandering.md) | Pelican 4Ever · WorldLifeModule ignora NPCs reclamados por Corazón Pelican | F6 | P3 | CP-303 | pendiente |
 | [CP-602](tareas/CP-602-sucesos-pelican.md) | IntegracionPelicanModule · sucesos del servidor como percepción | F6 | P3 | CP-101 | pendiente |
 | [CP-603](tareas/CP-603-encuentro.md) | Sesión de encuentro · Pelican, un humano y el granjero de Voyager con Leah 🎮 | F6 | P3 | CP-508, CP-601, CP-602 | pendiente |
 | [CP-901](tareas/CP-901-adrs.md) | Redactar ADR-0001 a ADR-0006 | D | P2 | CP-001 | hecha |
-| [CP-902](tareas/CP-902-preguntas-abiertas.md) | Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros) | D | P2 | — | pendiente |
+| [CP-902](tareas/CP-902-preguntas-abiertas.md) | Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros) | D | P2 | — | en-curso |
 | [CP-910](tareas/CP-910-catalogo-hitos.md) | Catálogo de hitos elegibles y variaciones de los existentes | Futuro | profunda | CP-306, CP-208 | dormida |
 | [CP-911](tareas/CP-911-intenciones-arnes-voyager.md) | Intenciones propias potenciadas con un ejecutor al estilo del arnés de Stardew Voyager | Futuro | profunda | CP-302, CP-306 | dormida |
 
@@ -116,7 +118,7 @@ Ninguna regla está vigente hasta que su guarda exista (moratoria de prosa).
 | R-06 | `ValidadorIntencionTests` | CP-301 |
 | R-07 | `ActosAntesDeFraseTests` | CP-501 |
 | R-08 | `ActoRegalaTests` | CP-501 |
-| R-09 | `CompromisoSalienciaTests` | CP-502 |
+| R-09 | `CompromisoSalienciaTests`, `ProrrogaCompromisoTests` | CP-502, CP-509 |
 | R-10 | `MemoriaConPartidaTests` | CP-107 (diario), CP-403 (obras) |
 | R-11 | `DegradacionVanillaTests` | CP-303 |
 | R-12 | `ConvivenciaValleyTalkTests` | CP-505 |
