@@ -34,12 +34,12 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas tres fichas están pendientes y tienen todas sus dependencias hechas.
+Estas cuatro fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-209 cadenas despertar/acostarse · CP-501 actos y validador |
-| P2 | CP-006 medición de lugares 🎮 |
+| P1 | CP-209 cadenas despertar/acostarse · CP-502 compromisos |
+| P2 | CP-006 medición de lugares 🎮 · CP-506 validador de menciones |
 
 CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
 
@@ -92,7 +92,7 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-404](tareas/CP-404-obras-multijugador.md) | Sincronización de obras a clientes multijugador 🎮 | F4 | P3 | CP-403 | pendiente |
 | [CP-405](tareas/CP-405-desinstalacion.md) | cp_preparar_desinstalacion · exportar obras y sustituirlas por cuadros vanilla | F4 | P3 | CP-403 | pendiente |
 | [CP-406](tareas/CP-406-aceptacion-obras.md) | Aceptación de fase 4 · una obra nacida de la escena, colgada y vista en un cliente 🎮 | F4 | P2 | CP-402, CP-404, CP-305 | pendiente |
-| [CP-501](tareas/CP-501-actos-validador.md) | Actos de habla y validador «todos válidos o ninguno» | F5 | P1 | CP-107, CP-301 | pendiente |
+| [CP-501](tareas/CP-501-actos-validador.md) | Actos de habla y validador «todos válidos o ninguno» | F5 | P1 | CP-107, CP-301 | hecha |
 | [CP-502](tareas/CP-502-compromisos.md) | Compromisos con plazo cuya saliencia sube hasta provocar una pulsión | F5 | P1 | CP-501, CP-201, CP-202 | pendiente |
 | [CP-503](tareas/CP-503-dialogo-intercepcion.md) | DialogoModule · reflejo inmediato, respuesta pensada y caída a vanilla 🎮 | F5 | P1 | CP-010, CP-501, CP-304 | pendiente |
 | [CP-504](tareas/CP-504-opciones-jugador.md) | Opciones del jugador desde affordances reales y texto libre | F5 | P2 | CP-503, CP-014 | pendiente |
