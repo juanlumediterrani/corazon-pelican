@@ -42,9 +42,13 @@ namespace CorazonPelican.Core.Intencion
 
         public static HitoResuelto Resolver(HorarioDia horario, EntradaHorario entrada, Rutina rutina)
         {
-            var anotacion = rutina.Anotaciones.FirstOrDefault(a => a.Id is not Despertar and not Acostarse && Coincide(a.Si, entrada));
+            var anotacion = BuscarAnotacion(entrada, rutina);
             return Combinar(IdDe(horario, entrada), OrigenRutina, anotacion, rutina.PorDefecto);
         }
+
+        /// <summary>Primera anotación del perfil cuyo patrón coincide con la entrada, o <c>null</c> si aplica <c>por_defecto</c>.</summary>
+        public static AnotacionHito? BuscarAnotacion(EntradaHorario entrada, Rutina rutina)
+            => rutina.Anotaciones.FirstOrDefault(a => a.Id is not Despertar and not Acostarse && Coincide(a.Si, entrada));
 
         /// <summary>Hito al terminar un plan pedido por la mente (llegada, en el sentido amplio).</summary>
         public static HitoResuelto DeIntencion(string idPlan, Rutina rutina)
