@@ -9,7 +9,6 @@ using CorazonPelican.Framework;
 using CorazonPelican.Modules;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewValley;
 
 namespace CorazonPelican
 {
@@ -19,7 +18,6 @@ namespace CorazonPelican
         private readonly List<IDisposable> modulosDescartables = new();
         private CargadorPerfiles? perfiles;
         private ModContext? context;
-        private ObservadorJuego? observador;
 
         public override void Entry(IModHelper helper)
         {
@@ -55,16 +53,15 @@ namespace CorazonPelican
 
             this.perfiles = new CargadorPerfiles(helper, this.Monitor);
             this.context = new ModContext(helper, this.Monitor, this.ModManifest, config);
-            this.observador = new ObservadorJuego();
 
             this.RegistrarModulos(
                 new PersistenciaModule(),
                 new ApiModule(),
+                new HabitanteModule(),
                 new ConsolaModule());
 
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
             helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
-            helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
             helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
         }
 
@@ -140,33 +137,6 @@ namespace CorazonPelican
             this.Monitor.Log(
                 $"Motor activo en anfitrión (personajes gobernados: {this.context.PersonajesGobernados.Count}, mente: {(this.context.Config.MenteHabilitada ? "on" : "off")}).",
                 LogLevel.Info);
-        }
-
-        private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
-        {
-            if (this.context is null || this.observador is null || !Context.IsWorldReady || !Context.IsMainPlayer || !this.context.MotorActivoEnPartida)
-            {
-                return;
-            }
-
-            if (!e.IsMultipleOf((uint)this.context.Config.SensorioCadenciaTicks))
-            {
-                return;
-            }
-
-            foreach (var (id, perfil) in this.context.PersonajesGobernados)
-            {
-                var npc = Game1.getCharacterFromName(perfil.Npc);
-                if (npc is null)
-                {
-                    continue;
-                }
-
-                using (this.context.CostesBucle.Medir("observar"))
-                {
-                    this.context.UltimasObservaciones[id] = this.observador.Observar(npc, npc.currentLocation);
-                }
-            }
         }
 
         private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using CorazonPelican.Core.Api;
+using CorazonPelican.Core.Atencion;
 using CorazonPelican.Core.Config;
 using CorazonPelican.Core.Memoria;
+using CorazonPelican.Core.Observabilidad;
 using CorazonPelican.Core.Perfil;
 using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Tiempo;
@@ -61,6 +63,18 @@ namespace CorazonPelican.Framework
 
         /// <summary>Última observación recogida por personaje gobernado.</summary>
         public Dictionary<string, Observacion> UltimasObservaciones { get; } = new(StringComparer.Ordinal);
+
+        /// <summary>Motores por personaje gobernado en la partida actual (solo anfitrión, CP-109).</summary>
+        public Dictionary<string, MotorHabitante> MotoresHabitante { get; } = new(StringComparer.Ordinal);
+
+        /// <summary>Escritor de telemetría JSONL de la partida actual (solo anfitrión, CP-109).</summary>
+        public TelemetriaJsonl? Telemetria { get; internal set; }
+
+        /// <summary>Proveedor en vivo de observación para comandos de consola (<c>cp_escena</c>, <c>cp_pulso</c>).</summary>
+        public Func<string, Observacion?>? ProveedorObservacion { get; internal set; }
+
+        /// <summary>Reloj monotónico en milisegundos reales del bucle del anfitrión.</summary>
+        public Func<long>? RelojMs { get; internal set; }
 
         /// <summary>Estado persistido por partida de todos los personajes gobernados (ADS §9, CP-107).</summary>
         public EstadoPartida EstadoPartida { get; internal set; } = new();

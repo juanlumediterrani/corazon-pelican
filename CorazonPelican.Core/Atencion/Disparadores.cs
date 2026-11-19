@@ -171,6 +171,33 @@ namespace CorazonPelican.Core.Atencion
             return disparo;
         }
 
+        /// <summary>
+        /// Fuerza un pulso manual (<c>cp_pulso</c>) consumiendo saldo ordinario del presupuesto diario.
+        /// Devuelve <c>null</c> si no queda saldo ordinario disponible.
+        /// </summary>
+        public Disparo? ForzarPulso(Observacion observacion, long ahoraMs, string motivo = "manual")
+        {
+            if (observacion is null)
+            {
+                throw new ArgumentNullException(nameof(observacion));
+            }
+
+            var detalle = string.IsNullOrWhiteSpace(motivo) ? "manual" : motivo.Trim();
+            var motivoEfectivo = detalle is Motivos.Pico or Motivos.Deriva or Motivos.Transicion or Motivos.FinIntencion or Motivos.Compromiso
+                ? detalle
+                : Motivos.Deriva;
+            var diaObs = Math.Max(1, observacion.Dia);
+            var disparo = new Disparo(motivoEfectivo, ahoraMs, diaObs, observacion.Hora, Detalle: detalle);
+
+            if (!this.presupuesto.Admitir(disparo))
+            {
+                return null;
+            }
+
+            this.Registrar(ahoraMs);
+            return disparo;
+        }
+
         private void CambioDeDia(Observacion o, HorarioDia? horario, long ahoraMs, List<Disparo> salida)
         {
             if (this.dia == o.Dia)

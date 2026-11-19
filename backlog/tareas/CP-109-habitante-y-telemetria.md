@@ -1,7 +1,8 @@
 ---
 id: CP-109
 titulo: HabitanteModule, telemetría JSONL y comandos cp_escena / cp_pulso
-estado: pendiente
+estado: hecha
+fecha: 2026-11-19
 prioridad: P1
 hito: F1
 depende_de: [CP-101, CP-104, CP-106]
@@ -27,9 +28,11 @@ ADS §2, §4 y §12.2–§12.3. `CP-101` aporta `ObservadorJuego`; `CP-104`, `Ge
 
 ## Criterios de aceptación
 
-- [ ] FakeWorld / bucle integrado: un día simulado con `MenteHabilitada=false` produce `escenas.jsonl`, entradas en el diario y métricas de coste sin bloquear el tick.
-- [ ] `cp_escena` no consume plazas del presupuesto ni reinicia la huella o el integrador; `cp_pulso` sí sigue el protocolo de pulso y queda trazado en `pulsos.jsonl` / `escenas.jsonl`.
-- [ ] Con `Telemetria = false` no se escriben ficheros en disco.
+- [x] FakeWorld / bucle integrado: un día simulado con `MenteHabilitada=false` produce `escenas.jsonl`, entradas en el diario y métricas de coste sin bloquear el tick. Evidencia: `CorazonPelican.Tests/Simulacion/HabitanteTelemetriaTests.cs::Dia_simulado_con_mente_deshabilitada_genera_telemetria_diario_y_costes_sin_bloquear` (`MotorHabitante` + `TelemetriaJsonl` + `MedidorCosteBucle` sobre `FakeWorld`, validado contra `schemas/pulso.schema.json`).
+- [x] `cp_escena` no consume plazas del presupuesto ni reinicia la huella o el integrador; `cp_pulso` sí sigue el protocolo de pulso y queda trazado en `pulsos.jsonl` / `escenas.jsonl`. Evidencia: `HabitanteTelemetriaTests.PrevisualizarEscena_no_consume_presupuesto_ni_reinicia_huella_integrador_ni_escribe_diario` y `HabitanteTelemetriaTests.ForzarPulso_respeta_presupuesto_traza_en_jsonl_y_emite_en_ApiMotor`; comandos `cp_escena` y `cp_pulso` en `CorazonPelican/Modules/ConsolaModule.cs` sobre `HabitanteModule` (`CorazonPelican/Modules/HabitanteModule.cs`).
+- [x] Con `Telemetria = false` no se escriben ficheros en disco. Evidencia: `HabitanteTelemetriaTests.Con_telemetria_deshabilitada_no_se_crea_carpeta_ni_ficheros_jsonl` y `HabitanteTelemetriaTests.Telemetria_registra_todos_los_flujos_jsonl_sin_afectar_memoria`.
+
+Verificación: `dotnet build CorazonPelican.sln -p:EnableModDeploy=false -p:EnableModZip=false` (0 advertencias, 0 errores), `dotnet test CorazonPelican.sln -p:EnableModDeploy=false -p:EnableModZip=false` (324/324 superados), `python3 -m pytest -q` (94/94 superados).
 
 ## Fuera de alcance
 

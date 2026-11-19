@@ -2,13 +2,15 @@ using System;
 using System.Globalization;
 using System.Linq;
 using CorazonPelican.Core;
+using CorazonPelican.Core.Atencion;
+using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Tiempo;
 using CorazonPelican.Framework;
 using StardewModdingAPI;
 
 namespace CorazonPelican.Modules
 {
-    /// <summary>Comandos de consola <c>cp_*</c> para diagnóstico y control en caliente (ADS §12.3, CP-005).</summary>
+    /// <summary>Comandos de consola <c>cp_*</c> para diagnóstico y control en caliente (ADS §12.3, CP-005, CP-109).</summary>
     internal sealed class ConsolaModule : IModule
     {
         private ModContext context = null!;
@@ -24,6 +26,14 @@ namespace CorazonPelican.Modules
                 "cp_estado",
                 "Muestra el estado de Corazón Pelican: personajes, MenteHabilitada, ModoDesarrollo, presupuesto y API.",
                 this.OnEstado);
+            contexto.Helper.ConsoleCommands.Add(
+                "cp_escena",
+                "Genera e imprime la escena actual de un personaje sin emitir pulso ni gastar presupuesto: cp_escena <personaje>.",
+                this.OnEscena);
+            contexto.Helper.ConsoleCommands.Add(
+                "cp_pulso",
+                "Fuerza un pulso para un personaje respetando el presupuesto diario: cp_pulso <personaje>.",
+                this.OnPulso);
             contexto.Helper.ConsoleCommands.Add(
                 "cp_mente",
                 "Activa o desactiva MenteHabilitada en caliente: cp_mente <on|off>.",
@@ -112,6 +122,112 @@ namespace CorazonPelican.Modules
                 var fallidos = string.Join(", ", this.context.EstadoModulos.Fallidos.Select(f => $"{f.Nombre} ({f.Error.GetType().Name})"));
                 log.Log($"  Módulos desactivados por fallo: {fallidos}", LogLevel.Warn);
             }
+        }
+
+        private void OnEscena(string comando, string[] args)
+        {
+            if (!this.TryResolverMotorYObservacion(comando, args, out var id, out var motor, out var obs))
+            {
+                return;
+            }
+
+            var escena = motor!.PrevisualizarEscena(obs!);
+            var log = this.context.Monitor;
+            log.Log($"=== Escena [{id}] (día {escena.Apendice.Dia}, hora {escena.Apendice.Hora}) ===", LogLevel.Info);
+            log.Log(escena.TextoCompleto, LogLevel.Info);
+        }
+
+        private void OnPulso(string comando, string[] args)
+        {
+            if (!this.TryResolverMotorYObservacion(comando, args, out var id, out var motor, out var obs))
+            {
+                return;
+            }
+
+            var log = this.context.Monitor;
+            var ahoraMs = this.context.RelojMs?.Invoke() ?? Environment.TickCount64;
+            motor!.Epoca = this.context.Api.EpocaVigente ?? motor.Epoca;
+            var resultado = motor.ForzarPulso(obs!, ahoraMs, "manual");
+
+            if (!resultado.Emitido || resultado.Pulso is null || resultado.Escena is null)
+            {
+                log.Log(
+                    $"No se pudo emitir pulso manual para «{id}»: {resultado.MotivoRechazo ?? "presupuesto agotado"}",
+                    LogLevel.Warn);
+                return;
+            }
+
+            var modo = this.context.ModoRelojEfectivo;
+            var p = modo == ModoReloj.Pelican ? motor.Perfil.Presupuesto.Pelican : motor.Perfil.Presupuesto.Vanilla;
+            var limiteOrdinario = Math.Max(0, p.PulsosPorDiaJuego - p.ReservadosCadenas);
+            var gastados = motor.Estado.Contadores?.OrdinariosLibresGastados ?? 0;
+
+            log.Log(
+                $"Pulso #{resultado.Pulso.Id} emitido para «{id}» (motivo={resultado.Pulso.Motivo}, día {resultado.Pulso.TiempoJuego.Dia}, hora {resultado.Pulso.TiempoJuego.Hora}, ordinarios={gastados}/{limiteOrdinario}).",
+                LogLevel.Info);
+            log.Log(resultado.Escena.Escena, LogLevel.Info);
+        }
+
+        private bool TryResolverMotorYObservacion(
+            string comando,
+            string[] args,
+            out string personajeId,
+            out MotorHabitante? motor,
+            out Observacion? observacion)
+        {
+            var log = this.context.Monitor;
+            personajeId = string.Empty;
+            motor = null;
+            observacion = null;
+
+            if (args.Length == 0 || string.IsNullOrWhiteSpace(args[0]))
+            {
+                var disponibles = this.context.PersonajesGobernados.Count == 0
+                    ? "ninguno"
+                    : string.Join(", ", this.context.PersonajesGobernados.Keys.OrderBy(k => k, StringComparer.Ordinal));
+                log.Log($"Uso: {comando} <personaje> (gobernados: {disponibles}).", LogLevel.Info);
+                return false;
+            }
+
+            if (!Context.IsWorldReady)
+            {
+                log.Log($"No hay ninguna partida cargada para ejecutar {comando}.", LogLevel.Warn);
+                return false;
+            }
+
+            if (!Context.IsMainPlayer)
+            {
+                log.Log($"{comando} solo está disponible en el anfitrión.", LogLevel.Warn);
+                return false;
+            }
+
+            var solicitado = args[0].Trim();
+            if (!this.context.MotoresHabitante.TryGetValue(solicitado, out motor))
+            {
+                var normalizado = solicitado.ToLowerInvariant();
+                if (!this.context.MotoresHabitante.TryGetValue(normalizado, out motor))
+                {
+                    log.Log($"Personaje «{solicitado}» desconocido o no gobernado en la partida actual.", LogLevel.Warn);
+                    return false;
+                }
+
+                personajeId = normalizado;
+            }
+            else
+            {
+                personajeId = solicitado;
+            }
+
+            observacion = this.context.ProveedorObservacion?.Invoke(personajeId)
+                ?? (this.context.UltimasObservaciones.TryGetValue(personajeId, out var ultima) ? ultima : null);
+
+            if (observacion is null)
+            {
+                log.Log($"No hay observación disponible todavía para «{personajeId}».", LogLevel.Warn);
+                return false;
+            }
+
+            return true;
         }
 
         private void OnMente(string comando, string[] args)
