@@ -21,6 +21,7 @@ namespace CorazonPelican.Core.Perfil
         [DataMember(Name = "plantillas")] public string Plantillas { get; set; } = "";
         [DataMember(Name = "apertura")] public List<TramoApertura> Apertura { get; set; } = new();
         [DataMember(Name = "voz")] public string Voz { get; set; } = "";
+        [DataMember(Name = "rubrica_caracter", EmitDefaultValue = false)] public string? RubricaCaracter { get; set; }
         [DataMember(Name = "acciones")] public List<string> Acciones { get; set; } = new();
         [DataMember(Name = "formatos_obra")] public List<string> FormatosObra { get; set; } = new();
         [DataMember(Name = "rutina")] public Rutina Rutina { get; set; } = new();

@@ -61,6 +61,7 @@
       }
     },
     "voz": { "type": "string", "minLength": 1 },
+    "rubrica_caracter": { "type": "string", "minLength": 1, "description": "Ruta de la rúbrica de evaluación humana desde la raíz del mod." },
     "acciones": { "type": "array", "uniqueItems": true, "items": { "$ref": "comun.schema.json#/$defs/accion" } },
     "formatos_obra": { "type": "array", "uniqueItems": true, "items": { "$ref": "comun.schema.json#/$defs/formatoObra" } },
     "rutina": {

@@ -1,7 +1,8 @@
 ---
 id: CP-205
 titulo: Voz de Leah y rúbrica de coherencia de carácter
-estado: pendiente
+estado: hecha
+fecha: 2026-11-19
 prioridad: P1
 hito: F2
 depende_de: []
@@ -30,9 +31,16 @@ GSS §12 remite la rúbrica de coherencia «al backlog»: es esta tarea. Riesgo 
 
 ## Criterios de aceptación
 
-- [ ] `leah.voz.md` y `docs/rubrica-caracter.md` existen y están enlazados desde el perfil.
-- [ ] Las 12 escenas de prueba están en `mente/tests/escenas_caracter/` con la conducta esperable resumida y, cuando quepan varias elecciones, el motivo que haría creíble cada una.
-- [ ] La rúbrica tiene ejemplos de puntuación 1 y 4 para cada eje.
+- [x] `leah.voz.md` y `docs/rubrica-caracter.md` existen y están enlazados desde el perfil. Se abrieron las rutas de `voz` y `rubrica_caracter` de `leah.json` tanto en la salida de compilación como en el ZIP local del mod. La rúbrica se empaqueta desde su único original en `docs/`.
+- [x] Las 12 escenas de prueba están en `mente/tests/escenas_caracter/` con la conducta esperable resumida y, cuando quepan varias elecciones, el motivo que haría creíble cada una. Recuento de `leah.json`: 12 ids distintos, 8 escenas sin interlocución y 3 negativas. `test_la_pareja_de_lluvia_solo_varia_el_recuerdo_que_recibe_la_mente` comprueba el par de P-9.
+- [x] La rúbrica tiene ejemplos de puntuación 1 y 4 para cada eje. La tabla de `docs/rubrica-caracter.md` contiene seis ejes y da pautas para puntuar 2 y 3.
+
+## Verificación
+
+- `dotnet build CorazonPelican.sln -p:EnableModDeploy=false -p:EnableModZip=false`. 0 advertencias, 0 errores.
+- `dotnet test CorazonPelican.sln -p:EnableModDeploy=false -p:EnableModZip=false`. 165 superados, 0 omitidos.
+- `python3 -m pytest -q`. 44 superados. La valoración de respuestas de una mente real corresponde a CP-208.
+- Se contrastaron las referencias biográficas y de oficio con los datos locales de diálogo y los eventos 50 y 51 de la cabaña. Las fichas usan redacción propia.
 
 ## Fuera de alcance
 

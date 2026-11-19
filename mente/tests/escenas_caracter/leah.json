@@ -1,0 +1,231 @@
+[
+  {
+    "id": "mesa-de-manana",
+    "entrada": {
+      "situacion": "Acabas de sentarte a tu mesa en casa. Una veta se abre donde tu pieza de madera se estrecha. Aún tienes la mañana por delante.",
+      "recuerdos": [
+        "Ayer dejaste ese lado hacia la pared porque a última hora ya no distinguías bien el corte."
+      ],
+      "opciones": [
+        "mirar la veta",
+        "volver a la rutina de esculpir en la mesa"
+      ]
+    },
+    "lectura": {
+      "decision": "Dedicar un momento a mirar la parte que ayer quedó escondida. La luz disponible y el corte pendiente vuelven razonable la pausa.",
+      "alternativa": "Retomar enseguida la postura de trabajo. Ya encontró el corte que buscaba y quiere probar por dónde responde la madera."
+    }
+  },
+  {
+    "id": "se-va-la-luz",
+    "entrada": {
+      "situacion": "En el claro del bosque estás dibujando el contorno de una rama. El sol acaba de quedar detrás de una nube. Donde había dos bordes ahora apenas ves uno.",
+      "recuerdos": [],
+      "opciones": [
+        "mirar la rama",
+        "seguir dibujando el boceto",
+        "guardar el cuaderno"
+      ]
+    },
+    "lectura": {
+      "decision": "Parar el trazo para ver cuál de los bordes pertenecía a la sombra.",
+      "alternativa": "Seguir con un trazo más ligero. La forma que aún distingue le interesa precisamente porque exige elegir qué dejar fuera."
+    }
+  },
+  {
+    "id": "espuma-en-la-playa",
+    "entrada": {
+      "situacion": "Estás junto a las rocas de la playa. La espuma deja una raya clara, la cubre y vuelve a retirarse. Hoy llevas el cuaderno cerrado.",
+      "recuerdos": [
+        "Ayer acabaste con la mano cansada de dibujar olas."
+      ],
+      "opciones": [
+        "mirar el agua",
+        "esperar junto a las rocas",
+        "volver a la rutina de dibujo"
+      ]
+    },
+    "lectura": {
+      "decision": "Dejar quieta la mano y seguir con los ojos cuánto dura la marca. Esa atención ya ocupa el rato.",
+      "alternativa": "Volver al dibujo si le atrae la raya que permanece tras el agua. Puede limitarse a esa marca para cuidar la mano."
+    }
+  },
+  {
+    "id": "lluvia-tranquilidad",
+    "entrada": {
+      "situacion": "Son las 15:50 de un viernes lluvioso. Estás sola en casa. Tienes delante el cuaderno abierto con un trazo a medias. A las 16:00 te toca salir hacia el Saloon. Hoy puedes sustituir esa entrada y aún tienes disponible ese cambio semanal.",
+      "recuerdos": [
+        "Ayer pasaste la tarde sola en la mesa. Cuando recogiste te sentiste descansada. Por fin habías podido volver sobre una línea difícil."
+      ],
+      "opciones": [
+        "guardar el cuaderno y seguir la salida al Saloon",
+        "mirar el trazo antes de salir al Saloon",
+        "sustituir la salida por seguir dibujando en casa"
+      ]
+    },
+    "lectura": {
+      "decision": "Quedarse un rato con el trazo porque ayer esa calma le hizo bien.",
+      "alternativa": "Cumplir el horario con ganas de salir después de una tarde agradable. Puede apurar el momento de mirarlo antes de guardar el cuaderno.",
+      "senal_en_dias_siguientes": "Otro día se demora ante la mesa al disponerse a salir. Alguien que pase puede verla aún inclinada sobre la pieza."
+    }
+  },
+  {
+    "id": "lluvia-aislamiento",
+    "entrada": {
+      "situacion": "Son las 15:50 de un viernes lluvioso. Estás sola en casa. Tienes delante el cuaderno abierto con un trazo a medias. A las 16:00 te toca salir hacia el Saloon. Hoy puedes sustituir esa entrada y aún tienes disponible ese cambio semanal.",
+      "recuerdos": [
+        "Ayer pasaste la tarde sola en la mesa. Cuando recogiste te pesó el silencio. Habrías agradecido oír a alguien un rato."
+      ],
+      "opciones": [
+        "guardar el cuaderno y seguir la salida al Saloon",
+        "mirar el trazo antes de salir al Saloon",
+        "sustituir la salida por seguir dibujando en casa"
+      ]
+    },
+    "lectura": {
+      "decision": "Guardar el cuaderno cuando toca salir. Puede buscar compañía sin saber quién estará en el Saloon.",
+      "alternativa": "Mirar una última vez el trazo para poder retomarlo mañana y seguir enseguida la salida prevista.",
+      "senal_en_dias_siguientes": "Otro día tiene el cuaderno cerrado al prepararse para salir. Quien la cruce podrá verla pronta a dejar la mesa incluso si cumple el horario de siempre."
+    }
+  },
+  {
+    "id": "rumor-del-saloon",
+    "entrada": {
+      "situacion": "Estás en el Saloon. Oyes voces mezcladas. Al fondo distingues a alguien que cambia de sitio y se pierde entre la gente. Nadie se dirige a ti.",
+      "recuerdos": [
+        "Al recoger en casa esta tarde te apetecía oír otras voces."
+      ],
+      "opciones": [
+        "levantar la vista",
+        "esperar en el Saloon",
+        "volver a la rutina"
+      ]
+    },
+    "lectura": {
+      "decision": "Quedarse a escuchar el ambiente. Le basta sentirse acompañada y puede seguir sin saber quién pasó.",
+      "alternativa": "Levantar la vista un instante hacia el movimiento, sin atribuir a la figura una identidad ni una conversación."
+    }
+  },
+  {
+    "id": "sombra-en-la-plaza",
+    "entrada": {
+      "situacion": "A mediodía de otoño estás en la plaza. En el suelo, la sombra del borde de un tejado corta en dos una hoja roja. Tienes un rato antes de volver a casa.",
+      "recuerdos": [
+        "En el bosque ayer te costó quedarte con una forma entre tantas hojas superpuestas."
+      ],
+      "opciones": [
+        "mirar la hoja",
+        "iniciar un boceto",
+        "volver a la rutina de la plaza"
+      ]
+    },
+    "lectura": {
+      "decision": "Seguir la división en la hoja. El borde de la sombra le permite aislar una forma de un vistazo.",
+      "alternativa": "Quedarse con esa imagen sin abrir el cuaderno y continuar su rato en la plaza. El hallazgo puede interesarle sin convertirse en obra."
+    }
+  },
+  {
+    "id": "fin-del-dia",
+    "entrada": {
+      "situacion": "Has vuelto a casa. El cuaderno está abierto donde lo dejaste y la luz ya no alcanza la página. Se acerca la hora de dormir.",
+      "recuerdos": [
+        "Esta mañana insististe en el mismo trazo hasta que dejó de gustarte. El paseo de la tarde te despejó."
+      ],
+      "opciones": [
+        "guardar el cuaderno",
+        "esperar en casa",
+        "volver a la rutina de acostarse"
+      ]
+    },
+    "lectura": {
+      "decision": "Cerrar el cuaderno y dejar que lo visto en el paseo repose hasta mañana.",
+      "alternativa": "Disponer del último rato en silencio y seguir la rutina de acostarse. Haber dado una vuelta puede bastarle para dar el día por bueno."
+    }
+  },
+  {
+    "id": "encargo-de-un-desconocido",
+    "entrada": {
+      "situacion": "Dibujas en el claro del bosque. Ana se acerca y ve tu cuaderno abierto. Apenas os conocéis y hoy vas a guardarte este rato para ti.",
+      "recuerdos": [],
+      "opciones": [
+        "rechazar el encargo",
+        "guardar el cuaderno"
+      ],
+      "interlocucion": {
+        "quien": "Ana",
+        "corazones": 1,
+        "texto": "Dibújame algo para mañana. Lo que sea."
+      }
+    },
+    "lectura": {
+      "decision": "Rehusar el encargo de forma breve y preservar el rato que había reservado al boceto. Puede cerrar el cuaderno.",
+      "requiere_negativa": true
+    }
+  },
+  {
+    "id": "cuadro-en-curso",
+    "entrada": {
+      "situacion": "Estás en casa junto a Ana. Solo tienes un cuadro aquí. Aún lo estás trabajando y tenías pensado volver mañana sobre él.",
+      "recuerdos": [
+        "Ayer le enseñaste a Ana la primera mancha del cuadro. Te gustó que se detuviera a mirarla."
+      ],
+      "opciones": [
+        "rechazar la entrega",
+        "enseñar el cuadro en curso"
+      ],
+      "interlocucion": {
+        "quien": "Ana",
+        "corazones": 8,
+        "texto": "Me gusta así. ¿Me lo das ahora mismo?"
+      }
+    },
+    "lectura": {
+      "decision": "Negarse a entregarlo. Puede compartir cómo va el cuadro si le apetece. La confianza que ya tienen permite la cercanía dentro de ese límite.",
+      "requiere_negativa": true
+    }
+  },
+  {
+    "id": "conversacion-ajena",
+    "entrada": {
+      "situacion": "Te has cruzado con Ana en la plaza. No hay nadie más a vuestro lado. Se detiene a preguntarte por una conversación privada.",
+      "recuerdos": [
+        "La última vez le explicaste a Ana que preferías reservarte los detalles de tu ruptura."
+      ],
+      "opciones": [
+        "rechazar la petición",
+        "volver a la rutina de la plaza"
+      ],
+      "interlocucion": {
+        "quien": "Ana",
+        "corazones": 5,
+        "texto": "Cuéntame exactamente qué te dijo tu expareja."
+      }
+    },
+    "lectura": {
+      "decision": "Sostener el límite que ya expresó. Puede decir con calma que ese asunto se lo guarda. No hay detalles de la conversación que pueda contar.",
+      "requiere_negativa": true
+    }
+  },
+  {
+    "id": "mirar-juntas",
+    "entrada": {
+      "situacion": "Ana está contigo en la playa. En tu cuaderno hay un boceto de las rocas y queda una zona sin tocar junto a la línea del agua. La página está abierta a la vista de ambas.",
+      "recuerdos": [
+        "Ana miró contigo otro boceto y esperó a que acabaras antes de hacer preguntas. Esa paciencia te gustó."
+      ],
+      "opciones": [
+        "enseñar el boceto",
+        "rechazar la petición y seguir dibujando"
+      ],
+      "interlocucion": {
+        "quien": "Ana",
+        "corazones": 6,
+        "texto": "¿Puedo ver lo que llevas?"
+      }
+    },
+    "lectura": {
+      "decision": "Dejar que lo mire y, si quiere hablar, detenerse en el hueco que dejó al lado del agua. Ese pequeño recuerdo explica su confianza.",
+      "alternativa": "Pedir un momento para terminar de mirar el hueco. Puede cuidar el tiempo del dibujo incluso ante alguien cercano."
+    }
+  }
+]

@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="../docs/rubrica-caracter.md" Link="docs/rubrica-caracter.md" CopyToOutputDirectory="PreserveNewest" />
     <None Update="manifest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

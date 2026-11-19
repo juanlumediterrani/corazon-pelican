@@ -29,6 +29,7 @@
     { "desde_corazones": 9, "ensenar": true, "encargos": true, "regalar": true }
   ],
   "voz": "assets/personajes/leah.voz.md",
+  "rubrica_caracter": "docs/rubrica-caracter.md",
   "acciones": ["ir_a", "sentarse", "mirar", "levantar_la_vista", "dibujar", "guardar_cuaderno", "gesto", "murmurar", "esperar", "volver_a_rutina"],
   "formatos_obra": ["boceto", "cuadro_pequeno", "cuadro_mediano"],
   "rutina": {

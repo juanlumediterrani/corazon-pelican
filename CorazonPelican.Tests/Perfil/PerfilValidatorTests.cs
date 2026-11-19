@@ -22,6 +22,7 @@ public class PerfilValidatorTests
         var leah = Leah();
 
         Assert.Equal("leah", leah.Id);
+        Assert.Equal("docs/rubrica-caracter.md", leah.RubricaCaracter);
         Assert.Equal(0.40, leah.Umbrales.Mencion);
         Assert.Equal(12, leah.Presupuesto.Pelican.PulsosPorDiaJuego);
         Assert.Contains(leah.Lexico.Lugares, l => l.Id == "pasarela_lago" && l.Sentable);
