@@ -9,6 +9,7 @@ using CorazonPelican.Framework;
 using CorazonPelican.Modules;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewValley;
 
 namespace CorazonPelican
 {
@@ -17,6 +18,7 @@ namespace CorazonPelican
     {
         private CargadorPerfiles? perfiles;
         private ModContext? context;
+        private ObservadorJuego? observador;
 
         public override void Entry(IModHelper helper)
         {
@@ -52,6 +54,7 @@ namespace CorazonPelican
 
             this.perfiles = new CargadorPerfiles(helper, this.Monitor);
             this.context = new ModContext(helper, this.Monitor, this.ModManifest, config);
+            this.observador = new ObservadorJuego();
 
             this.RegistrarModulos(
                 new ConsolaModule());
@@ -121,6 +124,8 @@ namespace CorazonPelican
                 return;
             }
 
+            this.context.CostesBucle.Reiniciar();
+            this.context.UltimasObservaciones.Clear();
             this.context.MotorActivoEnPartida = true;
             this.Monitor.Log(
                 $"Motor activo en anfitrión (personajes gobernados: {this.context.PersonajesGobernados.Count}, mente: {(this.context.Config.MenteHabilitada ? "on" : "off")}).",
@@ -129,12 +134,29 @@ namespace CorazonPelican
 
         private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
         {
-            if (this.context is null || !Context.IsWorldReady || !Context.IsMainPlayer || !this.context.MotorActivoEnPartida)
+            if (this.context is null || this.observador is null || !Context.IsWorldReady || !Context.IsMainPlayer || !this.context.MotorActivoEnPartida)
             {
                 return;
             }
 
-            // Punto de entrada del bucle por tick del motor (HabitanteModule en F1).
+            if (!e.IsMultipleOf((uint)this.context.Config.SensorioCadenciaTicks))
+            {
+                return;
+            }
+
+            foreach (var (id, perfil) in this.context.PersonajesGobernados)
+            {
+                var npc = Game1.getCharacterFromName(perfil.Npc);
+                if (npc is null)
+                {
+                    continue;
+                }
+
+                using (this.context.CostesBucle.Medir("observar"))
+                {
+                    this.context.UltimasObservaciones[id] = this.observador.Observar(npc, npc.currentLocation);
+                }
+            }
         }
 
         private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
@@ -145,6 +167,8 @@ namespace CorazonPelican
             }
 
             this.context.MotorActivoEnPartida = false;
+            this.context.CostesBucle.Reiniciar();
+            this.context.UltimasObservaciones.Clear();
         }
     }
 }

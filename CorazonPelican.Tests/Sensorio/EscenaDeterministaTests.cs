@@ -97,6 +97,7 @@ public class EscenaDeterministaTests
     [InlineData(CategoriaEntidad.Animal, "animal:1", "una ardilla")]
     [InlineData(CategoriaEntidad.Objeto, "obj:Mountain:40,30:pasarela", "la pasarela de madera")]
     [InlineData(CategoriaEntidad.Terreno, "agua:Mountain:lago", "el lago")]
+    [InlineData(CategoriaEntidad.Suceso, "suceso:regalo:1:1:1", "un regalo de Ana")]
     public void Dias_distintos_con_misma_observacion_producen_texto_distinto_en_todas_las_categorias(
         CategoriaEntidad categoria,
         string referencia,

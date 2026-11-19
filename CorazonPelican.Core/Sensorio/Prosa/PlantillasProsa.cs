@@ -36,7 +36,7 @@ namespace CorazonPelican.Core.Sensorio.Prosa
 
         public static readonly IReadOnlyList<string> CategoriasRequeridas = new[]
         {
-            "granjero", "npc", "animal", "objeto", "terreno",
+            "granjero", "npc", "animal", "objeto", "terreno", "suceso",
         };
 
         [DataMember(Name = "estaciones")]
@@ -146,6 +146,7 @@ namespace CorazonPelican.Core.Sensorio.Prosa
             CategoriaEntidad.Animal => "animal",
             CategoriaEntidad.Objeto => "objeto",
             CategoriaEntidad.Terreno => "terreno",
+            CategoriaEntidad.Suceso => "suceso",
             _ => throw new ArgumentOutOfRangeException(nameof(categoria), categoria, null),
         };
 

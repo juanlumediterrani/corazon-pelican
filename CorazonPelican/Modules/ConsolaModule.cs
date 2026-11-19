@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using CorazonPelican.Core;
 using CorazonPelican.Core.Tiempo;
@@ -81,6 +82,30 @@ namespace CorazonPelican.Modules
             log.Log(
                 $"  API motor <-> mente: {this.context.EstadoApi} | endpoint=http://127.0.0.1:{cfg.ApiPuerto}/api/{CorazonCore.VersionContrato}/ ({tokenInfo})",
                 LogLevel.Info);
+
+            var mediciones = this.context.CostesBucle.Resumen();
+            if (mediciones.Count == 0)
+            {
+                log.Log(
+                    $"  Costes del bucle: sin mediciones aún (paso «observar» cada {cfg.SensorioCadenciaTicks} ticks).",
+                    LogLevel.Info);
+            }
+            else
+            {
+                foreach (var medicion in mediciones)
+                {
+                    log.Log(
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            "  Coste [{0}]: medio={1:0.000} ms, último={2:0.000} ms, máx={3:0.000} ms ({4} pasos).",
+                            medicion.Paso,
+                            medicion.MedioMs,
+                            medicion.UltimoMs,
+                            medicion.MaximoMs,
+                            medicion.Muestras),
+                        LogLevel.Info);
+                }
+            }
 
             if (this.context.EstadoModulos.Fallidos.Count > 0)
             {

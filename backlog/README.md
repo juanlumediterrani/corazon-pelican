@@ -34,14 +34,14 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas seis fichas están pendientes y tienen todas sus dependencias hechas.
+Estas cinco fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-013 taller · CP-101 observador · CP-203 API motor · CP-212 agenda y rutina |
+| P1 | CP-013 taller · CP-203 API motor · CP-212 agenda y rutina |
 | P2 | CP-006 medición de lugares 🎮 · CP-106 búfer y diario |
 
-CP-014 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
+CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
 
 ## Tareas
 
@@ -59,7 +59,7 @@ CP-014 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.
 | [CP-013](tareas/CP-013-spike-taller-32px.md) | Spike del taller · ¿se reconoce una obra a la resolución de un cuadro vanilla? (V-04) | S | P1 | CP-001 | pendiente |
 | [CP-014](tareas/CP-014-spike-texto-libre.md) | Spike V-06 · menú nativo para «Decir otra cosa…» operable por humanos y por Voyager | S | P3 | CP-001 | en-curso |
 | [CP-015](tareas/CP-015-spike-obra-como-mueble.md) | Spike V-03/V-05 · una textura generada como mueble colocable que sobrevive a guardar, cargar y multijugador 🎮 | S | P1 | CP-006 | pendiente |
-| [CP-101](tareas/CP-101-observador-juego.md) | ObservadorJuego · del estado del juego a una Observacion de solo lectura | F1 | P1 | CP-003, CP-005 | pendiente |
+| [CP-101](tareas/CP-101-observador-juego.md) | ObservadorJuego · del estado del juego a una Observacion de solo lectura | F1 | P1 | CP-003, CP-005 | en-curso |
 | [CP-102](tareas/CP-102-saliencia.md) | Saliencia de cinco capas con distancia, línea de visión y novedad | F1 | P1 | CP-003, CP-004 | hecha |
 | [CP-103](tareas/CP-103-bandas-gradiente.md) | Bandas de detalle foco/mención/periferia/ausente | F1 | P1 | CP-102 | hecha |
 | [CP-104](tareas/CP-104-prosa-determinista.md) | Plantillas de prosa deterministas, escena y prosa de acción, con escenas doradas | F1 | P1 | CP-103, CP-105 | hecha |

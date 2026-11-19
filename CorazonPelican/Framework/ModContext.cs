@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CorazonPelican.Core.Config;
 using CorazonPelican.Core.Perfil;
+using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Tiempo;
 using StardewModdingAPI;
 
@@ -49,6 +50,12 @@ namespace CorazonPelican.Framework
 
         /// <summary>Estado observable de la API HTTP motor ↔ mente (lo actualizará <c>ApiModule</c> en CP-203).</summary>
         public string EstadoApi { get; set; } = "no iniciada (ApiModule pendiente)";
+
+        /// <summary>Contador de coste por paso del bucle del motor (ADS §4, CP-101).</summary>
+        public MedidorCosteBucle CostesBucle { get; } = new();
+
+        /// <summary>Última observación recogida por personaje gobernado.</summary>
+        public Dictionary<string, Observacion> UltimasObservaciones { get; } = new(StringComparer.Ordinal);
 
         public ModContext(IModHelper helper, IMonitor monitor, IManifest manifest, CorazonConfig config)
         {

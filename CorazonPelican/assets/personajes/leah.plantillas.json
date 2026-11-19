@@ -223,6 +223,27 @@
           "Apenas reparas en {referencia} {rumbo}."
         ]
       }
+    },
+    "suceso": {
+      "foco": [
+        "Tienes muy presente lo que acaba de pasar: {nombre} ({rumbo}), {cercania}.",
+        "Tu atención se concentra en {nombre}, {cercania} ({rumbo}).",
+        "Sigues dándole vueltas a {nombre}, ocurrido {cercania} y {rumbo}.",
+        "No pasas por alto {nombre} ({rumbo}), {cercania}."
+      ],
+      "mencion": [
+        "Acabas de notar {nombre} {rumbo}.",
+        "Tienes en cuenta {nombre}, {cercania}.",
+        "Adviertes de paso {nombre} {rumbo}."
+      ],
+      "periferia": {
+        "referencia": "algo que acaba de ocurrir",
+        "variantes": [
+          "Percibes {referencia} {rumbo}, sin llegar a detenerte en ello.",
+          "En el borde de lo que haces notas {referencia} {rumbo}.",
+          "Llega un eco breve de {referencia} {rumbo}."
+        ]
+      }
     }
   },
   "acciones": {
@@ -297,6 +318,10 @@
     "terreno": [
       "Te quedas mirando {nombre}.",
       "Reparas en los tonos de {nombre}."
+    ],
+    "suceso": [
+      "Notas lo ocurrido con {nombre}.",
+      "Anotas para ti {nombre}."
     ]
   },
   "huella": {

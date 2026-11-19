@@ -1,7 +1,7 @@
 ---
 id: CP-101
 titulo: ObservadorJuego · del estado del juego a una Observacion de solo lectura
-estado: pendiente
+estado: en-curso
 prioridad: P1
 hito: F1
 depende_de: [CP-003, CP-005]
@@ -27,9 +27,15 @@ GSS §3.1 y ADS §4 (pasos 3 y 4). CP-004 ya creó `Core/Sensorio/Observacion.cs
 
 ## Criterios de aceptación
 
-- [ ] Ninguna llamada del observador modifica el estado (revisión + test que compara un FakeWorld antes/después).
-- [ ] Identidades estables: la misma entidad tiene la misma `ref` en dos observaciones consecutivas y tras guardar/cargar.
+- [x] Ninguna llamada del observador modifica el estado (revisión + test que compara un FakeWorld antes/después). — Evidencia: revisión de solo lectura en `CorazonPelican/Adaptador/ObservadorJuego.cs` (sin escrituras ni llamadas mutadoras sobre `NPC`, `GameLocation`, `Farmer`, mapas ni `Objects`) y test `ObservadorTests.Observar_no_muta_ningun_campo_ni_entidad_del_mundo` (`dotnet test`: 215/215 superados).
+- [x] Identidades estables: la misma entidad tiene la misma `ref` en dos observaciones consecutivas y tras guardar/cargar. — Evidencia: `CorazonPelican.Core/Sensorio/IdentidadesObservacion.cs` + `ObservadorTests.Identidades_estables_entre_observaciones_consecutivas_y_tras_guardar_y_cargar` (`dotnet test`: 215/215 superados).
 - [ ] En vivo (partida DEV): coste medio del paso «observar» < 1 ms en la pasarela del lago con el jugador cerca.
+
+## Notas
+
+- Implementación, pruebas unitarias y compilación listas (`dotnet build` 0 advertencias / 0 errores; `dotnet test`: 215/215 superados; `python3 -m pytest -q`: 44 superados).
+- `ModEntry` ejecuta `ObservadorJuego.Observar` cada `SensorioCadenciaTicks` registrando tiempos en `ModContext.CostesBucle` (`"observar"`), y `ConsolaModule` los imprime en `cp_estado`.
+- Solo resta medir el tercer criterio en una sesión en vivo 🎮 en la partida DEV (pasarela del lago con el jugador cerca) y comprobar `< 1 ms` con `cp_estado`.
 
 ## Fuera de alcance
 
