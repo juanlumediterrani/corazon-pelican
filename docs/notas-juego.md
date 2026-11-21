@@ -22,18 +22,20 @@ nulo, sin escribir el contenido a disco. **El contenido del juego no se versiona
 
 ## 2. Conversación con un NPC (V-01) · CP-010, CP-503
 
-`NPC.checkAction(Farmer who, GameLocation l)` es `virtual` (`StardewValley/NPC.cs`, ~l. 2465),
-pero hace mucho más que mostrar diálogo. En orden aproximado:
+`NPC.checkAction(Farmer who, GameLocation l)` es `virtual` (`StardewValley/NPC.cs`, l. 2465),
+se invoca localmente en la máquina del jugador que interactúa (`who.IsLocalPlayer == true`,
+`GameLocation.cs:7672`) y ejecuta en este orden exacto (verificado en vivo en
+[`docs/spikes/v01-conversacion.md`](spikes/v01-conversacion.md)):
 
-1. Sale si el NPC es invisible, está dormido (emote) o el jugador no puede moverse.
-2. Regalos: `who.ActiveObject != null && tryToReceiveActiveObject(who)`.
-3. Misiones de socializar: `who.NotifyQuests(q => q.OnNpcSocialized(this))` (p. ej. *Introductions*).
-4. Casos especiales (Krobus, Henchman, Jas en el desierto) y lógica de cónyuge.
-5. Diálogo y `grantConversationFriendship(who, 20)` (+20 de amistad diarios; definido ~l. 2924).
+1. Guardas iniciales: sale si `IsInvisible`, `isSleeping.Value` (`doEmote(24)` + `shake(250)`) o `!who.CanMove` (`NPC.cs:2467-2483`).
+2. Inicialización de `friendshipData`: si `CanReceiveGifts() && value == null`, crea `new Friendship(0)` (`NPC.cs:2512-2514`).
+3. Misiones de socializar: `if (who.NotifyQuests(q => q.OnNpcSocialized(this)) && Game1.dialogueUp)` devuelve `true` si la misión abrió diálogo propio (`SlayMonsterQuest`, `SecretLostItemQuest`); en *Introductions* (`SocializeQuest.cs:97-115`) elimina al NPC de `whoToGreet` sin abrir `dialogueUp` y continúa.
+4. Cónyuge (`Name == who.spouse && who.IsLocalPlayer`): Stardrop `CF_Spouse` (`>= 3125` pts), beso matinal (`< 2200`, `+10` pts, `PerformKiss`) y `currentMarriageDialogue` (`NPC.cs:2569-2668, 2726-2739`).
+5. Regalos y entregas de objeto activo: `who.ActiveObject != null && !who.isRidingHorse() && tryToReceiveActiveObject(who, probe: true)` sondea sin efectos laterales regalos, ramos, colgantes, pedidos especiales y entregas de misión (`NPC.cs:1713-1775, 2761, 2782`).
+6. Enfriamiento de burbuja silenciosa: `isOnSilentTemporaryMessage()` (`NPC.cs:4335`).
+7. Conversación ordinaria: `faceTowardFarmerForPeriod(5000, 4, false, who)`, `grantConversationFriendship(who, 20)` (`NPC.cs:2924-2940`, idempotente por `TalkedToToday`) y `Game1.drawDialogue(this)`.
 
-**Consecuencia:** un prefijo de Harmony que devuelva `false` sin más pierde la amistad diaria y
-el progreso de misiones. La intercepción debe cambiar solo *qué se dice* y dejar al juego el resto
-(propuesta P-7, pendiente).
+**Consecuencia verificada (`CP-010`):** un prefijo Harmony en `NPC.checkAction` que compruebe los pasos 1–6 (cediendo a vanilla cuando apliquen) e invoque en el paso 7 `faceTowardFarmerForPeriod`, `grantConversationFriendship(who)` y `Game1.drawDialogue(npc)` con `__result = true; return false;` conserva intactos los `+20` diarios, los regalos, las misiones y las guardas de sueño/inmovilidad/festival.
 
 ## 3. Horarios de los NPC (V-02) · CP-011, CP-201, CP-306
 

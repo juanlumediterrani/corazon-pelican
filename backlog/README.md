@@ -37,7 +37,7 @@ Estas dos fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-010 spike interceptar conversación 🎮 · CP-011 spike reclamar NPC 🎮 |
+| P1 | CP-011 spike reclamar NPC 🎮 · CP-503 DialogoModule 🎮 |
 
 CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisiones.md`](../docs/decisiones.md) han quedado cerradas (`CP-902`).
 
@@ -51,7 +51,7 @@ CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisio
 | [CP-004](tareas/CP-004-fakeworld.md) | FakeWorld para probar el bucle completo sin juego | F0 | P1 | CP-001 | hecha |
 | [CP-005](tareas/CP-005-config-modulos-consola.md) | Configuración validada, registro de módulos y comando cp_estado | F0 | P2 | CP-001 | hecha |
 | [CP-006](tareas/CP-006-partida-dev-y-lugares.md) | Partida de desarrollo separada y medición de los lugares de Leah (V-09) 🎮 | F0 | P2 | CP-003 | hecha |
-| [CP-010](tareas/CP-010-spike-interceptar-conversacion.md) | Spike V-01 · interceptar la conversación sin perder amistad, regalos ni misiones 🎮 | S | P1 | CP-006 | pendiente |
+| [CP-010](tareas/CP-010-spike-interceptar-conversacion.md) | Spike V-01 · interceptar la conversación sin perder amistad, regalos ni misiones 🎮 | S | P1 | CP-006 | hecha |
 | [CP-011](tareas/CP-011-spike-reclamar-npc.md) | Spike V-02 · reclamar a Leah y devolverla a su horario sin romperlo 🎮 | S | P1 | CP-006 | pendiente |
 | [CP-012](tareas/CP-012-spike-animaciones-leah.md) | Spike V-07 · mapear las animaciones de Leah a las acciones del cuerpo | S | P2 | CP-001 | hecha |
 | [CP-013](tareas/CP-013-spike-taller-32px.md) | Spike del taller · ¿se reconoce una obra a la resolución de un cuadro vanilla? (V-04) | S | P1 | CP-001 | dormida |

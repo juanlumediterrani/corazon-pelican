@@ -534,8 +534,8 @@ decisión de obra ─▶ prompt de imagen ─▶ Generador ───────
 * Enganche en la acción del jugador sobre el NPC gobernado: prefijo Harmony sobre
   `NPC.checkAction`, que es `virtual`. Dentro, el juego gestiona regalos, misiones de socializar,
   cónyuge y la amistad diaria (`grantConversationFriendship`): la intercepción solo cambia qué se
-  dice y deja el resto al juego (propuesta P-7, pendiente; [notas](docs/notas-juego.md) §2)
-  **[verificar en vivo: CP-010]**.
+  dice y deja el resto al juego (propuesta P-7; [notas](docs/notas-juego.md) §2,
+  [`docs/spikes/v01-conversacion.md`](docs/spikes/v01-conversacion.md)) **[verificado en vivo: CP-010]**.
 * **Regalos:** si el jugador sostiene un objeto regalable, se deja actuar al juego (amistad,
   reacción nativa) y el regalo entra al sensorio como suceso. Corazón no reimplementa regalos.
 * **Condiciones para interceptar:** mente disponible, ValleyTalk
@@ -724,7 +724,7 @@ Detalle y fuentes en [`docs/notas-juego.md`](docs/notas-juego.md).
 
 | # | Qué confirmar | Estado (2026-11-04) | Tarea |
 |---|---|---|---|
-| V-01 | Punto de enganche para interceptar la conversación | Localizado (`NPC.checkAction`, virtual); falta validar efectos laterales en vivo | CP-010 |
+| V-01 | Punto de enganche para interceptar la conversación | **Resuelta**: Harmony Prefix en `NPC.checkAction` conservando guardas, `tryToReceiveActiveObject(who, probe: true)`, `NotifyQuests` y `grantConversationFriendship` ([`v01-conversacion.md`](docs/spikes/v01-conversacion.md)) | CP-010 |
 | V-02 | Suspender y reanudar el horario de un NPC sin romperlo | Mecanismo entendido (entradas a hora exacta, `lastAttemptedSchedule`); falta prototipo | CP-011 |
 | V-03 | Campo de textura en `Data/Furniture` | **Resuelta**: campo 9 (sprite en el 8) | CP-015 |
 | V-04 | Tamaños de los cuadros vanilla por formato | **Resuelta** ([taller-resolucion.md](docs/spikes/taller-resolucion.md)): `1×2` (`16×32`, `12×16` útil), `2×2` (`32×32`, `28×24` útil), `3×2` (`48×32`); pipeline `taller.asset` y paleta fija listos | CP-013 |
