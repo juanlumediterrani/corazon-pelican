@@ -677,6 +677,24 @@ namespace CorazonPelican.Core.Api
         }
 
         /// <summary>
+        /// Indica si la respuesta propone efectos sobre el estado del personaje o del mundo
+        /// (intención, actos, memoria, obra o agenda) que requieren un aplicador activo en el host.
+        /// </summary>
+        public static bool TieneEfectos(Respuesta? respuesta)
+        {
+            if (respuesta is null)
+            {
+                return false;
+            }
+
+            return respuesta.Intencion is not null
+                || (respuesta.Actos is { Count: > 0 })
+                || respuesta.Memoria is not null
+                || respuesta.Obra is not null
+                || (respuesta.Agenda is { Count: > 0 });
+        }
+
+        /// <summary>
         /// Encola una respuesta de la mente para validarse y aplicarse en el próximo tick del hilo principal.
         /// </summary>
         public Task<Resultado> ProcesarRespuestaAsync(
@@ -814,7 +832,12 @@ namespace CorazonPelican.Core.Api
 
             var resultado = aplicador is not null
                 ? aplicador(pulso, respuesta)
-                : new Resultado { Estado = Resultado.Aceptada };
+                : TieneEfectos(respuesta)
+                    ? Resultado.Rechazar(new MotivoRechazo(
+                        "sin_aplicador",
+                        "respuesta",
+                        "no hay ningún aplicador registrado en el motor para aplicar esta respuesta"))
+                    : new Resultado { Estado = Resultado.Aceptada };
 
             if (resultado.Estado == Resultado.Rechazada && (resultado.Motivos is null || resultado.Motivos.Count == 0))
             {

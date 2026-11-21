@@ -111,7 +111,12 @@ namespace CorazonPelican.Modules
                 this.context.MotoresHabitante[id] = motor;
             }
 
-            this.context.Api.RegistrarProveedorEscena(this.ObtenerEscenaApi, enHiloPrincipal: true);
+            CoordinadorApiAnfitrion.Conectar(
+                this.context.Api,
+                id => this.context.MotoresHabitante.TryGetValue(id, out var m) ? m : null,
+                id => this.context.EstadoPartida.ObtenerSiExiste(id),
+                enHiloPrincipal: true,
+                observarEnVivo: this.ObservarPersonaje);
             this.context.ProveedorObservacion = this.ObservarPersonaje;
             this.context.RelojMs = () => this.cronometro.ElapsedMilliseconds;
 
@@ -198,7 +203,7 @@ namespace CorazonPelican.Modules
         {
             if (this.context is not null)
             {
-                this.context.Api.RegistrarProveedorEscena(null);
+                CoordinadorApiAnfitrion.Desconectar(this.context.Api);
                 this.context.MotoresHabitante.Clear();
                 this.context.ProveedorObservacion = null;
                 this.context.RelojMs = null;
@@ -274,18 +279,6 @@ namespace CorazonPelican.Modules
             }
 
             return pulso;
-        }
-
-        private EscenaActual? ObtenerEscenaApi(string personajeId)
-        {
-            if (this.context is null || !this.context.MotoresHabitante.TryGetValue(personajeId, out var motor))
-            {
-                return null;
-            }
-
-            motor.Epoca = this.context.Api.EpocaVigente ?? motor.Epoca;
-            var obs = this.ObservarPersonaje(personajeId);
-            return motor.ConstruirEscenaActualApi(obs);
         }
 
         private Observacion? ObservarPersonaje(string personajeId)

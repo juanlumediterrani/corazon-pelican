@@ -662,7 +662,7 @@ namespace CorazonPelican.Core.Dialogo
                 etapas);
         }
 
-        private static MotivoRechazo? PrevalidarMemoria(MemoriaPropuesta? memoria)
+        internal static MotivoRechazo? PrevalidarMemoria(MemoriaPropuesta? memoria)
         {
             if (memoria?.Reflexiones is not { } reflexiones)
             {
@@ -719,7 +719,7 @@ namespace CorazonPelican.Core.Dialogo
             }
         }
 
-        private static void AplicarActo(
+        internal static void AplicarActo(
             Acto acto,
             EstadoPersonaje estado,
             List<CompromisoEstado> compromisosCreados,

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using CorazonPelican.Core.Api;
 using CorazonPelican.Core.Config;
 using CorazonPelican.Core.Contrato;
+using CorazonPelican.Core.Dialogo;
 using CorazonPelican.Core.Intencion;
 using CorazonPelican.Core.Memoria;
 using CorazonPelican.Core.Observabilidad;
@@ -50,6 +52,7 @@ namespace CorazonPelican.Core.Atencion
         private readonly Bufer pendientesDiario;
         private readonly Dictionary<string, Banda> bandasRegistradasBufer = new(StringComparer.Ordinal);
         private int? ultimoDiaBufer;
+        private int? ultimoDiaAgenda;
         private long siguientePulsoId = 1;
 
         public MotorHabitante(
@@ -91,6 +94,7 @@ namespace CorazonPelican.Core.Atencion
             this.Huella = new HuellaAtencion();
             this.Disparadores = new Disparadores(perfil, modoReloj, estado.Contadores);
             this.LugaresOfrecidos = perfil.Lexico.OfrecerLugares(_ => true);
+            this.ContextoRutina = new ContextoRutina(Math.Max(1, estado.Contadores?.Dia ?? 1));
         }
 
         public PerfilPersonaje Perfil { get; }
@@ -112,6 +116,10 @@ namespace CorazonPelican.Core.Atencion
         public Disparadores Disparadores { get; }
 
         public LugaresOfrecidos LugaresOfrecidos { get; }
+
+        public AgendaDia? AgendaActual { get; private set; }
+
+        public ContextoRutina ContextoRutina { get; }
 
         public Observacion? UltimaObservacion { get; private set; }
 
@@ -141,6 +149,7 @@ namespace CorazonPelican.Core.Atencion
 
             var obs = NormalizarObservacion(observacion);
             this.UltimaObservacion = obs;
+            this.SincronizarAgenda(obs.Dia, horario, agendaDia);
 
             if (this.ultimoDiaBufer is int diaPrevio && diaPrevio != obs.Dia)
             {
@@ -288,6 +297,7 @@ namespace CorazonPelican.Core.Atencion
 
             var obs = NormalizarObservacion(observacion);
             this.UltimaObservacion = obs;
+            this.SincronizarAgenda(obs.Dia, horario, agendaDia);
 
             var disparo = this.Disparadores.ForzarPulso(obs, ahoraMs, motivo);
             this.Estado.Contadores = this.Disparadores.Contadores;
@@ -342,6 +352,7 @@ namespace CorazonPelican.Core.Atencion
 
             var obs = NormalizarObservacion(observacion);
             this.UltimaObservacion = obs;
+            this.SincronizarAgenda(obs.Dia, horario, agendaDia);
 
             var disparo = this.Disparadores.FinDeDia(obs, ahoraMs);
             this.Estado.Contadores = this.Disparadores.Contadores;
@@ -391,6 +402,141 @@ namespace CorazonPelican.Core.Atencion
             }
 
             return registrada;
+        }
+
+        /// <summary>
+        /// Valida atómicamente una respuesta de la mente contra <paramref name="pulso"/>, el perfil y el
+        /// estado vigente (origen de diario, intención, cambios de rutina, actos y memoria) y, solo si todo
+        /// es válido, aplica los cambios en el orden intención/agenda → actos → memoria (ADS §4.1, CP-213).
+        /// </summary>
+        public Resultado AplicarRespuesta(Pulso pulso, Respuesta respuesta)
+        {
+            if (pulso is null)
+            {
+                throw new ArgumentNullException(nameof(pulso));
+            }
+
+            if (respuesta is null)
+            {
+                throw new ArgumentNullException(nameof(respuesta));
+            }
+
+            var motivos = new List<MotivoRechazo>();
+            var errorOrigen = ValidadorOrigenDiario.Comprobar(pulso, respuesta);
+            if (errorOrigen is not null)
+            {
+                motivos.Add(errorOrigen);
+            }
+
+            var errorMemoria = AplicadorTurnoDialogo.PrevalidarMemoria(respuesta.Memoria);
+            if (errorMemoria is not null)
+            {
+                motivos.Add(errorMemoria);
+            }
+
+            var obsVigente = this.UltimaObservacion ?? CrearObservacionDesdePulso(pulso);
+            var agendaValidacion = this.AgendaActual ?? AgendaDia.DesdeHorario(null, this.Perfil);
+            var cambios = respuesta.Intencion?.CambiosRutina;
+
+            IntencionPersonaje? intencionValidada = null;
+            if (respuesta.Intencion is not null)
+            {
+                var idIntencion = $"int-{(respuesta.BasadaEn > 0 ? respuesta.BasadaEn : 1)}";
+                long? basadaEn = respuesta.BasadaEn > 0 ? respuesta.BasadaEn : null;
+                var obrasConocidas = this.Estado.Portafolio
+                    .Select(o => o.ObraId)
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .ToList();
+
+                var (creada, resIntencion) = ValidadorIntencion.ValidarYCrear(
+                    idIntencion,
+                    respuesta.Intencion,
+                    obsVigente,
+                    this.Perfil,
+                    this.LugaresOfrecidos,
+                    agendaValidacion,
+                    this.ContextoRutina,
+                    obrasConocidas: obrasConocidas,
+                    basadaEn: basadaEn);
+
+                if (!resIntencion.EsValido)
+                {
+                    motivos.AddRange(resIntencion.Motivos);
+                }
+                else
+                {
+                    intencionValidada = creada;
+                }
+            }
+
+            if (pulso.Hito?.Id == HitosRutina.Despertar && respuesta.Agenda is not null)
+            {
+                var planesPermitidos = this.RecopilarPlanesPermitidos(pulso, intencionValidada);
+                motivos.AddRange(ValidadorCambiosRutina.ValidarAgendaDespertar(respuesta.Agenda, agendaValidacion, planesPermitidos));
+                ValidarEstadosAlteradosEnAgendaDespertar(respuesta.Agenda, agendaValidacion, cambios, motivos);
+            }
+
+            if (respuesta.Actos is { Count: > 0 })
+            {
+                var contextoActos = new ContextoValidacionActos(
+                    obsVigente,
+                    this.Perfil,
+                    this.LugaresOfrecidos,
+                    this.Estado,
+                    InterlocutorRef: pulso.Interlocutor?.Ref,
+                    Pulso: pulso,
+                    Agenda: agendaValidacion,
+                    ContextoRutina: this.ContextoRutina);
+                var resActos = ValidadorActos.Validar(respuesta.Actos, contextoActos);
+                if (!resActos.EsValido)
+                {
+                    motivos.AddRange(resActos.Motivos);
+                }
+            }
+
+            if (motivos.Count > 0)
+            {
+                var rechazo = new Resultado { Estado = Resultado.Rechazada, Motivos = motivos };
+                this.telemetria?.RegistrarRechazo(this.Perfil.Id, respuesta.BasadaEn, rechazo, pulso.Epoca);
+                return rechazo;
+            }
+
+            // Aplicación atómica en orden ADS §4.1: intención/agenda → actos → memoria.
+            if (this.AgendaActual is not null && cambios is { Count: > 0 })
+            {
+                ValidadorCambiosRutina.ValidarYAplicar(cambios, this.AgendaActual, this.Perfil, this.ContextoRutina);
+            }
+
+            if (intencionValidada is not null)
+            {
+                intencionValidada.Activar();
+                this.Estado.IntencionActiva = intencionValidada.AIntencionActivaContrato();
+            }
+
+            if (respuesta.Actos is { Count: > 0 })
+            {
+                var compromisosCreados = new List<CompromisoEstado>();
+                var obrasRegaladas = new List<ObraPortafolio>();
+                foreach (var acto in respuesta.Actos)
+                {
+                    AplicadorTurnoDialogo.AplicarActo(acto, this.Estado, compromisosCreados, obrasRegaladas);
+                    this.telemetria?.RegistrarActo(this.Perfil.Id, acto, obsVigente.Dia, obsVigente.Hora, aceptado: true);
+                }
+            }
+
+            if (respuesta.Memoria is not null)
+            {
+                var resMemoria = Consolidacion.AplicarMemoria(this.Estado, pulso, respuesta);
+                if (!resMemoria.Aceptada && resMemoria.MotivoRechazo is not null)
+                {
+                    var rechazoMem = Resultado.Rechazar(resMemoria.MotivoRechazo);
+                    this.telemetria?.RegistrarRechazo(this.Perfil.Id, respuesta.BasadaEn, rechazoMem, pulso.Epoca);
+                    return rechazoMem;
+                }
+            }
+
+            this.telemetria?.RegistrarRespuesta(respuesta, this.Perfil.Id);
+            return new Resultado { Estado = Resultado.Aceptada };
         }
 
         private (Pulso Pulso, EscenaGenerada Escena) EmitirPulsoDesdeDisparo(
@@ -543,6 +689,31 @@ namespace CorazonPelican.Core.Atencion
             }
         }
 
+        private void SincronizarAgenda(int dia, HorarioDia? horario, AgendaDia? agendaExplicita)
+        {
+            if (this.ultimoDiaAgenda is int diaAnterior && diaAnterior != dia)
+            {
+                this.ContextoRutina.AvanzarDia(dia);
+                if (agendaExplicita is null)
+                {
+                    this.AgendaActual = null;
+                }
+            }
+
+            this.ultimoDiaAgenda = dia;
+
+            if (agendaExplicita is not null)
+            {
+                this.AgendaActual = agendaExplicita;
+                return;
+            }
+
+            if (horario is not null && (this.AgendaActual is null || !string.Equals(this.AgendaActual.ClaveHorario, horario.Clave, StringComparison.Ordinal)))
+            {
+                this.AgendaActual = AgendaDia.DesdeHorario(horario, this.Perfil);
+            }
+        }
+
         private List<EntradaAgenda> ConstruirAgenda(Disparo disparo, HorarioDia? horario, AgendaDia? agendaDia)
         {
             if (agendaDia is not null)
@@ -552,16 +723,28 @@ namespace CorazonPelican.Core.Atencion
 
             if (disparo.Agenda is not null && disparo.Agenda.Count > 0)
             {
-                var mapaProsas = horario is null
-                    ? null
-                    : AgendaDia.DesdeHorario(horario, this.Perfil).Entradas.ToDictionary(e => e.Hito, e => e.Prosa, StringComparer.Ordinal);
+                var fuente = this.AgendaActual ?? (horario is not null ? AgendaDia.DesdeHorario(horario, this.Perfil) : null);
+                var mapa = fuente?.Entradas.ToDictionary(e => e.Hito, e => e, StringComparer.Ordinal);
 
-                return disparo.Agenda.Select(p => new EntradaAgenda
+                return disparo.Agenda.Select(p =>
                 {
-                    Hito = p.Hito,
-                    Prosa = mapaProsas is not null && mapaProsas.TryGetValue(p.Hito, out var prosa) ? prosa : p.Hito,
-                    Estado = EstadoHito.Pendiente,
+                    if (mapa is not null && mapa.TryGetValue(p.Hito, out var entrada))
+                    {
+                        return entrada.AEntradaContrato();
+                    }
+
+                    return new EntradaAgenda
+                    {
+                        Hito = p.Hito,
+                        Prosa = p.Hito,
+                        Estado = EstadoHito.Pendiente,
+                    };
                 }).ToList();
+            }
+
+            if (this.AgendaActual is not null)
+            {
+                return this.AgendaActual.Proyectar();
             }
 
             if (horario is not null)
@@ -570,6 +753,144 @@ namespace CorazonPelican.Core.Atencion
             }
 
             return new List<EntradaAgenda>();
+        }
+
+        private HashSet<string> RecopilarPlanesPermitidos(Pulso pulso, IntencionPersonaje? intencion)
+        {
+            var permitidos = new HashSet<string>(StringComparer.Ordinal);
+            if (intencion is not null && !string.IsNullOrWhiteSpace(intencion.Id))
+            {
+                permitidos.Add(intencion.Id);
+            }
+
+            if (!string.IsNullOrWhiteSpace(pulso.IntencionActiva?.Id))
+            {
+                permitidos.Add(pulso.IntencionActiva.Id);
+            }
+
+            if (pulso.CompromisosProximos is not null)
+            {
+                foreach (var c in pulso.CompromisosProximos)
+                {
+                    if (!string.IsNullOrWhiteSpace(c.Id))
+                    {
+                        permitidos.Add(c.Id);
+                    }
+                }
+            }
+
+            foreach (var c in this.Estado.Compromisos)
+            {
+                if (!string.IsNullOrWhiteSpace(c.Id))
+                {
+                    permitidos.Add(c.Id);
+                }
+            }
+
+            return permitidos;
+        }
+
+        private static void ValidarEstadosAlteradosEnAgendaDespertar(
+            IReadOnlyList<EstadoAgenda> agendaPropuesta,
+            AgendaDia agendaDelDia,
+            IReadOnlyList<CambioRutina>? cambios,
+            List<MotivoRechazo> motivos)
+        {
+            var estadoPorCambio = (cambios ?? Array.Empty<CambioRutina>())
+                .Where(c => !string.IsNullOrWhiteSpace(c.Hito))
+                .GroupBy(c => c.Hito, StringComparer.Ordinal)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Last().Cambio switch
+                    {
+                        TiposCambioRutina.Saltar => EstadoHito.Saltado,
+                        TiposCambioRutina.Mover => EstadoHito.Movido,
+                        TiposCambioRutina.Sustituir => EstadoHito.Sustituido,
+                        _ => EstadoHito.Pendiente,
+                    },
+                    StringComparer.Ordinal);
+
+            for (var i = 0; i < agendaPropuesta.Count; i++)
+            {
+                var item = agendaPropuesta[i];
+                if (item is null || string.IsNullOrWhiteSpace(item.Hito))
+                {
+                    continue;
+                }
+
+                var entradaDia = agendaDelDia.Buscar(item.Hito);
+                if (entradaDia is null)
+                {
+                    continue;
+                }
+
+                if (item.Estado is EstadoHito.Saltado or EstadoHito.Movido or EstadoHito.Sustituido
+                    && entradaDia.Estado != item.Estado
+                    && (!estadoPorCambio.TryGetValue(item.Hito, out var esperado) || esperado != item.Estado))
+                {
+                    motivos.Add(new MotivoRechazo(
+                        "cambio_no_autorizado",
+                        $"agenda[{i}].estado",
+                        $"no puedes marcar «{item.Hito}» como «{item.Estado}» sin un cambio de rutina válido"));
+                }
+            }
+        }
+
+        private static Observacion CrearObservacionDesdePulso(Pulso pulso)
+        {
+            var dia = Math.Max(1, pulso.TiempoJuego?.Dia ?? 1);
+            var hora = Math.Clamp(pulso.TiempoJuego?.Hora ?? HoraJuego.InicioDia, HoraJuego.InicioDia, HoraJuego.FinDia);
+            var entidades = new List<EntidadObservada>();
+            var refs = new HashSet<string>(StringComparer.Ordinal);
+
+            if (pulso.Hechos is not null
+                && pulso.Hechos.TryGetValue("cerca", out var cercaElem)
+                && cercaElem.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in cercaElem.EnumerateArray())
+                {
+                    if (item.ValueKind != JsonValueKind.Object)
+                    {
+                        continue;
+                    }
+
+                    if (!item.TryGetProperty("ref", out var refProp) || refProp.ValueKind != JsonValueKind.String)
+                    {
+                        continue;
+                    }
+
+                    var entRef = refProp.GetString();
+                    if (string.IsNullOrWhiteSpace(entRef) || !refs.Add(entRef))
+                    {
+                        continue;
+                    }
+
+                    var nombre = item.TryGetProperty("nombre", out var nomProp) && nomProp.ValueKind == JsonValueKind.String
+                        ? (nomProp.GetString() ?? entRef)
+                        : entRef;
+                    int? corazones = item.TryGetProperty("corazones", out var corProp) && corProp.TryGetInt32(out var corVal)
+                        ? corVal
+                        : null;
+                    var categoria = entRef.StartsWith("farmer:", StringComparison.Ordinal)
+                        ? CategoriaEntidad.Granjero
+                        : entRef.StartsWith("npc:", StringComparison.Ordinal)
+                            ? CategoriaEntidad.Npc
+                            : CategoriaEntidad.Objeto;
+
+                    entidades.Add(new EntidadObservada(entRef, categoria, nombre, string.Empty, 0, 0, Array.Empty<string>(), corazones));
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(pulso.Interlocutor?.Ref) && refs.Add(pulso.Interlocutor.Ref))
+            {
+                var interRef = pulso.Interlocutor.Ref;
+                var categoria = interRef.StartsWith("farmer:", StringComparison.Ordinal)
+                    ? CategoriaEntidad.Granjero
+                    : CategoriaEntidad.Npc;
+                entidades.Add(new EntidadObservada(interRef, categoria, interRef, string.Empty, 0, 0, Array.Empty<string>()));
+            }
+
+            return new Observacion(dia, hora, string.Empty, 0, 0, 1.0, "despejado", entidades);
         }
 
         private ContextoEscena CrearContextoEscena(
