@@ -34,11 +34,11 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas tres fichas están pendientes y tienen todas sus dependencias hechas.
+Estas dos fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P2 | CP-006 medición de lugares 🎮 · CP-506 validador de menciones · CP-509 prórroga por carta |
+| P2 | CP-006 medición de lugares 🎮 · CP-509 prórroga por carta |
 
 CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
 
@@ -101,7 +101,7 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-503](tareas/CP-503-dialogo-intercepcion.md) | DialogoModule · reflejo inmediato, respuesta pensada y caída a vanilla 🎮 | F5 | P1 | CP-010, CP-501, CP-304 | pendiente |
 | [CP-504](tareas/CP-504-opciones-jugador.md) | Opciones del jugador desde affordances reales y texto libre | F5 | P2 | CP-503, CP-014 | pendiente |
 | [CP-505](tareas/CP-505-valleytalk.md) | Convivencia con ValleyTalk · nunca dos voces para la misma persona | F5 | P3 | CP-503 | pendiente |
-| [CP-506](tareas/CP-506-validador-menciones.md) | Validador de menciones · la mente no nombra lo que no existe para Leah | F5 | P2 | CP-501, CP-206 | pendiente |
+| [CP-506](tareas/CP-506-validador-menciones.md) | Validador de menciones · la mente no nombra lo que no existe para Leah | F5 | P2 | CP-501, CP-206 | hecha |
 | [CP-507](tareas/CP-507-pensamiento-anticipado.md) | Pensamiento anticipado y su cancelación | F5 | P2 | CP-503, CP-201 | pendiente |
 | [CP-508](tareas/CP-508-aceptacion-dialogo.md) | Aceptación de fase 5 · una promesa hecha hoy y cumplida mañana 🎮 | F5 | P2 | CP-502, CP-504, CP-505, CP-506, CP-507, CP-509, CP-406 | pendiente |
 | [CP-509](tareas/CP-509-prorroga-por-carta.md) | Pedir una prórroga por carta y aplicar la respuesta del destinatario | F5 | P2 | CP-502 | pendiente |

@@ -55,6 +55,21 @@ namespace CorazonPelican.Core.Observabilidad
         [JsonPropertyName("acto")] public Acto Acto { get; set; } = new();
     }
 
+    /// <summary>Métrica diaria de menciones ancladas vs. no ancladas registrada en <c>rechazos.jsonl</c> (R-15, CP-506).</summary>
+    public sealed class RegistroTasaMencionesTelemetria
+    {
+        [JsonPropertyName("tipo")] public string Tipo { get; set; } = "tasa_menciones";
+        [JsonPropertyName("tiempo_real_utc")] public string TiempoRealUtc { get; set; } = string.Empty;
+        [JsonPropertyName("epoca")] public string? Epoca { get; set; }
+        [JsonPropertyName("personaje")] public string Personaje { get; set; } = string.Empty;
+        [JsonPropertyName("dia_juego")] public int DiaJuego { get; set; }
+        [JsonPropertyName("menciones_totales")] public int MencionesTotales { get; set; }
+        [JsonPropertyName("menciones_no_ancladas")] public int MencionesNoAncladas { get; set; }
+        [JsonPropertyName("tasa_no_ancladas")] public double TasaNoAncladas { get; set; }
+        [JsonPropertyName("modo")] public string? Modo { get; set; }
+        [JsonPropertyName("no_ancladas")] public List<string>? NoAncladas { get; set; }
+    }
+
     /// <summary>Instantánea de costes del bucle registrada en <c>costes.jsonl</c>.</summary>
     public sealed class RegistroCostesTelemetria
     {
@@ -213,6 +228,36 @@ namespace CorazonPelican.Core.Observabilidad
                 Personaje = personaje,
                 BasadaEn = basadaEn,
                 Motivos = resultado.Motivos is null ? new List<MotivoRechazo>() : new List<MotivoRechazo>(resultado.Motivos),
+            };
+            this.EscribirObjeto(ArchivoRechazos, registro);
+        }
+
+        public void RegistrarTasaMenciones(
+            string personaje,
+            int diaJuego,
+            int mencionesTotales,
+            int mencionesNoAncladas,
+            double tasaNoAncladas,
+            IReadOnlyList<string>? noAncladas = null,
+            string? epoca = null,
+            string? modo = null)
+        {
+            if (!this.Habilitada)
+            {
+                return;
+            }
+
+            var registro = new RegistroTasaMencionesTelemetria
+            {
+                TiempoRealUtc = DateTimeOffset.UtcNow.ToString("O"),
+                Epoca = epoca,
+                Personaje = personaje ?? string.Empty,
+                DiaJuego = diaJuego,
+                MencionesTotales = mencionesTotales,
+                MencionesNoAncladas = mencionesNoAncladas,
+                TasaNoAncladas = Math.Round(tasaNoAncladas, 4),
+                Modo = modo,
+                NoAncladas = noAncladas is { Count: > 0 } ? new List<string>(noAncladas) : null,
             };
             this.EscribirObjeto(ArchivoRechazos, registro);
         }

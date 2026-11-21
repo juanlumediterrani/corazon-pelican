@@ -66,6 +66,8 @@ namespace CorazonPelican.Core.Config
     {
         public const int PuertoMinimo = 1024;
         public const int PuertoMaximo = 65535;
+        public const string ValidacionMencionesRechazar = "rechazar";
+        public const string ValidacionMencionesAviso = "aviso";
 
         public List<string> Personajes { get; set; } = new();
 
@@ -94,6 +96,8 @@ namespace CorazonPelican.Core.Config
         public string PelicanApiToken { get; set; } = string.Empty;
 
         public bool Telemetria { get; set; } = true;
+
+        public string ModoValidacionMenciones { get; set; } = ValidacionMencionesRechazar;
 
         /// <summary>Valida la configuración y devuelve los errores legibles en español (lista vacía si es válida).</summary>
         public IReadOnlyList<string> Validate()
@@ -149,6 +153,11 @@ namespace CorazonPelican.Core.Config
                 {
                     errores.Add($"{nameof(this.PelicanApiUrl)} debe ser una URL HTTP/HTTPS absoluta válida (actual: '{this.PelicanApiUrl}').");
                 }
+            }
+
+            if (!EsModoValidacionMencionesValido(this.ModoValidacionMenciones))
+            {
+                errores.Add($"{nameof(this.ModoValidacionMenciones)} debe ser 'rechazar' o 'aviso' (actual: '{this.ModoValidacionMenciones}').");
             }
 
             return errores;
@@ -220,5 +229,9 @@ namespace CorazonPelican.Core.Config
             string.Equals(modo, "auto", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(modo, "vanilla", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(modo, "pelican", StringComparison.OrdinalIgnoreCase);
+
+        private static bool EsModoValidacionMencionesValido(string? modo) =>
+            string.Equals(modo, ValidacionMencionesRechazar, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(modo, ValidacionMencionesAviso, StringComparison.OrdinalIgnoreCase);
     }
 }

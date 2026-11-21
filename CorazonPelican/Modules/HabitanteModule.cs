@@ -103,7 +103,8 @@ namespace CorazonPelican.Modules
                     this.PublicarPulso,
                     maxEntradasBufer: Bufer.MaxEntradasPorDefecto,
                     tamanoMaxMemoriaKB: this.context.Config.TamanoMaxMemoriaKB,
-                    tiempoMaxRespuestaMs: this.context.Config.TiempoMaxRespuestaMs)
+                    tiempoMaxRespuestaMs: this.context.Config.TiempoMaxRespuestaMs,
+                    modoValidacionMenciones: this.context.Config.ModoValidacionMenciones)
                 {
                     Epoca = this.context.Api.EpocaVigente ?? "local",
                 };

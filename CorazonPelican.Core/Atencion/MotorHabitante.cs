@@ -49,9 +49,11 @@ namespace CorazonPelican.Core.Atencion
         private readonly Func<Pulso, Pulso>? publicarPulso;
         private readonly int tamanoMaxMemoriaKB;
         private readonly int tiempoMaxRespuestaMs;
+        private readonly string modoValidacionMenciones;
         private readonly Bufer pendientesDiario;
         private readonly Dictionary<string, Banda> bandasRegistradasBufer = new(StringComparer.Ordinal);
         private readonly HashSet<string> compromisosAvisados = new(StringComparer.Ordinal);
+        private readonly RastreadorTasaMenciones rastreadorMenciones = new();
         private int? ultimoDiaBufer;
         private int? ultimoDiaAgenda;
         private long siguientePulsoId = 1;
@@ -66,7 +68,8 @@ namespace CorazonPelican.Core.Atencion
             Func<Pulso, Pulso>? publicarPulso = null,
             int maxEntradasBufer = Bufer.MaxEntradasPorDefecto,
             int tamanoMaxMemoriaKB = 512,
-            int tiempoMaxRespuestaMs = 8000)
+            int tiempoMaxRespuestaMs = 8000,
+            string modoValidacionMenciones = CorazonConfig.ValidacionMencionesRechazar)
         {
             this.Perfil = perfil ?? throw new ArgumentNullException(nameof(perfil));
             this.Plantillas = plantillas ?? throw new ArgumentNullException(nameof(plantillas));
@@ -87,6 +90,9 @@ namespace CorazonPelican.Core.Atencion
             this.publicarPulso = publicarPulso;
             this.tamanoMaxMemoriaKB = tamanoMaxMemoriaKB;
             this.tiempoMaxRespuestaMs = tiempoMaxRespuestaMs;
+            this.modoValidacionMenciones = string.Equals(modoValidacionMenciones, CorazonConfig.ValidacionMencionesAviso, StringComparison.OrdinalIgnoreCase)
+                ? CorazonConfig.ValidacionMencionesAviso
+                : CorazonConfig.ValidacionMencionesRechazar;
 
             this.Novedad = new Novedad();
             this.ClasificadorBandas = new ClasificadorBandas(perfil.Umbrales);
@@ -131,6 +137,8 @@ namespace CorazonPelican.Core.Atencion
         public AgendaDia? AgendaActual { get; private set; }
 
         public ContextoRutina ContextoRutina { get; }
+
+        public RastreadorTasaMenciones RastreadorMenciones => this.rastreadorMenciones;
 
         public Observacion? UltimaObservacion { get; private set; }
 
@@ -514,6 +522,25 @@ namespace CorazonPelican.Core.Atencion
                 {
                     motivos.AddRange(resActos.Motivos);
                 }
+            }
+
+            var resMenciones = ValidadorMenciones.Validar(pulso, respuesta, this.Estado, this.Perfil, obsVigente);
+            var diaMenciones = pulso.TiempoJuego?.Dia is > 0 ? pulso.TiempoJuego.Dia : obsVigente.Dia;
+            var estadisticaDia = this.rastreadorMenciones.Registrar(this.Perfil.Id, diaMenciones, resMenciones);
+            this.telemetria?.RegistrarTasaMenciones(
+                this.Perfil.Id,
+                diaMenciones,
+                estadisticaDia.MencionesTotales,
+                estadisticaDia.MencionesNoAncladas,
+                estadisticaDia.TasaNoAncladas,
+                resMenciones.MencionesNoAncladas,
+                pulso.Epoca,
+                this.modoValidacionMenciones);
+
+            if (!resMenciones.EsValido
+                && string.Equals(this.modoValidacionMenciones, CorazonConfig.ValidacionMencionesRechazar, StringComparison.Ordinal))
+            {
+                motivos.AddRange(resMenciones.Motivos);
             }
 
             if (motivos.Count > 0)
