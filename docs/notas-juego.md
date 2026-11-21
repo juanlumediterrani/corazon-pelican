@@ -176,3 +176,28 @@ Vistos, sin probar. Ninguno documenta control de paleta (lo pone el script de as
 - [Hilo de SpaceCore con el error del `DataHelper`](https://forums.playstarbound.com/threads/spacecore.159776/).
 - La wiki de Stardew (`stardewvalleywiki.com`) está detrás de un control anti-bots: los datos de
   Leah se leyeron del juego instalado en su lugar.
+
+## 13. Correo individual y respuesta en Stardew 1.6 · CP-509
+
+Comprobado en el decompilado local de Stardew Valley 1.6.15 (`GameLocation.cs`, `Game1.cs`,
+`FarmerTeam.cs`, `SetMailRequest.cs`, `LetterViewerMenu.cs` y `CollectionsPage.cs`):
+
+- **Contenido dinámico (`Data/Mail`):** el diccionario `Data/Mail` (`Dictionary<string, string>`,
+  formato `cuerpo[#]Título` con `^` como salto de línea) se amplía desde SMAPI con
+  `Content.AssetRequested` e invalidación de caché (`GameContent.InvalidateCache("Data/Mail")`)
+  cuando nace una carta nueva.
+- **Entrega individual (`SetMailRequest`):** `Game1.player.team.RequestSetMail(PlayerActionTarget.All, mailId, MailType.Now, add: true, onlyPlayerId: farmer.UniqueMultiplayerID)`
+  encola la carta exclusivamente en `farmer.mailbox` del destinatario indicado (aplicación local
+  inmediata si es el anfitrión y envío por red por `onlyPlayerId` en multijugador). Conviene
+  comprobar `!farmer.hasOrWillReceiveMail(mailId)` para evitar entregas repetidas.
+- **Legibilidad tras el vencimiento:** al leer la carta del buzón, Stardew mueve su `mailId` a
+  `farmer.mailReceived`, por lo que sigue accesible para lectura desde Colecciones
+  (`CollectionsPage` → `LetterViewerMenu(mail, mailTitle, fromCollection: true)`).
+- **Vía de respuesta:** `LetterViewerMenu` solo muestra texto y su campo público `mailTitle`
+  conserva el `mailId` original (`GameLocation.mailbox()`). No ofrece botones propios; para que
+  el destinatario responda desde la propia carta, `Display.MenuChanged` detecta el cierre
+  (`e.OldMenu is LetterViewerMenu letter && e.NewMenu is null`) con el prefijo
+  `CorazonPelican.Prorroga.` y, si la petición sigue abierta para ese lector, abre
+  `GameLocation.createQuestionDialogue(pregunta, respuestas, callback)` (operable tanto por un
+  humano como por el arnés de menú de Voyager). El callback revalida destinatario, estado y hora
+  viva de juego al confirmarse la elección.

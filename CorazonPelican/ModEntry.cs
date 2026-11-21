@@ -58,6 +58,7 @@ namespace CorazonPelican
                 new PersistenciaModule(),
                 new ApiModule(),
                 new HabitanteModule(),
+                new CorreoProrrogaModule(),
                 new ConsolaModule());
 
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;

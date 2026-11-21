@@ -209,6 +209,8 @@ namespace CorazonPelican.Core.Atencion
                 disparos = this.Disparadores.Observar(obs, bandas, horario, ahoraMs, minutosJuego);
             }
 
+            GestorProrrogaCartas.PrepararCartasPendientes(this.Estado, this.Perfil, obs.Entidades.Select(e => e.Ref));
+
             var pulsos = new List<Pulso>();
             EscenaGenerada? escenaEmitida = null;
 
