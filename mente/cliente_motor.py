@@ -540,7 +540,7 @@ class CicloMente:
         motivos_rechazo: list[Any] | None,
         es_reformulacion: bool,
         es_cadena: bool,
-    ) -> tuple[dict[str, Any] | None, list[str], int, bool]:
+    ) -> tuple[dict[str, Any] | None, list[str], int, str]:
         intentos = 0
         motivos_actuales = list(motivos_rechazo or [])
         motivo = str(pulso.get("motivo") or "")
@@ -548,7 +548,7 @@ class CicloMente:
         for intento in range(self.max_reintentos_locales + 1):
             if intento > 0 and not self._puede_llamar_modelo(motivo, es_cadena):
                 self._registrar_salto_presupuesto(pulso=pulso, es_cadena=es_cadena, reformulacion=es_reformulacion)
-                return None, ["Presupuesto diario de tokens agotado antes del reintento."], intentos, True
+                return None, ["Presupuesto diario de tokens agotado antes del reintento."], intentos, "presupuesto_agotado"
 
             prompt = ensamblar_prompt(
                 self.voz,
@@ -560,7 +560,19 @@ class CicloMente:
                 bruto = self.modelo.generar(prompt, esquema)
             except PresupuestoTokensAgotadoError as exc:
                 self._registrar_salto_presupuesto(pulso=pulso, es_cadena=es_cadena, reformulacion=es_reformulacion)
-                return None, [str(exc)], intentos, True
+                return None, [str(exc)], intentos, "presupuesto_agotado"
+            except ErrorModeloError as exc:
+                self.telemetria.registrar(
+                    {
+                        "tipo": "error_proveedor",
+                        "pulso_id": pulso.get("id"),
+                        "epoca": pulso.get("epoca"),
+                        "motivo_pulso": pulso.get("motivo"),
+                        "reformulacion": es_reformulacion,
+                        "error": str(exc),
+                    }
+                )
+                return None, [str(exc)], intentos, "error_proveedor"
 
             intentos += 1
             self._registrar_coste_llamada(
@@ -577,7 +589,7 @@ class CicloMente:
                 errores = validar_respuesta_estrechada(pulso, candidata, esquema)
 
             if not errores and candidata is not None:
-                return candidata, [], intentos, False
+                return candidata, [], intentos, "completa"
 
             pensamiento = _extraer_pensamiento(bruto)
             if intento < self.max_reintentos_locales:
@@ -615,9 +627,9 @@ class CicloMente:
                         "errores": errores,
                     }
                 )
-                return None, errores, intentos, False
+                return None, errores, intentos, "rechazada_local"
 
-        return None, ["Error inesperado de validación."], intentos, False
+        return None, ["Error inesperado de validación."], intentos, "rechazada_local"
 
     def _preparar_respuesta_pulso(
         self,
@@ -652,7 +664,7 @@ class CicloMente:
             )
             return res_cadena.respuesta, res_cadena.errores, res_cadena.intentos_modelo, res_cadena.estado
 
-        respuesta, errores, intentos, agotado = self._generar_y_validar(
+        return self._generar_y_validar(
             pulso,
             esquema,
             recuerdos=recuerdos,
@@ -660,11 +672,6 @@ class CicloMente:
             es_reformulacion=es_reformulacion,
             es_cadena=False,
         )
-        if respuesta is not None:
-            return respuesta, [], intentos, "completa"
-        if agotado:
-            return None, errores, intentos, "presupuesto_agotado"
-        return None, errores, intentos, "rechazada_local"
 
     def procesar_pulso(
         self,

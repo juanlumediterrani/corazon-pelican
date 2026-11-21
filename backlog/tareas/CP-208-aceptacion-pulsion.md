@@ -40,6 +40,7 @@ Hallazgos de CP-201 con el perfil actual de Leah (a resolver aquí):
 - [ ] Dentro de las 15 muestras, seguir un tramo sin interlocución ni encargos. Conservar el pulso de origen, el recuerdo o detalle atendido y la intención que propone la mente real. Comparar con un tramo tranquilo y comprobar si la deriva repetida al salir del refractario ahoga las decisiones de rutina. La ejecución corporal se revisa en CP-305.
 - [ ] Cada día medido tiene una cadena de despertar y una de acostarse completas.
 - [ ] Revisar dos muestras comparables con la mente real y experiencias previas distintas (P-9). Identificar si el humor conservado ayuda a explicar una preferencia pequeña. Anotar también una muestra plana o incoherente si la hay.
+- [ ] Evaluar el ciclo en vivo con un modelo real y credenciales sobre el transporte HTTP conectado en [CP-215](CP-215-conectar-proveedor-de-la-mente.md).
 - [ ] Ningún pensamiento menciona entidades fuera de escena o memoria en la muestra revisada.
 
 ## Fuera de alcance

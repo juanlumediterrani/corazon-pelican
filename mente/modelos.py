@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import copy
+import json
 import os
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
+import httpx
 from jsonschema import Draft202012Validator
 
 from mente import contrato
@@ -205,6 +207,8 @@ class ConfigModelo:
     max_tokens: int = 1024
     presupuesto_tokens_dia: int | None = None
     api_key_env: str | None = None
+    base_url: str | None = None
+    timeout_s: float = 30.0
 
 
 @dataclass(frozen=True)
@@ -305,25 +309,253 @@ _ENV_POR_PROVEEDOR = {
     "google": "GEMINI_API_KEY",
 }
 
+_URL_BASE_POR_PROVEEDOR = {
+    "openai": "https://api.openai.com/v1",
+    "local": "http://127.0.0.1:11434/v1",
+    "anthropic": "https://api.anthropic.com/v1",
+    "gemini": "https://generativelanguage.googleapis.com/v1beta",
+    "google": "https://generativelanguage.googleapis.com/v1beta",
+}
+
 
 class ModeloProveedorConfigurado:
-    """Adaptador diferido para proveedores reales; no exige clave al instanciar."""
+    """Adaptador HTTP para proveedores OpenAI-compatibles, Anthropic y Gemini."""
 
-    def __init__(self, config: ConfigModelo) -> None:
+    def __init__(
+        self,
+        config: ConfigModelo,
+        *,
+        transport: httpx.BaseTransport | None = None,
+        client: httpx.Client | None = None,
+    ) -> None:
         self.config = config
         self.modelo = config.modelo
         self.ultimo_uso: UsoTokens | None = None
+        self._transport = transport
+        self._client = client
+
+    def _resolver_credenciales(self) -> tuple[str, str | None, str]:
+        proveedor = self.config.proveedor.lower().strip()
+        if proveedor not in _URL_BASE_POR_PROVEEDOR:
+            raise ErrorModeloError(f"Proveedor de modelo desconocido: '{self.config.proveedor}'.")
+
+        env_var = self.config.api_key_env or _ENV_POR_PROVEEDOR.get(proveedor)
+        api_key: str | None = None
+        if env_var:
+            api_key = os.environ.get(env_var)
+            if not api_key:
+                raise ErrorModeloError(
+                    f"Falta la variable de entorno {env_var} para el proveedor '{self.config.proveedor}'."
+                )
+
+        base_url = (self.config.base_url or _URL_BASE_POR_PROVEEDOR[proveedor]).rstrip("/")
+        return proveedor, api_key, base_url
+
+    def _post_json(
+        self,
+        *,
+        base_url: str,
+        ruta: str,
+        headers: dict[str, str],
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        try:
+            if self._client is not None:
+                url = ruta if self._client.base_url else f"{base_url}{ruta}"
+                resp = self._client.post(url, headers=headers, json=payload, timeout=self.config.timeout_s)
+            else:
+                with httpx.Client(
+                    base_url=base_url,
+                    transport=self._transport,
+                    timeout=self.config.timeout_s,
+                ) as cliente:
+                    resp = cliente.post(ruta, headers=headers, json=payload)
+        except httpx.HTTPError as exc:
+            raise ErrorModeloError(
+                f"Fallo de comunicación con el proveedor '{self.config.proveedor}' ({self.config.modelo}): {exc}"
+            ) from exc
+
+        if resp.status_code >= 400:
+            detalle = resp.text.strip().replace("\n", " ")[:240]
+            raise ErrorModeloError(
+                f"El proveedor '{self.config.proveedor}' devolvió HTTP {resp.status_code}: {detalle}"
+            )
+
+        try:
+            cuerpo = resp.json()
+        except ValueError as exc:
+            raise ErrorModeloError(
+                f"El proveedor '{self.config.proveedor}' devolvió un cuerpo no JSON válido."
+            ) from exc
+
+        if not isinstance(cuerpo, dict):
+            raise ErrorModeloError(
+                f"La respuesta HTTP de '{self.config.proveedor}' debe ser un objeto JSON."
+            )
+        return cuerpo
+
+    def _invocar_openai_compatible(
+        self,
+        prompt: PromptEnsamblado,
+        esquema: dict[str, Any],
+        base_url: str,
+        api_key: str | None,
+    ) -> dict[str, Any] | str:
+        headers: dict[str, str] = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+
+        payload = {
+            "model": self.config.modelo,
+            "temperature": self.config.temperatura,
+            "max_tokens": self.config.max_tokens,
+            "messages": [
+                {"role": "system", "content": prompt.sistema},
+                {"role": "user", "content": prompt.usuario},
+            ],
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "respuesta_pulso",
+                    "strict": False,
+                    "schema": esquema,
+                },
+            },
+        }
+        cuerpo = self._post_json(base_url=base_url, ruta="/chat/completions", headers=headers, payload=payload)
+        usage = cuerpo.get("usage")
+        if isinstance(usage, dict):
+            prompt_tokens = int(usage.get("prompt_tokens") or 0)
+            detalles = usage.get("prompt_tokens_details") or {}
+            cached = int(detalles.get("cached_tokens") or 0) if isinstance(detalles, dict) else 0
+            tokens_entrada = max(0, prompt_tokens - cached)
+            tokens_salida = max(0, int(usage.get("completion_tokens") or 0))
+            self.ultimo_uso = UsoTokens(
+                tokens_entrada=tokens_entrada,
+                tokens_cache=max(0, cached),
+                tokens_salida=tokens_salida,
+            )
+
+        choices = cuerpo.get("choices")
+        if not isinstance(choices, list) or not choices:
+            raise ErrorModeloError("El proveedor OpenAI-compatible devolvió una respuesta sin `choices`.")
+        mensaje = choices[0].get("message") if isinstance(choices[0], dict) else None
+        contenido = mensaje.get("content") if isinstance(mensaje, dict) else None
+        if isinstance(contenido, (dict, str)) and contenido != "":
+            return contenido
+        raise ErrorModeloError("El proveedor OpenAI-compatible no incluyó contenido en `message.content`.")
+
+    def _invocar_anthropic(
+        self,
+        prompt: PromptEnsamblado,
+        esquema: dict[str, Any],
+        base_url: str,
+        api_key: str,
+    ) -> dict[str, Any] | str:
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+        }
+        payload = {
+            "model": self.config.modelo,
+            "max_tokens": self.config.max_tokens,
+            "temperature": self.config.temperatura,
+            "system": [
+                {
+                    "type": "text",
+                    "text": prompt.sistema,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            "messages": [{"role": "user", "content": prompt.usuario}],
+            "tools": [
+                {
+                    "name": "responder_pulso",
+                    "description": "Responde al pulso del motor siguiendo exactamente el esquema del personaje.",
+                    "input_schema": esquema,
+                }
+            ],
+            "tool_choice": {"type": "tool", "name": "responder_pulso"},
+        }
+        cuerpo = self._post_json(base_url=base_url, ruta="/messages", headers=headers, payload=payload)
+        usage = cuerpo.get("usage")
+        if isinstance(usage, dict):
+            self.ultimo_uso = UsoTokens(
+                tokens_entrada=max(0, int(usage.get("input_tokens") or 0)),
+                tokens_cache=max(0, int(usage.get("cache_read_input_tokens") or 0)),
+                tokens_salida=max(0, int(usage.get("output_tokens") or 0)),
+            )
+
+        content = cuerpo.get("content")
+        if not isinstance(content, list) or not content:
+            raise ErrorModeloError("El proveedor Anthropic devolvió una respuesta sin bloques `content`.")
+        for bloque in content:
+            if isinstance(bloque, dict) and bloque.get("type") == "tool_use" and isinstance(bloque.get("input"), dict):
+                return bloque["input"]
+        for bloque in content:
+            if isinstance(bloque, dict) and isinstance(bloque.get("text"), str) and bloque["text"]:
+                return bloque["text"]
+        raise ErrorModeloError("El proveedor Anthropic no devolvió ningún bloque útil en `content`.")
+
+    def _invocar_gemini(
+        self,
+        prompt: PromptEnsamblado,
+        esquema: dict[str, Any],
+        base_url: str,
+        api_key: str,
+    ) -> dict[str, Any] | str:
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key,
+        }
+        payload = {
+            "systemInstruction": {"parts": [{"text": prompt.sistema}]},
+            "contents": [{"role": "user", "parts": [{"text": prompt.usuario}]}],
+            "generationConfig": {
+                "temperature": self.config.temperatura,
+                "maxOutputTokens": self.config.max_tokens,
+                "responseMimeType": "application/json",
+                "responseJsonSchema": esquema,
+            },
+        }
+        cuerpo = self._post_json(
+            base_url=base_url,
+            ruta=f"/models/{self.config.modelo}:generateContent",
+            headers=headers,
+            payload=payload,
+        )
+        usage = cuerpo.get("usageMetadata")
+        if isinstance(usage, dict):
+            prompt_tokens = int(usage.get("promptTokenCount") or 0)
+            cached = int(usage.get("cachedContentTokenCount") or 0)
+            self.ultimo_uso = UsoTokens(
+                tokens_entrada=max(0, prompt_tokens - cached),
+                tokens_cache=max(0, cached),
+                tokens_salida=max(0, int(usage.get("candidatesTokenCount") or 0)),
+            )
+
+        candidates = cuerpo.get("candidates")
+        if not isinstance(candidates, list) or not candidates:
+            raise ErrorModeloError("El proveedor Gemini devolvió una respuesta sin `candidates`.")
+        contenido = candidates[0].get("content") if isinstance(candidates[0], dict) else None
+        partes = contenido.get("parts") if isinstance(contenido, dict) else None
+        if isinstance(partes, list) and partes and isinstance(partes[0], dict):
+            texto = partes[0].get("text")
+            if isinstance(texto, str) and texto:
+                return texto
+        raise ErrorModeloError("El proveedor Gemini no devolvió texto en `candidates[0].content.parts`.")
 
     def generar(self, prompt: PromptEnsamblado, esquema: dict[str, Any]) -> dict[str, Any] | str:
-        env_var = self.config.api_key_env or _ENV_POR_PROVEEDOR.get(self.config.proveedor)
-        if env_var and not os.environ.get(env_var):
-            raise ErrorModeloError(
-                f"Falta la variable de entorno {env_var} para el proveedor '{self.config.proveedor}'."
-            )
-        raise ErrorModeloError(
-            f"El transporte de red para el proveedor '{self.config.proveedor}' "
-            f"(modelo '{self.config.modelo}') requiere un adaptador activo."
-        )
+        self.ultimo_uso = None
+        proveedor, api_key, base_url = self._resolver_credenciales()
+        if proveedor in {"openai", "local"}:
+            return self._invocar_openai_compatible(prompt, esquema, base_url, api_key)
+        if proveedor == "anthropic":
+            assert api_key is not None
+            return self._invocar_anthropic(prompt, esquema, base_url, api_key)
+        assert api_key is not None
+        return self._invocar_gemini(prompt, esquema, base_url, api_key)
 
 
 def obtener_modelo_y_uso(
@@ -351,6 +583,8 @@ def crear_modelo(
     *,
     fake_respuestas: Iterable[dict[str, Any] | str | GeneradorFake | Exception] | None = None,
     fake_generador: GeneradorFake | None = None,
+    transport: httpx.BaseTransport | None = None,
+    client: httpx.Client | None = None,
 ) -> ModeloMente:
     """Enruta la configuración de modelo sin exigir claves reales para pruebas."""
     cfg = config or ConfigModelo()
@@ -363,5 +597,5 @@ def crear_modelo(
             modelo=cfg.modelo,
         )
     if proveedor in {"openai", "anthropic", "gemini", "google", "local"}:
-        return ModeloProveedorConfigurado(cfg)
+        return ModeloProveedorConfigurado(cfg, transport=transport, client=client)
     raise ErrorModeloError(f"Proveedor de modelo desconocido: '{cfg.proveedor}'.")
