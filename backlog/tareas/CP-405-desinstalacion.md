@@ -1,7 +1,7 @@
 ---
 id: CP-405
 titulo: cp_preparar_desinstalacion · exportar obras y sustituirlas por cuadros vanilla
-estado: pendiente
+estado: dormida
 prioridad: P3
 hito: F4
 depende_de: [CP-403]
@@ -33,3 +33,7 @@ GSS §11, ADS §9. El comportamiento real sin el mod se observa en CP-015.
 ## Fuera de alcance
 
 - Reimportar obras.
+
+## Pospuesta a Fase 2 (2026-11-21)
+
+Según el acuerdo [`P-13`](../../docs/decisiones.md), la exportación/sustitución de obras colocables pasa a Fase 2 junto con `CP-403` tras las obras en texto de **Elliott** (`CP-410`).

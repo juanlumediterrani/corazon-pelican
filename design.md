@@ -353,6 +353,8 @@ La mente decide **qué** («quiero la orilla con esta niebla»). El cuerpo decid
 
 ## 6. La Obra
 
+> **Alcance por fases (`P-13`, 2026-11-21):** la generación de obras (taller, muebles colocables y sincronización multijugador) se pospone a **Fase 2**, empezando primero por **Elliott** (obra en texto) antes de abordar los cuadros visuales de Leah. Cuando entre la venta de obras, usará precio fijo por formato y sin efectos mecánicos en v1.
+
 ### 6.1. Decisión y ejecución separadas
 
 1. **Decisión (mente):** tema, composición, título, intención de paleta, una frase sobre qué
@@ -568,7 +570,7 @@ Cada regla entra en vigor con su guarda. Los nombres de test son previstos.
 
 ## 14. Fuera de Alcance (v1), Riesgos y Preguntas Abiertas
 
-**Fuera de alcance:** escultura; obras con efectos mecánicos; cambios de rutina con efecto mecánico; varios habitantes simultáneos
+**Fuera de alcance:** generación de obras (pospuesta a **Fase 2**, empezando primero por Elliott en texto antes del taller visual de Leah; `P-13`); escultura; obras con efectos mecánicos; cambios de rutina con efecto mecánico (`P-14`); varios habitantes simultáneos
 (el motor lo admite, pero v1 valida solo a Leah); conversaciones entre NPCs gobernados;
 eventos con guion propios.
 
@@ -594,11 +596,10 @@ eventos con guion propios.
 * **Expectativa de texto libre.** Los jugadores escribirán cualquier cosa. La validación de
   actos acota consecuencias, no temas.
 
-**Preguntas abiertas:**
+**Preguntas abiertas (decididas el 2026-11-21 en [`docs/decisiones.md`](docs/decisiones.md) §1 · `P-13` y `P-14`):**
 
-1. ¿Obras con efecto (v2)? ¿Con qué sistema de balance?
-2. ¿Venta de obras: precio fijo por formato o valoración por el propio personaje?
-3. ¿Segundo personaje: cuál pone mejor a prueba que el motor no contiene nada de Leah?
-4. ¿Debe Leah poder iniciar conversación (acercarse ella al jugador) en v1?
-5. ¿Cambios de rutina con efecto mecánico (Pierre cierra la tienda un día)? ¿Cómo se avisa a los
-   jugadores (cartel, carta, aviso de Pelican) y con qué límites?
+1. **Obras con efecto mecánico (`GSS §14.1`):** fuera de v1; se reabrirá tras la aceptación de diálogo (`CP-508`).
+2. **Venta de obras (`GSS §14.2`):** precio fijo por formato cuando entren las obras en Fase 2.
+3. **Segundo personaje (`GSS §14.3`):** **Elliott** (obra en texto); será quien inaugure la generación de obras en Fase 2 (`CP-410`), antes del taller visual de Leah.
+4. **Iniciativa de conversación (`GSS §14.4`):** en v1 no inicia diálogo completo ella sola; sí puede acercarse y ejecutar `murmurar` o `gesto` según su apertura.
+5. **Cambios de rutina con efecto mecánico (`GSS §14.5`):** fuera de v1; para v2 con aviso visible, límites en el perfil y coherencia con el canon.

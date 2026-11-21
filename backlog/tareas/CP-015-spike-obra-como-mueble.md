@@ -1,7 +1,7 @@
 ---
 id: CP-015
 titulo: Spike V-03/V-05 · una textura generada como mueble colocable que sobrevive a guardar, cargar y multijugador 🎮
-estado: pendiente
+estado: dormida
 prioridad: P1
 hito: S
 depende_de: [CP-006]
@@ -37,3 +37,7 @@ V-03 resuelto en el decompilado: `FurnitureDataDefinition` lee la textura del ca
 ## Fuera de alcance
 
 - Portafolio y taller reales (CP-401, CP-403).
+
+## Pospuesta a Fase 2 (2026-11-21)
+
+Según el acuerdo [`P-13`](../../docs/decisiones.md), la generación visual de obras pasa a Fase 2 (después de validar primero obras en texto con **Elliott** en `CP-410`).

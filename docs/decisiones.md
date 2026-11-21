@@ -108,20 +108,53 @@ rato. Si vivió esas tardes como aislamiento, puede guardar antes el cuaderno pa
 perfil permite ambas elecciones. La duración y la intensidad se calibrarán con muestras. CP-210
 prepara la prueba entre días, CP-208 evalúa la interpretación y CP-305 observa la conducta.
 
+### P-5 · Espera en el diálogo medida en paciencia real (2026-11-21)
+
+La espera en el diálogo se mide en paciencia del jugador, no en tiempo de juego: en partida de un
+jugador, la `DialogueBox` del reflejo («está pensando» visible) detiene el reloj del juego; en
+multijugador, no. La latencia real en ambos modos se medirá en vivo (`CP-503`).
+
+### P-7 · Interceptar conversación sin sustituir al juego (2026-11-21)
+
+Al interceptar la conversación (`NPC.checkAction`), se dejan al juego base la amistad diaria
+(`grantConversationFriendship`), misiones, regalos, cónyuge y eventos; el motor solo cambia qué se
+dice (`CP-010`, `CP-503`).
+
+### P-10 · Consolidación del búfer y fuga de la huella por personaje (2026-11-21)
+
+La velocidad de consolidación del búfer (`bufer_max_entradas`, `bufer_ventana_reciente_min`,
+`bufer_semivida_antiguas_min`) y de fuga de la huella (`huella_semivida_min`) son parámetros
+opcionales del bloque `atencion` en el perfil de cada personaje, con valores por defecto del motor
+(`CP-111`, ampliando `CP-106`).
+
+### P-13 · Generación de obras pospuesta a Fase 2, empezando por Elliott en texto (2026-11-21)
+
+La generación de obras (taller de imágenes, muebles colocables y sincronización de texturas) queda
+fuera de v1 y pasa a una **Fase 2**:
+
+- La Fase 2 empezará primero por **Elliott**, cuya obra es **texto** (`CP-410`), validando así que
+  «obra» no equivale a «sprite» sin depender de generación de imágenes.
+- La generación visual de cuadros de Leah (`CP-013`, `CP-015`, `CP-401`–`CP-406`) se abordará
+  después de Elliott en Fase 2.
+- Por tanto, en v1 `CP-508` (aceptación de diálogo) se verifica sin depender de obras generadas
+  (`CP-406`), usando una promesa/cita verificable en el mundo.
+- Obras con efecto mecánico (`GSS §14.1`): fuera de v1 (reabrir tras `CP-508`). Venta de obras
+  (`GSS §14.2`): precio fijo por formato al entrar las obras en Fase 2.
+
+### P-14 · Iniciativa de diálogo y cambios de rutina con efecto mecánico (2026-11-21)
+
+- En v1, el personaje gobernado no inicia un diálogo completo por su cuenta (`GSS §14.4`); sí puede
+  acercarse y ejecutar `murmurar` o `gesto` cuando su apertura lo permita.
+- Los cambios de rutina con efecto mecánico (p. ej. cerrar una tienda) quedan fuera de v1
+  (`GSS §14.5`); para v2 requerirán aviso visible, límites en el perfil y coherencia con el canon.
+
 ## 2. Pendiente de decidir
+
+*(La fila «Inscripción en Dr4co Core» se retiró el 2026-11-21 por tratarse de un plugin de OpenClaw ajeno a este proyecto.)*
 
 | # | Propuesta o pregunta | Recomendación | Tarea |
 |---|---|---|---|
-| P-5 | La espera en el diálogo se mide en paciencia, no en tiempo de juego: en un jugador, la `DialogueBox` del reflejo para el reloj; en multijugador, no | Diseñar el reflejo como «está pensando» visible y medir la latencia real en ambos modos | CP-503 |
-| P-7 | Interceptar sin sustituir: dejar al juego amistad diaria, misiones, regalos, cónyuge y eventos; el motor solo cambia qué se dice | Aceptar (ver [notas-juego](notas-juego.md) §2) | CP-010, CP-503 |
-| GSS §14.1 | ¿Obras con efecto? | Fuera de v1; reabrir tras CP-508 | CP-902 |
-| GSS §14.2 | Venta de obras | Precio fijo por formato en v1 | CP-902 |
-| GSS §14.3 | Segundo personaje | Elliott: su obra es texto, obliga a que «obra» no sea «sprite» | CP-902 |
-| GSS §14.4 | ¿Leah inicia conversación en v1? | No como diálogo; sí acercarse + `murmurar`/`gesto` cuando la apertura lo permita | CP-902 |
-| GSS §14.5 | Cambios de rutina con efecto mecánico (Pierre cierra la tienda) | Fuera de v1; en v2 con aviso visible, límites en el perfil y coherencia con el canon (Pierre ya cierra los miércoles) | CP-902 |
-| P-10 | Velocidad de consolidación del búfer y de fuga de la huella por personaje (alguien distraído olvida antes) | Parámetros del perfil con valores por defecto del motor | CP-106 |
-| — | Inscribir el proyecto en Dr4co Core | Decisión del usuario; el backlog ya usa su formato | — |
-| — | UniqueID del mod | `Dr4co.CorazonPelican` (propuesto) | CP-001 |
+| — | `UniqueID` y `Author` del mod | `Dr4co.CorazonPelican` / `Dr4co` en `CorazonPelican/manifest.json` (pendiente de confirmación) | CP-902, CP-001 |
 
 ## 3. Riesgos técnicos abiertos
 

@@ -1,7 +1,7 @@
 ---
 id: CP-404
 titulo: Sincronización de obras a clientes multijugador 🎮
-estado: pendiente
+estado: dormida
 prioridad: P3
 hito: F4
 depende_de: [CP-403]
@@ -34,3 +34,7 @@ ADS §10.
 ## Fuera de alcance
 
 - Diálogo en clientes (CP-503).
+
+## Pospuesta a Fase 2 (2026-11-21)
+
+Según el acuerdo [`P-13`](../../docs/decisiones.md), la sincronización de texturas de obras queda pospuesta a Fase 2 después de `CP-410` (Elliott en texto) y `CP-403`.

@@ -41,11 +41,13 @@ sus pruebas están en el [backlog](backlog/README.md).
 | [`backlog/README.md`](backlog/README.md) | Índice de tareas (formato Dr4co Core), trazabilidad de reglas |
 | [`tools/xnbdump/`](tools/xnbdump/) | Lector de datos `.xnb` del juego (horarios, animaciones) |
 
-Las tareas sin juego vivo listas de las fases F0–F2 y F5 han quedado completadas. La única ficha
-lista pendiente en el índice es **CP-006** 🎮 (partida de desarrollo y medición de lugares de
-Leah en juego vivo), mientras que `CP-013`, `CP-014`, `CP-101` y `CP-902` permanecen en curso.
-El índice recoge las [tareas listas](backlog/README.md#tareas-listas) y [AGENTS.md](AGENTS.md)
-contiene los comandos para verificar la solución.
+Las tareas sin juego vivo listas de las fases F0–F2 y F5 han quedado completadas, y la
+generación de obras se ha pospuesto a Fase 2 empezando primero por Elliott en texto (`P-13`).
+Las únicas fichas listas en el índice son **CP-006** 🎮 (partida de desarrollo y medición de
+lugares de Leah en juego vivo) y **CP-111** (parámetros de búfer y huella en el perfil, `P-10`),
+mientras que `CP-014`, `CP-101` y `CP-902` permanecen en curso. El índice recoge las
+[tareas listas](backlog/README.md#tareas-listas) y [AGENTS.md](AGENTS.md) contiene los comandos
+para verificar la solución.
 
 Proyectos hermanos: Pelican 4Ever (`../Stardew Valley MORPG`) y Stardew Voyager
 (`../stardew-voyager`).

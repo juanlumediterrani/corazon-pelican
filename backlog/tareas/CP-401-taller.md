@@ -1,7 +1,7 @@
 ---
 id: CP-401
 titulo: Taller · generador enchufable y script de asset de la prosa a la PNG
-estado: pendiente
+estado: dormida
 prioridad: P2
 hito: F4
 depende_de: [CP-013, CP-002]
@@ -37,3 +37,7 @@ ADS §7 tras la decisión P-3. El generador principal y sus respaldos son los el
 ## Fuera de alcance
 
 - Autocrítica (CP-402).
+
+## Pospuesta a Fase 2 (2026-11-21)
+
+Según el acuerdo [`P-13`](../../docs/decisiones.md), la generación de obras pasa a Fase 2, empezando primero por Elliott en texto (`CP-410`) antes de abordar el taller visual de Leah.

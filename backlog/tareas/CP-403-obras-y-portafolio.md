@@ -1,7 +1,7 @@
 ---
 id: CP-403
 titulo: ObrasModule · portafolio persistido y obras colocables como muebles
-estado: pendiente
+estado: dormida
 prioridad: P2
 hito: F4
 depende_de: [CP-015, CP-107, CP-401]
@@ -35,3 +35,7 @@ GSS §6.2–6.3, ADS §9. Formato de entrada `Data/Furniture` validado en CP-015
 ## Fuera de alcance
 
 - Clientes multijugador (CP-404).
+
+## Pospuesta a Fase 2 (2026-11-21)
+
+Según el acuerdo [`P-13`](../../docs/decisiones.md), la generación de obras y su portafolio colocable quedan pospuestos a Fase 2, tras validar obras en texto con **Elliott** (`CP-410`).

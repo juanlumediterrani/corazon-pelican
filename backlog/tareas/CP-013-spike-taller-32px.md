@@ -1,7 +1,7 @@
 ---
 id: CP-013
 titulo: Spike del taller · ¿se reconoce una obra a la resolución de un cuadro vanilla? (V-04)
-estado: en-curso
+estado: dormida
 prioridad: P1
 hito: S
 depende_de: [CP-001]
@@ -45,3 +45,7 @@ Candidatos sin probar, con enlaces y licencias: [notas](../../docs/notas-juego.m
 ## Fuera de alcance
 
 - Integración con el mod o la mente.
+
+## Pospuesta a Fase 2 (2026-11-21)
+
+Según el acuerdo [`P-13`](../../docs/decisiones.md), la generación de obras queda pospuesta a la Fase 2, comenzando primero por obras en texto con **Elliott** (`CP-410`). Se conserva íntegro el avance estático realizado en `V-04`, `docs/spikes/taller-resolucion.md`, `taller/asset.py` y `taller/paleta.py`.

@@ -1,7 +1,7 @@
 ---
 id: CP-406
 titulo: Aceptación de fase 4 · una obra nacida de la escena, colgada y vista en un cliente 🎮
-estado: pendiente
+estado: dormida
 prioridad: P2
 hito: F4
 depende_de: [CP-402, CP-404, CP-305]
@@ -29,3 +29,7 @@ ADS §14 fase 4.
 ## Fuera de alcance
 
 - Que la obra se haya pedido en conversación (F5).
+
+## Pospuesta a Fase 2 (2026-11-21)
+
+Según el acuerdo [`P-13`](../../docs/decisiones.md), esta aceptación de obras visuales pasa a Fase 2 después de **Elliott** en texto (`CP-410`). En v1, `CP-508` deja de depender de `CP-406`.

@@ -1,7 +1,7 @@
 ---
 id: CP-402
 titulo: Decisión de obra y autocrítica de la mente
-estado: pendiente
+estado: dormida
 prioridad: P2
 hito: F4
 depende_de: [CP-401, CP-204]
@@ -34,3 +34,7 @@ GSS §6.1. Descartar bocetos es canónico; la nota de cómo se siente con el res
 ## Fuera de alcance
 
 - Venta y precio (pregunta abierta, CP-902).
+
+## Pospuesta a Fase 2 (2026-11-21)
+
+Según el acuerdo [`P-13`](../../docs/decisiones.md), la generación de obras pasa a Fase 2 tras `CP-410` (Elliott en texto). Para la venta en Fase 2 se definió precio fijo por formato (`GSS §14.2`).

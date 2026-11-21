@@ -230,6 +230,12 @@ días (P-9, CP-210): `semivida_dias` (por defecto `2.5` días de juego), `max_in
 los recuerdos) y `umbral_sustitucion` (`0.65`: una impresión nueva por encima o marcada
 `significativa: true` sustituye anticipadamente la vigente).
 
+El bloque opcional `atencion` del perfil calibra por personaje la consolidación del búfer y la fuga
+de la huella de atención (P-10, CP-111): `bufer_max_entradas` (por defecto `12`),
+`bufer_ventana_reciente_min` (`60` min de juego), `bufer_semivida_antiguas_min` (`60.0` min) y
+`huella_semivida_min` (`30.0` min). Si falta algún campo o el bloque entero, el motor aplica esos
+valores por defecto.
+
 ### 3.2. Estado persistido por personaje (`EstadoPersonaje`)
 
 | Campo | Contenido |
@@ -481,7 +487,12 @@ loop:
 
 ---
 
-## 7. El Taller (`taller/`)
+## 7. El Taller (`taller/`) *(pospuesto a Fase 2 · `P-13`, empezando por Elliott en texto)*
+
+> **Acuerdo `P-13` (2026-11-21):** la generación y renderizado de obras pasa a **Fase 2** tras el
+> bloque v1 (cuerpo, diálogo y encuentro). Dicha Fase 2 arrancará primero con obras de texto para
+> **Elliott** (`CP-410`) y abordará después el taller visual de Leah (`CP-013`, `CP-015`,
+> `CP-401`–`CP-406`).
 
 ```
 decisión de obra ─▶ prompt de imagen ─▶ Generador ─────────▶ imagen bruta ─▶ script de asset ─▶ PNG del formato
@@ -688,9 +699,11 @@ Cada regla R-xx de la GSS §13 tiene su test en esta matriz antes de considerars
 | **1. Sensorio** | Observación, saliencia, bandas, prosa y diario; `MenteHabilitada=false` | Un día completo de escenas legibles; R-01, R-02, R-03, R-14 y R-10 para el diario al recargar; costes por paso medidos |
 | **2. Pulsión y mente sin cuerpo** | Atención, pulsos, cadenas de despertar y acostarse, API, mente que solo escribe pensamientos | Cadencia en ambos modos, cupos respetados y una intención propia documentada desde su pulso de origen. R-04 y R-05 en FakeWorld |
 | **3. Cuerpo** | Vocabulario v1, reclamación y devolución del NPC | Decisión espontánea y efecto observado en DEV, con horario de referencia y continuidad al despertar. Intenciones rechazadas y guardas R-06, R-11, R-13 y R-16 |
-| **4. Taller y obras** | Render, registro, persistencia, sincronización | Obra colocada sobrevive a guardar/cargar y se ve en un cliente; R-10 |
-| **5. Diálogo con actos** | Intercepción, opciones, texto libre, compromisos | Promesa hecha y cumplida al día siguiente; R-07, R-08, R-09, R-12 |
+| **4. Obras *(Fase 2 · `P-13`)*** | En Fase 2: primero **Elliott** en texto (`CP-410`); después taller de cuadros de Leah, registro, persistencia y sincronización | Primero obra en texto con Elliott (`CP-410`); después obra colocada que sobrevive a guardar/cargar y se ve en un cliente (`R-10`) |
+| **5. Diálogo con actos** | Intercepción, opciones, texto libre, compromisos y prórroga por carta *(sin depender de obras PNG en v1, `P-13`)* | Promesa hecha y cumplida al día siguiente; R-07, R-08, R-09, R-12, R-15 |
 | **6. Encuentro** | Pelican + humanos + Voyager | Sesión en servidor de desarrollo con al menos un humano y el granjero agente |
+
+*(En v1, el camino crítico pasa directamente de **3. Cuerpo** a **5. Diálogo con actos** y **6. Encuentro**.)*
 
 ---
 
