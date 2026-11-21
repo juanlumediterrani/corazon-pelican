@@ -51,6 +51,7 @@ namespace CorazonPelican.Core.Atencion
         private readonly int tiempoMaxRespuestaMs;
         private readonly Bufer pendientesDiario;
         private readonly Dictionary<string, Banda> bandasRegistradasBufer = new(StringComparer.Ordinal);
+        private readonly HashSet<string> compromisosAvisados = new(StringComparer.Ordinal);
         private int? ultimoDiaBufer;
         private int? ultimoDiaAgenda;
         private long siguientePulsoId = 1;
@@ -93,6 +94,16 @@ namespace CorazonPelican.Core.Atencion
             this.pendientesDiario = new Bufer(Math.Max(maxEntradasBufer, 64));
             this.Huella = new HuellaAtencion();
             this.Disparadores = new Disparadores(perfil, modoReloj, estado.Contadores);
+            this.Disparadores.CompromisoSinCupo += disparo =>
+            {
+                if (!string.IsNullOrWhiteSpace(disparo.Ref))
+                {
+                    GestorCompromisos.RegistrarPeticionProrroga(
+                        this.Estado,
+                        disparo.Ref,
+                        new TiempoJuego { Dia = disparo.Dia, Hora = disparo.Hora });
+                }
+            };
             this.LugaresOfrecidos = perfil.Lexico.OfrecerLugares(_ => true);
             this.ContextoRutina = new ContextoRutina(Math.Max(1, estado.Contadores?.Dia ?? 1));
         }
@@ -181,6 +192,8 @@ namespace CorazonPelican.Core.Atencion
                 this.Huella.Observar(obs, bandas, minutosJuego);
                 this.AlimentarBufer(obs, bandas);
             }
+
+            GestorCompromisos.Evaluar(this.Estado, obs, this.Disparadores, ahoraMs, this.compromisosAvisados);
 
             IReadOnlyList<Disparo> disparos;
             using (this.medidor?.Medir("disparadores"))
@@ -627,21 +640,14 @@ namespace CorazonPelican.Core.Atencion
                 pulso.IntencionActiva = new IntencionActiva { Id = intencionActiva, Objetivo = intencionActiva };
             }
 
-            var compromisosActivos = this.Estado.Compromisos
-                .Where(c => !string.Equals(c.Estado, "cumplido", StringComparison.Ordinal)
-                            && !string.Equals(c.Estado, "incumplido", StringComparison.Ordinal))
-                .Select(c => new CompromisoProximo
-                {
-                    Id = c.Id,
-                    Con = c.Destinatario,
-                    Prosa = string.IsNullOrWhiteSpace(c.Tipo) ? c.Objeto : $"{c.Tipo}: {c.Objeto}",
-                    PlazoJuego = new TiempoJuego
-                    {
-                        Dia = c.PlazoVigente?.Dia ?? diaPulso,
-                        Hora = Math.Clamp(c.PlazoVigente?.Hora ?? HoraJuego.InicioDia, HoraJuego.InicioDia, HoraJuego.FinDia),
-                    },
-                })
-                .ToList();
+            var interlocutorRef = motivoPulso == Motivos.Interlocucion
+                ? (string.IsNullOrWhiteSpace(disparo.Ref) ? "farmer:0" : disparo.Ref)
+                : null;
+            var compromisosActivos = GestorCompromisos.ProyectarParaPulso(
+                this.Estado,
+                obs.Entidades.Select(e => e.Ref),
+                interlocutorRef,
+                diaPulso);
             if (compromisosActivos.Count > 0)
             {
                 pulso.CompromisosProximos = compromisosActivos;

@@ -292,6 +292,59 @@ namespace CorazonPelican.Core.Memoria
         [JsonPropertyName("plazo_propuesto")]
         [DataMember(Name = "plazo_propuesto")]
         public TiempoJuego? PlazoPropuesto { get; set; }
+
+        [JsonPropertyName("prorroga")]
+        [DataMember(Name = "prorroga")]
+        public PeticionProrrogaEstado? Prorroga { get; set; }
+    }
+
+    /// <summary>Petición de prórroga de un compromiso persistida en la partida (P-12, CP-502, CP-509).</summary>
+    [DataContract]
+    public sealed class PeticionProrrogaEstado
+    {
+        [JsonPropertyName("id")]
+        [DataMember(Name = "id")]
+        public string Id { get; set; } = "";
+
+        [JsonPropertyName("compromiso_id")]
+        [DataMember(Name = "compromiso_id")]
+        public string CompromisoId { get; set; } = "";
+
+        [JsonPropertyName("destinatario")]
+        [DataMember(Name = "destinatario")]
+        public string Destinatario { get; set; } = "";
+
+        [JsonPropertyName("objeto")]
+        [DataMember(Name = "objeto")]
+        public string Objeto { get; set; } = "";
+
+        [JsonPropertyName("plazo_original")]
+        [DataMember(Name = "plazo_original")]
+        public TiempoJuego PlazoOriginal { get; set; } = new();
+
+        [JsonPropertyName("plazo_propuesto")]
+        [DataMember(Name = "plazo_propuesto")]
+        public TiempoJuego PlazoPropuesto { get; set; } = new();
+
+        [JsonPropertyName("estado")]
+        [DataMember(Name = "estado")]
+        public string Estado { get; set; } = "";
+
+        [JsonPropertyName("creada_en")]
+        [DataMember(Name = "creada_en")]
+        public TiempoJuego CreadaEn { get; set; } = new();
+
+        [JsonPropertyName("resuelta_en")]
+        [DataMember(Name = "resuelta_en")]
+        public TiempoJuego? ResueltaEn { get; set; }
+
+        [JsonPropertyName("carta_id")]
+        [DataMember(Name = "carta_id")]
+        public string? CartaId { get; set; }
+
+        [JsonPropertyName("entregada")]
+        [DataMember(Name = "entregada")]
+        public bool Entregada { get; set; }
     }
 
     /// <summary>Estado persistido de la impresión emocional vigente del personaje (P-9, CP-210).</summary>

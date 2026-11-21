@@ -257,6 +257,27 @@ namespace CorazonPelican.Core.Memoria
                     compromiso.PlazoVigente = new TiempoJuego();
                     cambiado = true;
                 }
+
+                if (compromiso.Prorroga is { } prorroga)
+                {
+                    if (prorroga.PlazoOriginal is null)
+                    {
+                        prorroga.PlazoOriginal = new TiempoJuego();
+                        cambiado = true;
+                    }
+
+                    if (prorroga.PlazoPropuesto is null)
+                    {
+                        prorroga.PlazoPropuesto = new TiempoJuego();
+                        cambiado = true;
+                    }
+
+                    if (prorroga.CreadaEn is null)
+                    {
+                        prorroga.CreadaEn = new TiempoJuego();
+                        cambiado = true;
+                    }
+                }
             }
 
             if (estado.Contadores is { } contadores)
