@@ -6,10 +6,12 @@ import json
 from pathlib import Path
 from typing import Any
 
+import httpx
 import pytest
 from jsonschema import Draft202012Validator
 
 from mente import contrato
+from mente.cliente_motor import CicloMente, ClienteMotor
 from mente.ensamblador import cargar_voz, ensamblar_prompt
 from mente.modelos import FakeLLM, validar_respuesta_estrechada
 from mente.recuperacion import estimar_tokens, recuperar_recuerdos
@@ -19,6 +21,7 @@ from mente.reflexion import (
     generar_reflexion,
     validar_reflexiones,
 )
+from mente.tests.test_mente import MotorSimulado
 
 RAIZ = Path(__file__).resolve().parent.parent.parent
 EJEMPLOS_VALIDOS = contrato.DIR_ESQUEMAS / "ejemplos" / "validos"
@@ -413,3 +416,150 @@ class TestSinEscrituraEnDisco:
 
         assert resultado.valida is True
         assert list(tmp_path.rglob("*")) == []
+
+
+class TestRecuperacionEnCicloMente:
+    def test_hito_ordinario_recupera_recuerdo_pertinente_en_prompt_dentro_del_cupo(self):
+        pulso_base = _cargar_ejemplo("pulso--hito.json")
+        pulso_tarde = {
+            **pulso_base,
+            "id": 14,
+            "epoca": "ep-ord-1",
+            "personaje": "leah",
+            "motivo": "hito",
+            "tiempo_juego": {"dia": 69, "hora": 1600},
+            "hito": {"id": "fall:1600", "origen": "rutina", "forma": "pensamiento"},
+            "escena": "Vuelves a la pasarela de madera junto al lago en silencio.",
+            "lugares": [{"id": "pasarela_lago", "prosa": "la pasarela de madera del lago"}],
+        }
+        pulso_tarde.pop("interlocutor", None)
+        pulso_tarde.pop("recuerdos", None)
+
+        motor = MotorSimulado(epoca="ep-ord-1")
+        motor.pulsos = [pulso_tarde]
+        motor.memoria_por_personaje["leah"] = {
+            "epoca": "ep-ord-1",
+            "personaje": "leah",
+            "diario": [
+                {
+                    "id": "ep-1",
+                    "dia_juego": 68,
+                    "hora": 1630,
+                    "resumen_prosa": "Tarde de lluvia en la pasarela_lago mirando el agua quieta.",
+                    "saliencia": 0.88,
+                    "entidades": ["agua:Mountain:lago"],
+                },
+                {
+                    "id": "ep-2",
+                    "dia_juego": 20,
+                    "hora": 900,
+                    "resumen_prosa": "Compraste clavos en la ferretería para el cobertizo.",
+                    "saliencia": 0.25,
+                    "entidades": ["objeto:clavos"],
+                },
+            ],
+            "recuerdos": [
+                {
+                    "id": "rec-1",
+                    "texto": "Aquella tarde en la pasarela junto al lago me dejó ganas de volver con buena luz.",
+                    "importancia": 0.90,
+                    "origen_diario": ["ep-1"],
+                },
+                {
+                    "id": "rec-2",
+                    "texto": "Tengo que revisar las estanterías del cobertizo cuando sobre madera.",
+                    "importancia": 0.20,
+                    "origen_diario": ["ep-2"],
+                },
+            ],
+            "relaciones": {},
+            "compromisos": [],
+            "portafolio": [],
+        }
+
+        consultas_memoria: list[str] = []
+        handler_orig = motor.handler
+
+        def handler_con_registro(req: httpx.Request) -> httpx.Response:
+            if req.url.path.startswith("/api/v1/memoria/"):
+                consultas_memoria.append(req.url.path)
+            return handler_orig(req)
+
+        modelo = FakeLLM(respuestas=[{"pensamiento": "La luz de la pasarela sigue llamándome."}])
+        with ClienteMotor(transport=httpx.MockTransport(handler_con_registro)) as cliente:
+            ciclo = CicloMente(
+                cliente,
+                modelo,
+                VOZ_LEAH,
+                presupuesto_tokens_recuerdos=35,
+            )
+            resultados = ciclo.ejecutar_paso(espera_ms=0)
+
+        assert [r.estado for r in resultados] == ["aceptada"]
+        assert consultas_memoria == ["/api/v1/memoria/leah"]
+        assert len(modelo.llamadas) == 1
+        prompt_usuario = modelo.llamadas[0].prompt.usuario
+        assert "## Recuerdos" in prompt_usuario
+        assert "Aquella tarde en la pasarela junto al lago" in prompt_usuario
+        assert "estanterías del cobertizo" not in prompt_usuario
+
+    def test_cambio_de_personaje_y_cambio_de_epoca_usan_memoria_vigente(self):
+        pulso_base = _cargar_ejemplo("pulso--hito.json")
+        pulso_elliott = {
+            **pulso_base,
+            "id": 1,
+            "epoca": "ep-a",
+            "personaje": "elliott",
+            "escena": "Miras las olas golpear los tablones del muelle al atardecer.",
+            "lugares": [{"id": "muelle", "prosa": "el muelle sobre el mar"}],
+        }
+        pulso_elliott.pop("recuerdos", None)
+
+        motor = MotorSimulado(epoca="ep-a")
+        motor.pulsos = [pulso_elliott]
+        motor.memoria_por_personaje["leah"] = {
+            "epoca": "ep-a",
+            "personaje": "leah",
+            "diario": [],
+            "recuerdos": [{"id": "rec-l", "texto": "Recuerdo exclusivo de Leah en el bosque.", "importancia": 0.9, "origen_diario": ["ep-1"]}],
+            "relaciones": {},
+            "compromisos": [],
+            "portafolio": [],
+        }
+        motor.memoria_por_personaje["elliott"] = {
+            "epoca": "ep-a",
+            "personaje": "elliott",
+            "diario": [{"id": "ep-e1", "dia_juego": 68, "hora": 1800, "resumen_prosa": "Mareas altas junto al muelle.", "saliencia": 0.85, "entidades": []}],
+            "recuerdos": [{"id": "rec-e1", "texto": "El sonido de las olas junto al muelle inspiró el capítulo tres.", "importancia": 0.92, "origen_diario": ["ep-e1"]}],
+            "relaciones": {},
+            "compromisos": [],
+            "portafolio": [],
+        }
+
+        modelo = FakeLLM()
+        with ClienteMotor(transport=httpx.MockTransport(motor.handler)) as cliente:
+            ciclo = CicloMente(cliente, modelo, VOZ_LEAH)
+            res_1 = ciclo.ejecutar_paso(espera_ms=0)
+            assert [r.estado for r in res_1] == ["aceptada"]
+            prompt_1 = modelo.llamadas[0].prompt.usuario
+            assert "capítulo tres" in prompt_1
+            assert "Recuerdo exclusivo de Leah" not in prompt_1
+
+            # Cambia de época: nueva memoria para el personaje reemplaza la caché anterior.
+            pulso_epoca_nueva = {**pulso_elliott, "id": 1, "epoca": "ep-b"}
+            motor.nueva_epoca("ep-b", [pulso_epoca_nueva])
+            motor.memoria_por_personaje["elliott"] = {
+                "epoca": "ep-b",
+                "personaje": "elliott",
+                "diario": [{"id": "ep-e2", "dia_juego": 68, "hora": 1700, "resumen_prosa": "Bruma marina sobre el muelle.", "saliencia": 0.9, "entidades": []}],
+                "recuerdos": [{"id": "rec-e2", "texto": "La bruma de esta mañana junto al muelle pide un poema breve.", "importancia": 0.95, "origen_diario": ["ep-e2"]}],
+                "relaciones": {},
+                "compromisos": [],
+                "portafolio": [],
+            }
+
+            res_2 = ciclo.ejecutar_paso(espera_ms=0)
+            assert [r.estado for r in res_2] == ["aceptada"]
+            prompt_2 = modelo.llamadas[1].prompt.usuario
+            assert "poema breve" in prompt_2
+            assert "capítulo tres" not in prompt_2

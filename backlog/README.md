@@ -34,11 +34,11 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas siete fichas están pendientes y tienen todas sus dependencias hechas.
+Estas seis fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-209 cadenas despertar/acostarse · CP-214 memoria en hitos · CP-215 proveedor de la mente · CP-502 compromisos |
+| P1 | CP-209 cadenas despertar/acostarse · CP-215 proveedor de la mente · CP-502 compromisos |
 | P2 | CP-006 medición de lugares 🎮 · CP-216 tokens de cadenas · CP-506 validador de menciones |
 
 CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
@@ -82,7 +82,7 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-211](tareas/CP-211-origen-de-las-reflexiones.md) | Transportar y comprobar el origen de las reflexiones del diario | F2 | P1 | CP-002 | hecha |
 | [CP-212](tareas/CP-212-agenda-y-cambios-rutina.md) | Agenda del día y validador de cambios de rutina en Core (R-16) | F2 | P1 | CP-003, CP-201 | hecha |
 | [CP-213](tareas/CP-213-aplicar-respuestas-en-el-host.md) | Confirmar las respuestas de memoria después de aplicarlas en el host | F2 | P1 | CP-203, CP-206, CP-109 | hecha |
-| [CP-214](tareas/CP-214-recuperar-recuerdos-en-hitos.md) | Llevar los recuerdos pertinentes al prompt de un hito ordinario | F2 | P1 | CP-204, CP-206 | pendiente |
+| [CP-214](tareas/CP-214-recuperar-recuerdos-en-hitos.md) | Llevar los recuerdos pertinentes al prompt de un hito ordinario | F2 | P1 | CP-204, CP-206 | hecha |
 | [CP-215](tareas/CP-215-conectar-proveedor-de-la-mente.md) | Conectar un proveedor de modelo al ciclo de la mente | F2 | P1 | CP-204 | pendiente |
 | [CP-216](tareas/CP-216-computar-tokens-de-cadenas.md) | Contabilizar las cadenas contra el límite diario de tokens | F2 | P2 | CP-207 | pendiente |
 | [CP-301](tareas/CP-301-intencion-validador.md) | Intención con ciclo de vida, pesos de atención y validador de precondiciones | F3 | P1 | CP-105, CP-203 | hecha |

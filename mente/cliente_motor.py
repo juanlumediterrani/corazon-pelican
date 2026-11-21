@@ -26,6 +26,7 @@ from mente.modelos import (
     estrechar_esquema,
     validar_respuesta_estrechada,
 )
+from mente.recuperacion import recuperar_recuerdos
 
 
 class ConflictoEpocaError(RuntimeError):
@@ -251,6 +252,15 @@ def _es_pulso_cadena(pulso: dict[str, Any], es_cadena: bool | None = None) -> bo
     return bool(pulso.get("es_cadena", False))
 
 
+def _tiene_contenido_memoria(memoria: dict[str, Any] | None) -> bool:
+    if not isinstance(memoria, dict):
+        return False
+    for clave in ("diario", "recuerdos", "relaciones", "compromisos", "portafolio", "humor"):
+        if memoria.get(clave):
+            return True
+    return False
+
+
 class CicloMente:
     """Bucle de la mente sin cuerpo propio (ADS §6): consulta pulsos, piensa, valida y responde."""
 
@@ -266,6 +276,9 @@ class CicloMente:
         registro_costes: RegistroCostes | None = None,
         max_reintentos_locales: int = 1,
         max_reformulaciones: int = 1,
+        presupuesto_tokens_recuerdos: int = 400,
+        max_recuerdos_contexto: int | None = None,
+        recuperar_memoria_automatica: bool = True,
     ) -> None:
         self.cliente = cliente
         self.modelo = modelo
@@ -276,6 +289,9 @@ class CicloMente:
         self.registro_costes = registro_costes
         self.max_reintentos_locales = max(0, max_reintentos_locales)
         self.max_reformulaciones = max(0, max_reformulaciones)
+        self.presupuesto_tokens_recuerdos = max(0, int(presupuesto_tokens_recuerdos))
+        self.max_recuerdos_contexto = max_recuerdos_contexto
+        self.recuperar_memoria_automatica = bool(recuperar_memoria_automatica)
         self.cursor = self.almacen_cursor.cargar()
         self.cache_memoria: dict[str, dict[str, Any]] = {}
         self._prefijos_cache_costes: set[str] = set()
@@ -307,6 +323,54 @@ class CicloMente:
             self._reiniciar_por_cambio_epoca(epoca_mem)
         self.cache_memoria[personaje] = memoria
         return memoria
+
+    def _obtener_memoria_vigente(self, personaje: str, epoca_pulso: str) -> dict[str, Any] | None:
+        if not personaje or not self.recuperar_memoria_automatica:
+            return None
+
+        en_cache = self.cache_memoria.get(personaje)
+        if en_cache is not None:
+            epoca_cache = en_cache.get("epoca")
+            if not epoca_pulso or not epoca_cache or epoca_cache == epoca_pulso:
+                return en_cache
+
+        try:
+            memoria = self.cliente.obtener_memoria(personaje)
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 404:
+                return None
+            raise
+
+        epoca_mem = memoria.get("epoca")
+        if epoca_mem and self.cursor.epoca and epoca_mem != self.cursor.epoca:
+            self._reiniciar_por_cambio_epoca(epoca_mem)
+
+        if _tiene_contenido_memoria(memoria):
+            self.cache_memoria[personaje] = memoria
+        return memoria
+
+    def _resolver_recuerdos_para_pulso(
+        self,
+        pulso: dict[str, Any],
+        recuerdos_explicitos: list[Any] | None,
+    ) -> list[Any] | None:
+        if recuerdos_explicitos is not None:
+            return recuerdos_explicitos
+
+        personaje = str(pulso.get("personaje") or "")
+        epoca = str(pulso.get("epoca") or "")
+        memoria = self._obtener_memoria_vigente(personaje, epoca)
+        if memoria is not None and _tiene_contenido_memoria(memoria) and self.presupuesto_tokens_recuerdos > 0:
+            seleccionados = recuperar_recuerdos(
+                memoria,
+                pulso,
+                presupuesto_tokens=self.presupuesto_tokens_recuerdos,
+                max_recuerdos=self.max_recuerdos_contexto,
+            )
+            if seleccionados:
+                return seleccionados
+
+        return pulso.get("recuerdos")
 
     def _puede_llamar_modelo(self, motivo: str, es_cadena: bool) -> bool:
         if self.presupuesto_tokens is None:
@@ -510,11 +574,12 @@ class CicloMente:
             )
 
         esquema = estrechar_esquema(pulso)
+        recuerdos_efectivos = self._resolver_recuerdos_para_pulso(pulso, recuerdos)
 
         respuesta, errores, intentos, agotado = self._generar_y_validar(
             pulso,
             esquema,
-            recuerdos=recuerdos,
+            recuerdos=recuerdos_efectivos,
             motivos_rechazo=None,
             es_reformulacion=False,
             es_cadena=cadena,
@@ -532,6 +597,8 @@ class CicloMente:
         resultado_motor = self.cliente.enviar_respuesta(respuesta)
         estado_motor = resultado_motor.get("estado")
         if estado_motor == "aceptada":
+            if respuesta.get("memoria") or respuesta.get("humor"):
+                self.cache_memoria.pop(str(pulso.get("personaje") or ""), None)
             self.telemetria.registrar(
                 {
                     "tipo": "pensamiento_aceptado",
@@ -578,7 +645,7 @@ class CicloMente:
         respuesta_ref, errores_ref, intentos_ref, agotado_ref = self._generar_y_validar(
             pulso,
             esquema,
-            recuerdos=recuerdos,
+            recuerdos=recuerdos_efectivos,
             motivos_rechazo=motivos,
             es_reformulacion=True,
             es_cadena=cadena,
@@ -597,6 +664,8 @@ class CicloMente:
 
         resultado_ref = self.cliente.enviar_respuesta(respuesta_ref)
         if resultado_ref.get("estado") == "aceptada":
+            if respuesta_ref.get("memoria") or respuesta_ref.get("humor"):
+                self.cache_memoria.pop(str(pulso.get("personaje") or ""), None)
             self.telemetria.registrar(
                 {
                     "tipo": "pensamiento_aceptado",
