@@ -22,6 +22,23 @@ python3 -m pytest -q
 Sin `-p:EnableModDeploy=false`, ModBuildConfig copia el mod a `Mods/` del juego: hazlo solo
 cuando se quiera probar en vivo.
 
+## Partida de desarrollo y escenarios (`CP-006`)
+
+Las sesiones 🎮 autorizadas usan siempre el slot DEV `CorazonDev_*` (nunca una campaña real).
+Los respaldos y escenarios con nombre viven fuera del repo en `~/.local/share/corazon-pelican/escenarios/`
+y solo pueden restaurarse en carpetas cuyo nombre empiece por `CorazonDev`:
+
+```bash
+python3 tools/escenarios.py guardar base_primavera --partida CorazonDev_454975123 --descripcion "..."
+python3 tools/escenarios.py listar
+python3 tools/escenarios.py verificar base_primavera
+python3 tools/escenarios.py restaurar base_primavera --destino CorazonDev_454975123 --confirmar
+```
+
+En la consola de SMAPI están disponibles `cp_posicion [npc]` (imprime ubicación, casilla,
+orientación, transitabilidad y fragmento JSON) y `cp_lugares [personaje]` (verifica en vivo que
+todas las áreas del perfil son transitables).
+
 ## Estructura
 
 | Carpeta | Contenido |

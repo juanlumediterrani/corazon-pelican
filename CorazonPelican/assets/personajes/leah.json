@@ -17,8 +17,8 @@
       { "id": "plaza", "ubicacion": "Town", "area": [86, 66, 1, 1], "prosa": "la plaza del pueblo" },
       { "id": "saloon", "ubicacion": "Saloon", "area": [2, 20, 1, 1], "prosa": "el Saloon" },
       { "id": "tienda_de_pierre", "ubicacion": "SeedShop", "area": [11, 23, 1, 1], "prosa": "la tienda de Pierre" },
-      { "id": "pasarela_lago", "ubicacion": "Mountain", "area": [0, 0, 0, 0], "prosa": "la pasarela de madera del lago", "sentable": true },
-      { "id": "orilla_norte", "ubicacion": "Mountain", "area": [0, 0, 0, 0], "prosa": "la orilla norte del lago" }
+      { "id": "pasarela_lago", "ubicacion": "Mountain", "area": [57, 26, 1, 5], "prosa": "la pasarela de madera del lago", "sentable": true },
+      { "id": "orilla_norte", "ubicacion": "Mountain", "area": [64, 14, 3, 1], "prosa": "la orilla norte del lago" }
     ]
   },
   "plantillas": "assets/personajes/leah.plantillas.json",

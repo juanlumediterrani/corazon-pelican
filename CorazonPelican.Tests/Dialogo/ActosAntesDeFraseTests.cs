@@ -168,6 +168,7 @@ public class ActosAntesDeFraseTests
         // Lugar con área pendiente [0,0,0,0].
         var perfilSinMedir = JsonConvert.DeserializeObject<PerfilPersonaje>(
             File.ReadAllText(Repo.Ruta("CorazonPelican", "assets", "personajes", "leah.json")))!;
+        perfilSinMedir.Lexico.Lugares.Single(l => l.Id == "pasarela_lago").Area = new() { 0, 0, 0, 0 };
         var citaPendiente = new Respuesta
         {
             Actos = new()

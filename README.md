@@ -42,10 +42,10 @@ sus pruebas están en el [backlog](backlog/README.md).
 | [`tools/xnbdump/`](tools/xnbdump/) | Lector de datos `.xnb` del juego (horarios, animaciones) |
 
 Las tareas sin juego vivo listas de las fases F0–F2 y F5 han quedado completadas (incluida `CP-111`,
-parámetros de búfer y huella en perfil, `P-10`), y la generación de obras se ha pospuesto a
-Fase 2 empezando primero por Elliott en texto (`P-13`). La única ficha lista pendiente en el
-índice es **CP-006** 🎮 (partida de desarrollo y medición de lugares de Leah en juego vivo),
-mientras que `CP-014` y `CP-101` permanecen en curso. El índice recoge las
+parámetros de búfer y huella en perfil, `P-10`), `CP-006` 🎮 está completada con los lugares de Leah
+medidos en vivo, y la generación de obras se ha pospuesto a Fase 2 empezando primero por Elliott
+en texto (`P-13`). Las tareas listas en el índice son **CP-010** 🎮 y **CP-011** 🎮 (spikes en
+juego vivo), mientras que `CP-014` y `CP-101` permanecen en curso. El índice recoge las
 [tareas listas](backlog/README.md#tareas-listas) y [AGENTS.md](AGENTS.md) contiene los comandos
 para verificar la solución.
 

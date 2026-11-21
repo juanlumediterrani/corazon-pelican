@@ -201,3 +201,41 @@ Comprobado en el decompilado local de Stardew Valley 1.6.15 (`GameLocation.cs`, 
   `GameLocation.createQuestionDialogue(pregunta, respuestas, callback)` (operable tanto por un
   humano como por el arnés de menú de Voyager). El callback revalida destinatario, estado y hora
   viva de juego al confirmarse la elección.
+
+## 14. Medición en vivo de lugares de Leah (`V-09`) y partida DEV · CP-006
+
+Medido en vivo el 2026-11-21 sobre Stardew Valley `1.6.15.24356` / SMAPI `4.5.2` en la partida DEV
+`CorazonDev_454975123` mediante `cp_posicion`, `cp_lugares leah` y el puente de Voyager (`/warp`,
+`/step`, `/map_slice`):
+
+| ID en `leah.json` | Ubicación | Área medida | Notas comprobadas en vivo |
+|---|---|---|---|
+| `tu_casa` | `LeahHouse` | `[8, 5, 1, 1]` | Comprobada con el jugador de pie (`adjusted=False`, `OK`) |
+| `mesa_de_esculpir` | `LeahHouse` | `[3, 7, 1, 1]` | Frente a la escultura; `adjusted=False`, `OK` |
+| `claro_del_bosque` | `Forest` | `[33, 25, 1, 1]` | `adjusted=False`, `OK` |
+| `playa` | `Beach` | `[72, 18, 1, 1]` | `adjusted=False`, `OK` |
+| `plaza` | `Town` | `[86, 66, 1, 1]` | `adjusted=False`, `OK` |
+| `saloon` | `Saloon` | `[2, 20, 1, 1]` | `adjusted=False`, `OK` |
+| `tienda_de_pierre` | `SeedShop` | `[11, 23, 1, 1]` | `adjusted=False`, `OK` |
+| `pasarela_lago` | `Mountain` | `[57, 26, 1, 5]` | Puente vertical de madera (`Buildings:Type=Wood`) sobre el lago; recorrido completo a pie desde `(57, 30)` hasta `(57, 26)` y `cp_posicion` en `(57, 28)` (`transitable=True`, `OK`) |
+| `orilla_norte` | `Mountain` | `[64, 14, 3, 1]` | Ribera norte seca al borde del agua (`Back:Type=Dirt`, sin objetos), verificada de pie en `(65, 14)` mirando al sur sobre el lago (`OK`) |
+
+Además se verificaron con el jugador de pie (`adjusted=False`) 3 casillas estacionales auxiliares
+del horario de Leah (documentadas para ampliar el léxico en `CP-306`/`CP-910` sin romper las
+instantáneas doradas v1 de los 9 lugares base): `Forest [68, 50, 1, 1]` (primavera 12:00),
+`Forest [21, 29, 1, 1]` (primavera 18:30) y `Beach [38, 24, 1, 1]` (`summer_noBridge`).
+
+**Particularidades del entorno comprobadas:**
+
+- **`Buildings:Type=Wood` y `FindSafeWarpTile`:** las pasarelas sobre el lago de `Mountain`
+  (`(57, 26..30)`) tienen capas de agua debajo en `Back` (`isWaterTile == true`) pero capa
+  transitable en `Buildings:Type=Wood`. Se recorren a pie normalmente (`isTilePassable == true`),
+  mientras que `POST /warp` de `Dr4coVoyagerBridge` ajusta destinos con `isWaterTile == true` al
+  extremo de tierra más cercano (`(57, 25)` o `(57, 31)`).
+- **Guardado de escenarios DEV con `Pelican4Ever` activo:** `POST /sleep` es interceptado por
+  `Pelican4Ever`. Tras ajustar estación/día con `world_setseason` / `world_setday` en consola SMAPI,
+  `POST /api/rollover` en `127.0.0.1:8085` escribe el XML actualizado a disco para guardarlo con
+  `python3 tools/escenarios.py guardar`.
+- **Validación `Normal` en vivo:** con las áreas medidas, `Corazón Pelican` arranca con
+  `ModoDesarrollo=false` con **0 errores y 0 avisos** y `cp_lugares leah` devuelve todas las áreas
+  del perfil `OK`.

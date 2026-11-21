@@ -105,6 +105,7 @@ public class ValidadorIntencionTests
     {
         var perfil = JsonConvert.DeserializeObject<PerfilPersonaje>(
             File.ReadAllText(Repo.Ruta("CorazonPelican", "assets", "personajes", "leah.json")))!;
+        perfil.Lexico.Lugares.Single(l => l.Id == "pasarela_lago").Area = new() { 0, 0, 0, 0 };
         var observacion = EscenaLago();
         var propuesta = PropuestaValida();
         propuesta.Plan = new() { new PasoPlan { Accion = "ir_a", Lugar = "pasarela_lago" } };

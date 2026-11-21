@@ -732,4 +732,4 @@ Detalle y fuentes en [`docs/notas-juego.md`](docs/notas-juego.md).
 | V-06 | Menú para texto libre | Análisis estático cerrado en [v06-texto-libre.md](docs/spikes/v06-texto-libre.md): `MenuTextoLibre : IClickableMenu` + `TextBox` (y `TextEntryMenu` automático en mando); falta prueba interactiva en vivo | CP-014, CP-504 |
 | V-07 | Animaciones de dibujo de Leah | **Resuelta** ([v07-animaciones.md](docs/spikes/v07-animaciones.md)): `leah_draw` (`2` abajo), `Start/EndActivityRouteEndBehavior`, `sentarse` ausente | CP-012 |
 | V-08 | UniqueID de ValleyTalk | Pendiente: leer del `manifest.json` instalado | CP-505 |
-| V-09 | Coordenadas de los lugares del léxico de Leah | Pendiente: medición en vivo (su horario da casillas de partida) | CP-006 |
+| V-09 | Coordenadas de los lugares del léxico de Leah | **Resuelta (2026-11-21)** en [`docs/notas-juego.md`](docs/notas-juego.md) §14: los 9 lugares de `leah.json` medidos y verificados en vivo (`validación Normal` sin avisos; 3 casillas estacionales auxiliares documentadas para `CP-306`/`CP-910`) | CP-006 |

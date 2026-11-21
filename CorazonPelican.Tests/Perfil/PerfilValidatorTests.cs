@@ -38,24 +38,33 @@ public class PerfilValidatorTests
     }
 
     [Fact]
-    public void Leah_en_desarrollo_es_valida_con_avisos_solo_por_areas_pendientes()
+    public void Leah_en_desarrollo_y_en_modo_normal_valida_sin_avisos_ni_errores()
     {
-        var resultado = PerfilValidator.Validar(Leah(), ModoValidacion.Desarrollo);
+        var desarrollo = PerfilValidator.Validar(Leah(), ModoValidacion.Desarrollo);
+        Assert.True(desarrollo.EsValido, string.Join("\n", desarrollo.Errores));
+        Assert.Empty(desarrollo.Avisos);
 
-        Assert.True(resultado.EsValido, string.Join("\n", resultado.Errores));
-        Assert.Equal(2, resultado.Avisos.Count);
-        Assert.All(resultado.Avisos, a => Assert.Contains("pendiente de medir", a.Mensaje));
+        var normal = PerfilValidator.Validar(Leah(), ModoValidacion.Normal);
+        Assert.True(normal.EsValido, string.Join("\n", normal.Errores));
+        Assert.Empty(normal.Avisos);
     }
 
     [Fact]
-    public void Leah_en_modo_normal_falla_solo_por_areas_pendientes()
+    public void Area_pendiente_es_aviso_en_desarrollo_y_error_en_modo_normal()
     {
-        var resultado = PerfilValidator.Validar(Leah(), ModoValidacion.Normal);
+        var perfilConPendiente = Leah();
+        perfilConPendiente.Lexico.Lugares.Single(l => l.Id == "pasarela_lago").Area = new() { 0, 0, 0, 0 };
 
-        Assert.False(resultado.EsValido);
-        Assert.Equal(2, resultado.Errores.Count);
-        Assert.All(resultado.Errores, e => Assert.Contains("pendiente de medir", e.Mensaje));
-        Assert.Empty(resultado.Avisos);
+        var dev = PerfilValidator.Validar(perfilConPendiente, ModoValidacion.Desarrollo);
+        Assert.True(dev.EsValido, string.Join("\n", dev.Errores));
+        var aviso = Assert.Single(dev.Avisos);
+        Assert.Contains("pendiente de medir", aviso.Mensaje);
+
+        var normal = PerfilValidator.Validar(perfilConPendiente, ModoValidacion.Normal);
+        Assert.False(normal.EsValido);
+        var error = Assert.Single(normal.Errores);
+        Assert.Contains("pendiente de medir", error.Mensaje);
+        Assert.Empty(normal.Avisos);
     }
 
     [Fact]

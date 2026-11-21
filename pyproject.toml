@@ -12,4 +12,4 @@ dev = ["pytest>=7"]
 packages = ["mente", "taller"]
 
 [tool.pytest.ini_options]
-testpaths = ["mente/tests", "taller/tests"]
+testpaths = ["mente/tests", "taller/tests", "tools/tests"]
