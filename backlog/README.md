@@ -34,11 +34,11 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas nueve fichas están pendientes y tienen todas sus dependencias hechas.
+Estas ocho fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-110 protección del guardado · CP-209 cadenas despertar/acostarse · CP-213 aplicación de respuestas · CP-214 memoria en hitos · CP-215 proveedor de la mente · CP-502 compromisos |
+| P1 | CP-209 cadenas despertar/acostarse · CP-213 aplicación de respuestas · CP-214 memoria en hitos · CP-215 proveedor de la mente · CP-502 compromisos |
 | P2 | CP-006 medición de lugares 🎮 · CP-216 tokens de cadenas · CP-506 validador de menciones |
 
 CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
@@ -68,7 +68,7 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-107](tareas/CP-107-persistencia-estado.md) | Estado del personaje persistido con la partida, con versión y migraciones | F1 | P1 | CP-106 | hecha |
 | [CP-108](tareas/CP-108-aceptacion-sensorio.md) | Aceptación de fase 1 · un día completo de escenas legibles 🎮 | F1 | P2 | CP-101, CP-104, CP-107, CP-109, CP-006 | pendiente |
 | [CP-109](tareas/CP-109-habitante-y-telemetria.md) | HabitanteModule, telemetría JSONL y comandos cp_escena / cp_pulso | F1 | P1 | CP-101, CP-104, CP-106 | hecha |
-| [CP-110](tareas/CP-110-proteger-memoria-tras-fallo-de-carga.md) | Proteger la memoria guardada si falla la carga o la migración | F1 | P1 | CP-107 | pendiente |
+| [CP-110](tareas/CP-110-proteger-memoria-tras-fallo-de-carga.md) | Proteger la memoria guardada si falla la carga o la migración | F1 | P1 | CP-107 | hecha |
 | [CP-201](tareas/CP-201-integrador-disparadores.md) | Integrador con fuga, refractario y disparadores de pulsión, incluidos los hitos de rutina | F2 | P1 | CP-102, CP-004, CP-003 | hecha |
 | [CP-202](tareas/CP-202-presupuesto-pulsos.md) | Presupuesto de pulsos aplicado por el motor, por modo de reloj, con reserva para las cadenas | F2 | P1 | CP-201 | hecha |
 | [CP-203](tareas/CP-203-api-motor.md) | API loopback del motor con long-poll, cola al hilo principal, idempotencia y época | F2 | P1 | CP-002, CP-005 | hecha |
