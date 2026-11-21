@@ -5,6 +5,7 @@ using System.Text.Json;
 using CorazonPelican.Core.Api;
 using CorazonPelican.Core.Atencion;
 using CorazonPelican.Core.Contrato;
+using CorazonPelican.Core.Perfil;
 
 namespace CorazonPelican.Core.Memoria
 {
@@ -284,12 +285,22 @@ namespace CorazonPelican.Core.Memoria
         public static InstantaneaMemoria ProyectarInstantaneaMemoria(
             EstadoPersonaje estado,
             string personaje,
-            string epoca = "")
+            string epoca = "",
+            TiempoJuego? ahora = null,
+            ConfigHumor? configHumor = null)
         {
             if (estado is null)
             {
                 throw new ArgumentNullException(nameof(estado));
             }
+
+            var humorVigente = estado.Humor is null
+                ? null
+                : GestorHumor.ObtenerVigente(
+                    estado,
+                    ahora ?? estado.Humor.CreadoEn,
+                    configHumor,
+                    disiparSiDebil: ahora is not null);
 
             var instantanea = new InstantaneaMemoria
             {
@@ -359,6 +370,7 @@ namespace CorazonPelican.Core.Memoria
                             },
                     })
                     .ToList(),
+                Humor = humorVigente,
             };
 
             return instantanea;
@@ -432,6 +444,7 @@ namespace CorazonPelican.Core.Memoria
                 Compromisos = origen.Compromisos,
                 Contadores = origen.Contadores,
                 IntencionActiva = origen.IntencionActiva,
+                Humor = origen.Humor,
             };
         }
     }

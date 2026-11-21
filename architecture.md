@@ -221,6 +221,12 @@ fichero `assets/personajes/<id>.json` es un perfil (los que llevan otro punto, c
 `Core/Sensorio/FuentesContexto.cs` (`luz`, `clima`, `energia`, `obra_en_curso`, `personas_cerca`,
 `compromisos`); una nueva exige ampliar el sensorio.
 
+El bloque opcional `humor` del perfil calibra cómo el host conserva y atenúa el humor entre
+días (P-9, CP-210): `semivida_dias` (por defecto `2.5` días de juego), `max_intensidad`
+(tope del host, por defecto `0.85`), `umbral_disipacion` (`0.15`: por debajo se disipa sin borrar
+los recuerdos) y `umbral_sustitucion` (`0.65`: una impresión nueva por encima o marcada
+`significativa: true` sustituye anticipadamente la vigente).
+
 ### 3.2. Estado persistido por personaje (`EstadoPersonaje`)
 
 | Campo | Contenido |
@@ -228,7 +234,7 @@ fichero `assets/personajes/<id>.json` es un perfil (los que llevan otro punto, c
 | `version_esquema` | Entero; migraciones como en `ServerWorldState` de Pelican |
 | `diario[]` | `{ id, dia_juego, hora, resumen_prosa, saliencia, entidades[] }` |
 | `recuerdos[]` | `{ id, texto, importancia, origen_diario[] }` |
-| Humor (previsto en CP-210) | Impresión del personaje, episodios de origen y datos para limitar y actualizar su influencia con el tiempo de juego |
+| `humor?` | `{ resumen, intensidad_inicial, origen_diario[], creado_en, epoca?, basada_en_pulso? }`: impresión emocional custodiada por el host con decaimiento exponencial por tiempo de juego (P-9, CP-210) |
 | `relaciones{}` | `farmerId|npc → { impresion, ultima_vez }` |
 | `portafolio[]` | `{ obra_id, estado, decision, nota, escena_origen, png_base64?, destinatario? }` |
 | `compromisos[]` | Identidad, tipo, destinatario, objeto, plazo vigente y estado. Una prórroga pendiente conserva por separado el plazo propuesto (CP-502, CP-509) |
@@ -275,7 +281,8 @@ los recuerdos y compromisos pendientes (despertar). `epoca` identifica la carga 
 
 `bufer` guarda lo que llegó al menos a la banda de mención del personaje; `huella` resume la
 atención acumulada desde el último pensamiento (GSS §4.4) y se reinicia al emitir cada pulso. Ambos
-salen de la saliencia y las plantillas del perfil y solo nombran entidades observadas.
+salen de la saliencia y las plantillas del perfil y solo nombran entidades observadas. Si hay una
+impresión emocional activa (`humor`), el pulso la incluye con `{ resumen, intensidad, intensidad_inicial?, origen_diario[], creado_en? }` (CP-210).
 
 `hechos`, `acciones_disponibles` y `lugares` forman el apéndice seco de la escena (GSS §3.4).
 Toda referencia (`ref`) es una identidad estable del juego. El apéndice da **pares id — prosa**
@@ -307,7 +314,7 @@ respuesta, el id, sin que la mente tenga que adivinar la correspondencia.
 * **Prosa del personaje**, que el arnés nunca ejecuta: `pensamiento`, `objetivo`, `porque`,
   `frase`, `memoria.recordar`, `obra.decision`. `pensamiento` va **el primero** del esquema para
   que el modelo piense como el personaje antes de comprometerse; el motor lo guarda en la
-  telemetría y como entrada del diario.
+  telemetría y como entrada del diario. Además puede incluir `humor: { resumen, intensidad, origen_diario[], significativa? }` para proponer o revisar una impresión vinculada a episodios vividos (CP-210).
 * **Campos efectivos**, cerrados: `plan`, `actos`, `cambios_rutina`, `agenda`, `plazo_juego`,
   `pesos_atencion`. Solo admiten acciones del vocabulario e ids que el pulso ofrece.
 

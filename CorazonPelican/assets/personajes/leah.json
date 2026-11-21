@@ -42,5 +42,6 @@
       { "id": "saloon", "si": { "ubicacion": "Saloon" }, "contexto": ["personas_cerca"], "omitir_si_ya_penso": false, "cambios": ["saltar", "sustituir"], "limites": { "max_por_semana": 1, "nunca": ["festival"] } },
       { "id": "volver_a_casa", "si": { "ubicacion": "LeahHouse", "desde_hora": 1700, "hasta_hora": 2000 }, "contexto": ["obra_en_curso", "compromisos"] }
     ]
-  }
+  },
+  "humor": { "semivida_dias": 2.5, "max_intensidad": 0.85, "umbral_disipacion": 0.15, "umbral_sustitucion": 0.65 }
 }

@@ -51,6 +51,10 @@ namespace CorazonPelican.Core.Memoria
         [DataMember(Name = "intencion_activa")]
         public IntencionActiva? IntencionActiva { get; set; }
 
+        [JsonPropertyName("humor")]
+        [DataMember(Name = "humor")]
+        public EstadoHumor? Humor { get; set; }
+
         /// <summary>
         /// Registra un nuevo episodio en el diario con identificador estable único para este personaje
         /// (referenciable en <c>episodios_diario</c> de CP-211 y persistido en CP-107).
@@ -288,5 +292,34 @@ namespace CorazonPelican.Core.Memoria
         [JsonPropertyName("plazo_propuesto")]
         [DataMember(Name = "plazo_propuesto")]
         public TiempoJuego? PlazoPropuesto { get; set; }
+    }
+
+    /// <summary>Estado persistido de la impresión emocional vigente del personaje (P-9, CP-210).</summary>
+    [DataContract]
+    public sealed class EstadoHumor
+    {
+        [JsonPropertyName("resumen")]
+        [DataMember(Name = "resumen")]
+        public string Resumen { get; set; } = "";
+
+        [JsonPropertyName("intensidad_inicial")]
+        [DataMember(Name = "intensidad_inicial")]
+        public double IntensidadInicial { get; set; }
+
+        [JsonPropertyName("origen_diario")]
+        [DataMember(Name = "origen_diario")]
+        public List<string> OrigenDiario { get; set; } = new();
+
+        [JsonPropertyName("creado_en")]
+        [DataMember(Name = "creado_en")]
+        public TiempoJuego CreadoEn { get; set; } = new();
+
+        [JsonPropertyName("epoca")]
+        [DataMember(Name = "epoca")]
+        public string? Epoca { get; set; }
+
+        [JsonPropertyName("basada_en_pulso")]
+        [DataMember(Name = "basada_en_pulso")]
+        public long? BasadaEnPulso { get; set; }
     }
 }

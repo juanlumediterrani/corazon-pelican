@@ -388,28 +388,58 @@ class CicloMente:
             self.cache_memoria[personaje] = memoria
         return memoria
 
+    def _resolver_recuerdos_y_episodios(
+        self,
+        pulso: dict[str, Any],
+        recuerdos_explicitos: list[Any] | None,
+    ) -> tuple[list[Any] | None, list[str] | None]:
+        personaje = str(pulso.get("personaje") or "")
+        epoca = str(pulso.get("epoca") or "")
+        memoria = self._obtener_memoria_vigente(personaje, epoca)
+
+        recuerdos_finales = recuerdos_explicitos
+        if recuerdos_finales is None:
+            if memoria is not None and _tiene_contenido_memoria(memoria) and self.presupuesto_tokens_recuerdos > 0:
+                seleccionados = recuperar_recuerdos(
+                    memoria,
+                    pulso,
+                    presupuesto_tokens=self.presupuesto_tokens_recuerdos,
+                    max_recuerdos=self.max_recuerdos_contexto,
+                )
+                if seleccionados:
+                    recuerdos_finales = seleccionados
+            if recuerdos_finales is None:
+                recuerdos_finales = pulso.get("recuerdos")
+
+        if pulso.get("episodios_diario") is not None:
+            return recuerdos_finales, None
+
+        ids_ep: list[str] = []
+        if isinstance(memoria, dict):
+            for ep in memoria.get("diario") or []:
+                if isinstance(ep, dict) and isinstance(ep.get("id"), str) and ep["id"]:
+                    ids_ep.append(ep["id"])
+            for rec in memoria.get("recuerdos") or []:
+                if isinstance(rec, dict):
+                    for ep_id in rec.get("origen_diario") or []:
+                        if isinstance(ep_id, str) and ep_id:
+                            ids_ep.append(ep_id)
+        for item in recuerdos_finales or []:
+            if isinstance(item, dict):
+                if item.get("fuente") == "diario" and isinstance(item.get("id"), str) and item["id"]:
+                    ids_ep.append(item["id"])
+                for ep_id in item.get("origen_diario") or []:
+                    if isinstance(ep_id, str) and ep_id:
+                        ids_ep.append(ep_id)
+        return recuerdos_finales, ids_ep or None
+
     def _resolver_recuerdos_para_pulso(
         self,
         pulso: dict[str, Any],
         recuerdos_explicitos: list[Any] | None,
     ) -> list[Any] | None:
-        if recuerdos_explicitos is not None:
-            return recuerdos_explicitos
-
-        personaje = str(pulso.get("personaje") or "")
-        epoca = str(pulso.get("epoca") or "")
-        memoria = self._obtener_memoria_vigente(personaje, epoca)
-        if memoria is not None and _tiene_contenido_memoria(memoria) and self.presupuesto_tokens_recuerdos > 0:
-            seleccionados = recuperar_recuerdos(
-                memoria,
-                pulso,
-                presupuesto_tokens=self.presupuesto_tokens_recuerdos,
-                max_recuerdos=self.max_recuerdos_contexto,
-            )
-            if seleccionados:
-                return seleccionados
-
-        return pulso.get("recuerdos")
+        recuerdos_finales, _ = self._resolver_recuerdos_y_episodios(pulso, recuerdos_explicitos)
+        return recuerdos_finales
 
     def _puede_llamar_modelo(self, motivo: str, es_cadena: bool) -> bool:
         if self.presupuesto_tokens is None:
@@ -595,6 +625,7 @@ class CicloMente:
         esquema: dict[str, Any],
         *,
         recuerdos: list[Any] | None,
+        episodios_adicionales: list[str] | None,
         motivos_rechazo: list[Any] | None,
         es_reformulacion: bool,
         es_cadena: bool,
@@ -609,6 +640,7 @@ class CicloMente:
                 motivos_rechazo=motivos_rechazo,
                 plantillas=self.plantillas_cadenas,
                 max_reintentos_locales=self.max_reintentos_locales,
+                episodios_adicionales=episodios_adicionales,
                 puede_llamar=lambda: self._puede_llamar_modelo(motivo, True),
                 al_llamar_modelo=lambda prompt, bruto: self._registrar_coste_llamada(
                     pulso=pulso,
@@ -657,13 +689,14 @@ class CicloMente:
                 intentos_modelo=0,
             )
 
-        esquema = estrechar_esquema(pulso)
-        recuerdos_efectivos = self._resolver_recuerdos_para_pulso(pulso, recuerdos)
+        recuerdos_efectivos, episodios_adicionales = self._resolver_recuerdos_y_episodios(pulso, recuerdos)
+        esquema = estrechar_esquema(pulso, episodios_adicionales=episodios_adicionales)
 
         respuesta, errores, intentos, estado_local = self._preparar_respuesta_pulso(
             pulso,
             esquema,
             recuerdos=recuerdos_efectivos,
+            episodios_adicionales=episodios_adicionales,
             motivos_rechazo=None,
             es_reformulacion=False,
             es_cadena=cadena,
@@ -730,6 +763,7 @@ class CicloMente:
             pulso,
             esquema,
             recuerdos=recuerdos_efectivos,
+            episodios_adicionales=episodios_adicionales,
             motivos_rechazo=motivos,
             es_reformulacion=True,
             es_cadena=cadena,

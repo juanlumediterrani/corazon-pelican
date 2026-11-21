@@ -34,7 +34,22 @@ namespace CorazonPelican.Core.Api
                 throw new ArgumentNullException(nameof(obtenerEstado));
             }
 
-            api.RegistrarProveedorEstado(obtenerEstado, enHiloPrincipal);
+            api.RegistrarProveedorMemoria(
+                personaje =>
+                {
+                    var motor = obtenerMotor(personaje);
+                    if (motor is not null)
+                    {
+                        motor.Epoca = api.EpocaVigente ?? motor.Epoca;
+                        return motor.ConstruirInstantaneaMemoria();
+                    }
+
+                    var estado = obtenerEstado(personaje);
+                    return estado is null
+                        ? null
+                        : Consolidacion.ProyectarInstantaneaMemoria(estado, personaje, api.EpocaVigente ?? string.Empty);
+                },
+                enHiloPrincipal);
             api.RegistrarProveedorEscena(
                 personaje =>
                 {

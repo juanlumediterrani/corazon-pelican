@@ -277,6 +277,21 @@ namespace CorazonPelican.Core.Memoria
                 }
             }
 
+            if (estado.Humor is { } humor)
+            {
+                if (humor.OrigenDiario is null)
+                {
+                    humor.OrigenDiario = new List<string>();
+                    cambiado = true;
+                }
+
+                if (humor.CreadoEn is null)
+                {
+                    humor.CreadoEn = new TiempoJuego { Dia = 1, Hora = Tiempo.HoraJuego.InicioDia };
+                    cambiado = true;
+                }
+            }
+
             return cambiado;
         }
 

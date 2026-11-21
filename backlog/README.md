@@ -34,11 +34,11 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas seis fichas están pendientes y tienen todas sus dependencias hechas.
+Estas cinco fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-210 humor y conducta · CP-215 proveedor de la mente · CP-502 compromisos |
+| P1 | CP-215 proveedor de la mente · CP-502 compromisos |
 | P2 | CP-006 medición de lugares 🎮 · CP-216 tokens de cadenas · CP-506 validador de menciones |
 
 CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
@@ -78,7 +78,7 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-207](tareas/CP-207-costes-tokens.md) | Presupuesto de tokens, caché de prompt y telemetría de costes | F2 | P2 | CP-204 | hecha |
 | [CP-208](tareas/CP-208-aceptacion-pulsion.md) | Aceptación de fase 2 · medir la cadencia de pensamiento en vanilla y en Pelican 🎮 | F2 | P2 | CP-202, CP-204, CP-206, CP-207, CP-209, CP-210, CP-108 | pendiente |
 | [CP-209](tareas/CP-209-cadenas-despertar-acostarse.md) | Cadenas de pensamiento en los hitos, empezando por despertar y acostarse | F2 | P1 | CP-201, CP-204, CP-206, CP-212 | hecha |
-| [CP-210](tareas/CP-210-humor-y-conducta.md) | Conservar el humor nacido de lo vivido y observar su efecto en la conducta | F2 | P1 | CP-107, CP-206, CP-209 | pendiente |
+| [CP-210](tareas/CP-210-humor-y-conducta.md) | Conservar el humor nacido de lo vivido y observar su efecto en la conducta | F2 | P1 | CP-107, CP-206, CP-209 | hecha |
 | [CP-211](tareas/CP-211-origen-de-las-reflexiones.md) | Transportar y comprobar el origen de las reflexiones del diario | F2 | P1 | CP-002 | hecha |
 | [CP-212](tareas/CP-212-agenda-y-cambios-rutina.md) | Agenda del día y validador de cambios de rutina en Core (R-16) | F2 | P1 | CP-003, CP-201 | hecha |
 | [CP-213](tareas/CP-213-aplicar-respuestas-en-el-host.md) | Confirmar las respuestas de memoria después de aplicarlas en el host | F2 | P1 | CP-203, CP-206, CP-109 | hecha |

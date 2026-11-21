@@ -25,6 +25,25 @@ namespace CorazonPelican.Core.Perfil
         [DataMember(Name = "acciones")] public List<string> Acciones { get; set; } = new();
         [DataMember(Name = "formatos_obra")] public List<string> FormatosObra { get; set; } = new();
         [DataMember(Name = "rutina")] public Rutina Rutina { get; set; } = new();
+        [DataMember(Name = "humor", EmitDefaultValue = false)] public ConfigHumor? Humor { get; set; }
+
+        /// <summary>Devuelve los parámetros de humor del perfil o sus valores calibrados por defecto (CP-210).</summary>
+        public ConfigHumor ObtenerConfigHumor() => this.Humor ?? new ConfigHumor();
+    }
+
+    /// <summary>Parámetros de conservación, atenuación y sustitución del humor entre días (P-9, CP-210).</summary>
+    [DataContract]
+    public sealed class ConfigHumor
+    {
+        public const double SemividaDiasPorDefecto = 2.5;
+        public const double MaxIntensidadPorDefecto = 0.85;
+        public const double UmbralDisipacionPorDefecto = 0.15;
+        public const double UmbralSustitucionPorDefecto = 0.65;
+
+        [DataMember(Name = "semivida_dias")] public double SemividaDias { get; set; } = SemividaDiasPorDefecto;
+        [DataMember(Name = "max_intensidad")] public double MaxIntensidad { get; set; } = MaxIntensidadPorDefecto;
+        [DataMember(Name = "umbral_disipacion")] public double UmbralDisipacion { get; set; } = UmbralDisipacionPorDefecto;
+        [DataMember(Name = "umbral_sustitucion")] public double UmbralSustitucion { get; set; } = UmbralSustitucionPorDefecto;
     }
 
     [DataContract]

@@ -434,6 +434,15 @@ namespace CorazonPelican.Core.Atencion
                 motivos.Add(errorMemoria);
             }
 
+            if (respuesta.Humor is not null)
+            {
+                var errorHumor = GestorHumor.ValidarPropuesta(pulso, respuesta, this.Estado);
+                if (errorHumor is not null)
+                {
+                    motivos.Add(errorHumor);
+                }
+            }
+
             var obsVigente = this.UltimaObservacion ?? CrearObservacionDesdePulso(pulso);
             var agendaValidacion = this.AgendaActual ?? AgendaDia.DesdeHorario(null, this.Perfil);
             var cambios = respuesta.Intencion?.CambiosRutina;
@@ -535,8 +544,38 @@ namespace CorazonPelican.Core.Atencion
                 }
             }
 
+            if (respuesta.Humor is not null)
+            {
+                var resHumor = GestorHumor.AplicarPropuesta(this.Estado, pulso, respuesta, this.Perfil.ObtenerConfigHumor());
+                if (!resHumor.Aceptada && resHumor.MotivoRechazo is not null)
+                {
+                    var rechazoHumor = Resultado.Rechazar(resHumor.MotivoRechazo);
+                    this.telemetria?.RegistrarRechazo(this.Perfil.Id, respuesta.BasadaEn, rechazoHumor, pulso.Epoca);
+                    return rechazoHumor;
+                }
+            }
+
             this.telemetria?.RegistrarRespuesta(respuesta, this.Perfil.Id);
             return new Resultado { Estado = Resultado.Aceptada };
+        }
+
+        /// <summary>Proyecta la instantánea de memoria para la API aplicando la atenuación vigente del humor.</summary>
+        public InstantaneaMemoria ConstruirInstantaneaMemoria()
+        {
+            TiempoJuego? ahora = this.UltimaObservacion is { } obs
+                ? new TiempoJuego
+                {
+                    Dia = Math.Max(1, obs.Dia),
+                    Hora = Math.Clamp(obs.Hora, HoraJuego.InicioDia, HoraJuego.FinDia),
+                }
+                : null;
+
+            return Consolidacion.ProyectarInstantaneaMemoria(
+                this.Estado,
+                this.Perfil.Id,
+                this.Epoca,
+                ahora,
+                this.Perfil.ObtenerConfigHumor());
         }
 
         private (Pulso Pulso, EscenaGenerada Escena) EmitirPulsoDesdeDisparo(
@@ -606,6 +645,12 @@ namespace CorazonPelican.Core.Atencion
             if (compromisosActivos.Count > 0)
             {
                 pulso.CompromisosProximos = compromisosActivos;
+            }
+
+            var humorVigente = GestorHumor.ObtenerVigente(this.Estado, pulso.TiempoJuego, this.Perfil.ObtenerConfigHumor());
+            if (humorVigente is not null)
+            {
+                pulso.Humor = humorVigente;
             }
 
             if (motivoPulso == Motivos.Hito)

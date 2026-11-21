@@ -43,6 +43,7 @@ namespace CorazonPelican.Core.Api
         [JsonPropertyName("relaciones")] public Dictionary<string, RelacionMemoria> Relaciones { get; set; } = new();
         [JsonPropertyName("compromisos")] public List<CompromisoProximo> Compromisos { get; set; } = new();
         [JsonPropertyName("portafolio")] public List<Obra> Portafolio { get; set; } = new();
+        [JsonPropertyName("humor")] public HumorVigente? Humor { get; set; }
     }
 
     public sealed class EntradaDiarioMemoria

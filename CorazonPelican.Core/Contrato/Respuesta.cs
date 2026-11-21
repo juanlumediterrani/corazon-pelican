@@ -17,6 +17,7 @@ namespace CorazonPelican.Core.Contrato
         [JsonPropertyName("frase")] public string? Frase { get; set; }
         [JsonPropertyName("actos")] public List<Acto>? Actos { get; set; }
         [JsonPropertyName("memoria")] public MemoriaPropuesta? Memoria { get; set; }
+        [JsonPropertyName("humor")] public HumorPropuesto? Humor { get; set; }
         [JsonPropertyName("obra")] public ObraPropuesta? Obra { get; set; }
         [JsonPropertyName("agenda")] public List<EstadoAgenda>? Agenda { get; set; }
     }

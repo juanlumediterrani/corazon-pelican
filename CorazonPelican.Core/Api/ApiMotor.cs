@@ -690,6 +690,7 @@ namespace CorazonPelican.Core.Api
             return respuesta.Intencion is not null
                 || (respuesta.Actos is { Count: > 0 })
                 || respuesta.Memoria is not null
+                || respuesta.Humor is not null
                 || respuesta.Obra is not null
                 || (respuesta.Agenda is { Count: > 0 });
         }

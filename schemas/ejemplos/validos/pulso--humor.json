@@ -1,0 +1,30 @@
+{
+  "id": 1060,
+  "epoca": "01JC8Q2M5V7K3T9W4X6Y8Z0A1B",
+  "personaje": "leah",
+  "motivo": "hito",
+  "tiempo_juego": { "dia": 69, "hora": 600 },
+  "hito": { "id": "despertar", "origen": "rutina", "forma": "cadena" },
+  "escena": "Amanece en tu casa con olor a pino humedecido por la lluvia.",
+  "hechos": { "energia": "alta", "cerca": [] },
+  "acciones_disponibles": ["ir_a(pasarela_lago)", "dibujar", "volver_a_rutina"],
+  "lugares": [
+    { "id": "tu_casa", "prosa": "tu casa" },
+    { "id": "pasarela_lago", "prosa": "la pasarela de madera del lago" }
+  ],
+  "bufer": [],
+  "huella": { "desde_ultimo_pensamiento_min_juego": 0, "prosa": "", "entidades": [] },
+  "agenda": [
+    { "hito": "Fri:900", "prosa": "trabajar en la cabaña", "estado": "pendiente" }
+  ],
+  "recuerdos": [
+    "La luz limpia de la tarde anterior me dejó con ganas de volver al lago."
+  ],
+  "humor": {
+    "resumen": "serena tras la tarde tranquila junto al agua",
+    "intensidad": 0.65,
+    "intensidad_inicial": 0.85,
+    "origen_diario": ["ep-12"],
+    "creado_en": { "dia": 68, "hora": 2200 }
+  }
+}

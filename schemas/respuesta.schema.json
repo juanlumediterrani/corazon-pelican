@@ -117,6 +117,7 @@
       "oneOf": [ { "required": ["recordar"] }, { "required": ["reflexiones"] } ],
       "additionalProperties": false
     },
+    "humor": { "$ref": "comun.schema.json#/$defs/humorPropuesto" },
     "obra": {
       "description": "Decisión de una obra nueva para el taller (GSS §6.1).",
       "type": "object",

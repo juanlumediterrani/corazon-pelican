@@ -289,6 +289,24 @@ namespace CorazonPelican.Core.Memoria
                         errores.Add($"Personaje «{personajeId}»: los contadores de pulsos no pueden ser negativos.");
                     }
                 }
+
+                if (personaje.Humor is { } humor)
+                {
+                    if (string.IsNullOrWhiteSpace(humor.Resumen))
+                    {
+                        errores.Add($"Personaje «{personajeId}»: el humor persistido requiere un resumen.");
+                    }
+
+                    if (humor.IntensidadInicial <= 0 || humor.IntensidadInicial > 1)
+                    {
+                        errores.Add($"Personaje «{personajeId}»: intensidad_inicial del humor debe estar en (0, 1].");
+                    }
+
+                    if (humor.OrigenDiario is null || humor.OrigenDiario.Count == 0)
+                    {
+                        errores.Add($"Personaje «{personajeId}»: el humor persistido requiere origen_diario.");
+                    }
+                }
             }
 
             return errores;
@@ -340,6 +358,7 @@ namespace CorazonPelican.Core.Memoria
                 Compromisos = origen.Compromisos ?? new List<CompromisoEstado>(),
                 Contadores = origen.Contadores,
                 IntencionActiva = origen.IntencionActiva,
+                Humor = origen.Humor,
             };
         }
 

@@ -62,4 +62,23 @@ namespace CorazonPelican.Core.Contrato
         [JsonPropertyName("campo")] public string Campo { get; set; } = "";
         [JsonPropertyName("prosa")] public string Prosa { get; set; } = "";
     }
+
+    /// <summary>Impresión emocional vigente custodiada por el host (P-9, CP-210).</summary>
+    public sealed class HumorVigente
+    {
+        [JsonPropertyName("resumen")] public string Resumen { get; set; } = "";
+        [JsonPropertyName("intensidad")] public double Intensidad { get; set; }
+        [JsonPropertyName("intensidad_inicial")] public double? IntensidadInicial { get; set; }
+        [JsonPropertyName("origen_diario")] public List<string> OrigenDiario { get; set; } = new();
+        [JsonPropertyName("creado_en")] public TiempoJuego? CreadoEn { get; set; }
+    }
+
+    /// <summary>Impresión emocional propuesta por la mente vinculada a episodios vividos (P-9, CP-210).</summary>
+    public sealed class HumorPropuesto
+    {
+        [JsonPropertyName("resumen")] public string Resumen { get; set; } = "";
+        [JsonPropertyName("intensidad")] public double Intensidad { get; set; }
+        [JsonPropertyName("origen_diario")] public List<string> OrigenDiario { get; set; } = new();
+        [JsonPropertyName("significativa")] public bool? Significativa { get; set; }
+    }
 }

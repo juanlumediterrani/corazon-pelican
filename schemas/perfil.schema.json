@@ -93,6 +93,17 @@
         }
       },
       "required": ["por_defecto", "anotaciones"], "additionalProperties": false
+    },
+    "humor": {
+      "description": "Parámetros de conservación, atenuación y sustitución del humor entre días (P-9, CP-210).",
+      "type": "object",
+      "properties": {
+        "semivida_dias": { "type": "number", "exclusiveMinimum": 0 },
+        "max_intensidad": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "umbral_disipacion": { "type": "number", "minimum": 0, "exclusiveMaximum": 1 },
+        "umbral_sustitucion": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
     }
   },
   "required": ["id", "npc", "rasgos", "umbrales", "refractario", "presupuesto", "lexico", "plantillas", "apertura", "voz", "acciones", "formatos_obra", "rutina"],

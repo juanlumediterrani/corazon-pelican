@@ -31,6 +31,7 @@ namespace CorazonPelican.Core.Contrato
         [JsonPropertyName("episodios_diario")] public Dictionary<string, string>? EpisodiosDiario { get; set; }
         [JsonPropertyName("diario_dia")] public List<string>? DiarioDia { get; set; }
         [JsonPropertyName("recuerdos")] public List<string>? Recuerdos { get; set; }
+        [JsonPropertyName("humor")] public HumorVigente? Humor { get; set; }
         [JsonPropertyName("interlocutor")] public Interlocutor? Interlocutor { get; set; }
         [JsonPropertyName("caduca_en_ms")] public int? CaducaEnMs { get; set; }
     }

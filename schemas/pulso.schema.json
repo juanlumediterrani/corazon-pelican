@@ -129,6 +129,7 @@
       "description": "Recuerdos recuperados para este pulso (en «despertar», los pendientes de ayer).",
       "type": "array", "items": { "$ref": "comun.schema.json#/$defs/prosa" }
     },
+    "humor": { "$ref": "comun.schema.json#/$defs/humorVigente" },
     "interlocutor": {
       "type": "object",
       "properties": { "ref": { "$ref": "comun.schema.json#/$defs/ref" }, "texto": { "type": "string" } },

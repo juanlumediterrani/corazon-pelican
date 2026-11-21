@@ -105,16 +105,29 @@ def _extraer_obras(pulso: dict[str, Any]) -> list[str]:
     )
 
 
-def _extraer_episodios(pulso: dict[str, Any]) -> list[str]:
+def _extraer_episodios(
+    pulso: dict[str, Any],
+    episodios_adicionales: Iterable[str] | None = None,
+) -> list[str]:
     episodios = pulso.get("episodios_diario")
-    if not isinstance(episodios, dict):
-        return []
-    return _deduplicar(k for k in episodios.keys() if isinstance(k, str))
+    if isinstance(episodios, dict):
+        return _deduplicar(k for k in episodios.keys() if isinstance(k, str))
+    ids: list[str] = []
+    if episodios_adicionales is not None:
+        ids.extend(ep for ep in episodios_adicionales if isinstance(ep, str) and ep)
+    humor = pulso.get("humor")
+    if isinstance(humor, dict):
+        for ep in humor.get("origen_diario") or []:
+            if isinstance(ep, str) and ep:
+                ids.append(ep)
+    return _deduplicar(ids)
 
 
 def estrechar_esquema(
     pulso: dict[str, Any],
     esquema_base: dict[str, Any] | None = None,
+    *,
+    episodios_adicionales: Iterable[str] | None = None,
 ) -> dict[str, Any]:
     """Construye un JSON Schema válido, subconjunto estricto de `respuesta.schema.json`,
     cerrando dinámicamente acciones, lugares, referencias de entidades, hitos, obras y episodios
@@ -141,7 +154,7 @@ def estrechar_esquema(
     defs["ref"]["enum"] = _extraer_entidades(pulso)
     defs["idHito"]["enum"] = _extraer_hitos(pulso)
     defs["idObra"]["enum"] = _extraer_obras(pulso)
-    defs["idEpisodio"]["enum"] = _extraer_episodios(pulso)
+    defs["idEpisodio"]["enum"] = _extraer_episodios(pulso, episodios_adicionales)
 
     agenda_prop = esquema.get("properties", {}).get("agenda")
     if isinstance(agenda_prop, dict):

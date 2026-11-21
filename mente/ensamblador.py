@@ -205,6 +205,18 @@ def ensamblar_prompt(
     if recuerdos_activos:
         secciones.append("## Recuerdos\n" + "\n".join(_formatear_recuerdos(recuerdos_activos)))
 
+    humor = pulso.get("humor")
+    if isinstance(humor, dict) and humor.get("resumen"):
+        lineas_hum = [
+            f"{humor['resumen']} (intensidad {float(humor.get('intensidad', 0.0)):.2f})",
+        ]
+        origen_hum = humor.get("origen_diario") or []
+        if origen_hum:
+            etiquetas = ", ".join(f"`{ep}`" for ep in origen_hum if isinstance(ep, str) and ep)
+            if etiquetas:
+                lineas_hum.append(f"Origen: {etiquetas}")
+        secciones.append("## Humor vigente\n" + "\n".join(lineas_hum))
+
     if motivos_rechazo:
         secciones.append(
             "## Rechazo anterior — reformula tu respuesta\n"

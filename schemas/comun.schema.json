@@ -88,6 +88,41 @@
         "prosa": { "$ref": "#/$defs/prosa" }
       },
       "required": ["codigo", "campo", "prosa"], "additionalProperties": false
+    },
+    "humorVigente": {
+      "description": "Impresión emocional conservada por el host con su procedencia y decaimiento (P-9, CP-210).",
+      "type": "object",
+      "properties": {
+        "resumen": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "intensidad": { "type": "number", "minimum": 0, "maximum": 1 },
+        "intensidad_inicial": { "type": "number", "minimum": 0, "maximum": 1 },
+        "origen_diario": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/idEpisodio" }
+        },
+        "creado_en": { "$ref": "#/$defs/tiempoJuego" }
+      },
+      "required": ["resumen", "intensidad", "origen_diario"],
+      "additionalProperties": false
+    },
+    "humorPropuesto": {
+      "description": "Impresión emocional propuesta por la mente vinculada a episodios vividos (P-9, CP-210).",
+      "type": "object",
+      "properties": {
+        "resumen": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "intensidad": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "origen_diario": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/idEpisodio" }
+        },
+        "significativa": { "type": "boolean" }
+      },
+      "required": ["resumen", "intensidad", "origen_diario"],
+      "additionalProperties": false
     }
   }
 }

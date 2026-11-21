@@ -64,6 +64,7 @@ namespace CorazonPelican.Core.Perfil
             ValidarAcciones(perfil.Acciones, r);
             ValidarFormatos(perfil.FormatosObra, r);
             ValidarRutina(perfil.Rutina, r);
+            ValidarHumor(perfil.Humor, r);
             return r;
         }
 
@@ -350,6 +351,39 @@ namespace CorazonPelican.Core.Perfil
             if (si.DesdeHora is not null && si.HastaHora is not null && si.DesdeHora >= si.HastaHora)
             {
                 r.Errores.Add(new($"{campo}.si", $"la franja {si.DesdeHora}–{si.HastaHora} está vacía o invertida."));
+            }
+        }
+
+        private static void ValidarHumor(ConfigHumor? humor, ResultadoValidacionPerfil r)
+        {
+            if (humor is null)
+            {
+                return;
+            }
+
+            if (double.IsNaN(humor.SemividaDias) || double.IsInfinity(humor.SemividaDias) || humor.SemividaDias <= 0)
+            {
+                r.Errores.Add(new("humor.semivida_dias", "debe ser mayor que 0 días de juego."));
+            }
+
+            if (double.IsNaN(humor.MaxIntensidad) || double.IsInfinity(humor.MaxIntensidad) || humor.MaxIntensidad <= 0 || humor.MaxIntensidad > 1)
+            {
+                r.Errores.Add(new("humor.max_intensidad", "debe situarse en (0, 1]."));
+            }
+
+            if (double.IsNaN(humor.UmbralDisipacion) || double.IsInfinity(humor.UmbralDisipacion) || humor.UmbralDisipacion < 0 || humor.UmbralDisipacion >= 1)
+            {
+                r.Errores.Add(new("humor.umbral_disipacion", "debe situarse en [0, 1)."));
+            }
+
+            if (double.IsNaN(humor.UmbralSustitucion) || double.IsInfinity(humor.UmbralSustitucion) || humor.UmbralSustitucion <= 0 || humor.UmbralSustitucion > 1)
+            {
+                r.Errores.Add(new("humor.umbral_sustitucion", "debe situarse en (0, 1]."));
+            }
+
+            if (humor.UmbralDisipacion >= humor.MaxIntensidad)
+            {
+                r.Errores.Add(new("humor.umbral_disipacion", "debe ser menor que humor.max_intensidad."));
             }
         }
     }
