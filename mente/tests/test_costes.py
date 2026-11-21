@@ -93,13 +93,15 @@ class TestRegistroCostesYPresupuesto:
         motor = MotorSimulado(epoca="ep-costes-1")
         motor.pulsos = [pulso_ord, pulso_cad, pulso_inter]
 
-        # Se procesa primero interlocución (id=12), luego ordinario (id=10, con fallo y reintento), luego cadena (id=11).
+        # Se procesa primero interlocución (id=12), luego ordinario (id=10, con fallo y reintento), luego cadena despertar en 3 pasos (id=11).
         modelo = FakeLLM(
             modelo="claude-sonnet-4-5",
             respuestas=[
                 {"pensamiento": "Saludo a Ana junto al lago.", "frase": "Hola, Ana."},
                 "{json-roto",
                 {"pensamiento": "Vuelvo a casa tras el fallo.", "intencion": {"objetivo": "volver", "porque": "noche", "plan": [{"accion": "ir_a", "lugar": "tu_casa"}]}},
+                {"pensamiento": "Repaso lo pendiente de ayer."},
+                {"pensamiento": "Observo cómo amanece la mañana."},
                 {"pensamiento": "Empiezo el día en calma."},
             ],
         )
@@ -114,10 +116,10 @@ class TestRegistroCostesYPresupuesto:
             resultados = ciclo.ejecutar_paso(espera_ms=0)
 
         assert [r.estado for r in resultados] == ["aceptada", "aceptada", "aceptada"]
-        assert len(modelo.llamadas) == 4
+        assert len(modelo.llamadas) == 6
 
         registros = [json.loads(linea) for linea in ruta_costes.read_text(encoding="utf-8").splitlines()]
-        assert len(registros) == 4
+        assert len(registros) == 6
 
         campos_obligatorios = {
             "timestamp_utc",
@@ -140,20 +142,22 @@ class TestRegistroCostesYPresupuesto:
             assert reg["tokens_salida"] > 0
             assert reg["coste_usd"] > 0
 
-        # Interlocución se procesó primero (id=12), luego ordinario con 1 reintento (id=10 x2), luego cadena (id=11).
-        assert [r["pulso_id"] for r in registros] == [12, 10, 10, 11]
-        assert [r["es_cadena"] for r in registros] == [False, False, False, True]
+        # Interlocución se procesó primero (id=12), luego ordinario con 1 reintento (id=10 x2), luego cadena despertar (id=11 x3 pasos).
+        assert [r["pulso_id"] for r in registros] == [12, 10, 10, 11, 11, 11]
+        assert [r["es_cadena"] for r in registros] == [False, False, False, True, True, True]
         assert registros[0]["en_cache"] is False
         assert registros[1]["en_cache"] is True
         assert registros[2]["en_cache"] is True
         assert registros[3]["en_cache"] is True
+        assert registros[4]["en_cache"] is True
+        assert registros[5]["en_cache"] is True
 
         resumen = presupuesto.resumen()
-        assert resumen["llamadas_totales"] == 4
+        assert resumen["llamadas_totales"] == 6
         assert resumen["llamadas_interlocucion"] == 1
         assert resumen["llamadas_ordinarias"] == 2
-        assert resumen["llamadas_cadenas"] == 1
-        assert resumen["llamadas_en_cache"] == 3
+        assert resumen["llamadas_cadenas"] == 3
+        assert resumen["llamadas_en_cache"] == 5
         assert resumen["tokens_cadenas"] > 0
         assert resumen["tokens_ordinarios"] > 0
         assert resumen["coste_total_usd"] == pytest.approx(
@@ -186,7 +190,7 @@ class TestRegistroCostesYPresupuesto:
         modelo = FakeLLM(modelo="gemini-2.5-flash")
         presupuesto = PresupuestoTokens(
             limite_tokens_dia=5_000,
-            limite_tokens_cadenas=3_000,
+            limite_tokens_cadenas=10_000,
             modelo="gemini-2.5-flash",
             ruta_costes=ruta_costes,
         )
@@ -197,12 +201,19 @@ class TestRegistroCostesYPresupuesto:
 
         assert [r.estado for r in resultados] == ["aceptada", "aceptada"]
         registros = [json.loads(l) for l in ruta_costes.read_text(encoding="utf-8").splitlines()]
-        # 1 llamada para la cadena (id=20) + 2 llamadas para el ordinario reformulado (id=21)
-        assert [(r["pulso_id"], r["es_cadena"]) for r in registros] == [(20, True), (21, False), (21, False)]
+        # 4 pasos para la cadena acostarse (id=20) + 2 llamadas para el ordinario reformulado (id=21)
+        assert [(r["pulso_id"], r["es_cadena"]) for r in registros] == [
+            (20, True),
+            (20, True),
+            (20, True),
+            (20, True),
+            (21, False),
+            (21, False),
+        ]
         resumen = presupuesto.resumen()
-        assert resumen["llamadas_cadenas"] == 1
+        assert resumen["llamadas_cadenas"] == 4
         assert resumen["llamadas_ordinarias"] == 2
-        assert resumen["tokens_cadenas"] < 3_000
+        assert resumen["tokens_cadenas"] < 10_000
         assert resumen["tokens_ordinarios"] < 5_000
         assert presupuesto.puede_gastar("deriva")
 

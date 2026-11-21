@@ -892,6 +892,28 @@ namespace CorazonPelican.Core.Api
                 return false;
             }
 
+            if (EsCadenaAcostarse(pulso))
+            {
+                var diaPulso = pulso.TiempoJuego?.Dia ?? 0;
+                for (var i = this.pulsosOrdenados.Count - 1; i >= 0; i--)
+                {
+                    var candidato = this.pulsosOrdenados[i];
+                    if (candidato.Id <= pulso.Id)
+                    {
+                        break;
+                    }
+
+                    if (string.Equals(candidato.Personaje, pulso.Personaje, StringComparison.Ordinal)
+                        && EsCadenaAcostarse(candidato)
+                        && (candidato.TiempoJuego?.Dia ?? 0) > diaPulso)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
             var prioridadBase = PrioridadMotivo(pulso.Motivo);
             for (var i = this.pulsosOrdenados.Count - 1; i >= 0; i--)
             {
@@ -910,6 +932,11 @@ namespace CorazonPelican.Core.Api
 
             return false;
         }
+
+        private static bool EsCadenaAcostarse(Pulso pulso)
+            => pulso.Motivo == Motivos.Hito
+               && string.Equals(pulso.Hito?.Id, Intencion.HitosRutina.Acostarse, StringComparison.Ordinal)
+               && string.Equals(pulso.Hito?.Origen, Intencion.HitosRutina.OrigenRutina, StringComparison.Ordinal);
 
         private static int PrioridadMotivo(string motivo) => motivo switch
         {

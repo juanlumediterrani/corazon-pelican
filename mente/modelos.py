@@ -83,6 +83,20 @@ def _extraer_hitos(pulso: dict[str, Any]) -> list[str]:
     )
 
 
+def _extraer_hitos_agenda(pulso: dict[str, Any]) -> list[str]:
+    ids: list[str] = list(_extraer_hitos(pulso))
+    for comp in pulso.get("compromisos_proximos") or []:
+        if isinstance(comp, dict) and isinstance(comp.get("id"), str) and comp["id"]:
+            ids.append(comp["id"])
+    intencion_activa = pulso.get("intencion_activa")
+    if isinstance(intencion_activa, dict) and isinstance(intencion_activa.get("id"), str) and intencion_activa["id"]:
+        ids.append(intencion_activa["id"])
+    pulso_id = pulso.get("id")
+    if isinstance(pulso_id, int) and not isinstance(pulso_id, bool) and pulso_id >= 1:
+        ids.append(f"int-{pulso_id}")
+    return _deduplicar(ids)
+
+
 def _extraer_obras(pulso: dict[str, Any]) -> list[str]:
     return _deduplicar(
         item["id"]
@@ -128,6 +142,16 @@ def estrechar_esquema(
     defs["idHito"]["enum"] = _extraer_hitos(pulso)
     defs["idObra"]["enum"] = _extraer_obras(pulso)
     defs["idEpisodio"]["enum"] = _extraer_episodios(pulso)
+
+    agenda_prop = esquema.get("properties", {}).get("agenda")
+    if isinstance(agenda_prop, dict):
+        items_prop = agenda_prop.get("items")
+        if isinstance(items_prop, dict) and isinstance(items_prop.get("properties"), dict):
+            if "hito" in items_prop["properties"]:
+                items_prop["properties"]["hito"] = {
+                    "type": "string",
+                    "enum": _extraer_hitos_agenda(pulso),
+                }
 
     return esquema
 

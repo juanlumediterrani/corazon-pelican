@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Any
 
 import httpx
 
+from mente.cadenas import ejecutar_cadena
 from mente.costes import (
     PresupuestoTokens,
     RegistroCostes,
@@ -21,6 +23,7 @@ from mente.costes import (
 )
 from mente.ensamblador import PromptEnsamblado, ensamblar_prompt
 from mente.modelos import (
+    ErrorModeloError,
     ModeloMente,
     PresupuestoTokensAgotadoError,
     estrechar_esquema,
@@ -200,11 +203,45 @@ class ResultadoPulso:
 
 
 def _ordenar_prioridad_pulsos(pulsos: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Interlocución primero; después en orden creciente de id (ADS §6)."""
-    return sorted(
+    """Interlocución primero; después en orden creciente de id asegurando `acostarse` antes de `despertar` (ADS §6)."""
+    base = sorted(
         pulsos,
         key=lambda p: (0 if p.get("motivo") == "interlocucion" else 1, int(p.get("id", 0))),
     )
+    resultado: list[dict[str, Any]] = []
+    pendientes = list(base)
+    while pendientes:
+        siguiente = pendientes.pop(0)
+        hito = siguiente.get("hito")
+        personaje = str(siguiente.get("personaje") or "")
+        if (
+            siguiente.get("motivo") != "interlocucion"
+            and isinstance(hito, dict)
+            and hito.get("id") == "despertar"
+        ):
+            dia_desp = (siguiente.get("tiempo_juego") or {}).get("dia")
+            idx_acostarse = next(
+                (
+                    i
+                    for i, cand in enumerate(pendientes)
+                    if cand.get("motivo") != "interlocucion"
+                    and str(cand.get("personaje") or "") == personaje
+                    and isinstance(cand.get("hito"), dict)
+                    and cand["hito"].get("id") == "acostarse"
+                    and (
+                        dia_desp is None
+                        or (cand.get("tiempo_juego") or {}).get("dia") is None
+                        or int((cand.get("tiempo_juego") or {}).get("dia")) <= int(dia_desp)
+                    )
+                ),
+                None,
+            )
+            if idx_acostarse is not None:
+                resultado.append(pendientes.pop(idx_acostarse))
+                pendientes.insert(0, siguiente)
+                continue
+        resultado.append(siguiente)
+    return resultado
 
 
 def _normalizar_respuesta(bruto: dict[str, Any] | str, pulso: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
@@ -279,6 +316,7 @@ class CicloMente:
         presupuesto_tokens_recuerdos: int = 400,
         max_recuerdos_contexto: int | None = None,
         recuperar_memoria_automatica: bool = True,
+        plantillas_cadenas: Mapping[Any, Any] | None = None,
     ) -> None:
         self.cliente = cliente
         self.modelo = modelo
@@ -292,6 +330,7 @@ class CicloMente:
         self.presupuesto_tokens_recuerdos = max(0, int(presupuesto_tokens_recuerdos))
         self.max_recuerdos_contexto = max_recuerdos_contexto
         self.recuperar_memoria_automatica = bool(recuperar_memoria_automatica)
+        self.plantillas_cadenas = plantillas_cadenas
         self.cursor = self.almacen_cursor.cargar()
         self.cache_memoria: dict[str, dict[str, Any]] = {}
         self._prefijos_cache_costes: set[str] = set()
@@ -550,6 +589,51 @@ class CicloMente:
 
         return None, ["Error inesperado de validación."], intentos, False
 
+    def _preparar_respuesta_pulso(
+        self,
+        pulso: dict[str, Any],
+        esquema: dict[str, Any],
+        *,
+        recuerdos: list[Any] | None,
+        motivos_rechazo: list[Any] | None,
+        es_reformulacion: bool,
+        es_cadena: bool,
+    ) -> tuple[dict[str, Any] | None, list[str], int, str]:
+        motivo = str(pulso.get("motivo") or "")
+        if es_cadena:
+            res_cadena = ejecutar_cadena(
+                pulso,
+                self.modelo,
+                self.voz,
+                recuerdos=recuerdos,
+                motivos_rechazo=motivos_rechazo,
+                plantillas=self.plantillas_cadenas,
+                max_reintentos_locales=self.max_reintentos_locales,
+                puede_llamar=lambda: self._puede_llamar_modelo(motivo, True),
+                al_llamar_modelo=lambda prompt, bruto: self._registrar_coste_llamada(
+                    pulso=pulso,
+                    prompt=prompt,
+                    respuesta=bruto,
+                    es_cadena=True,
+                ),
+                al_registrar_evento=self.telemetria.registrar,
+            )
+            return res_cadena.respuesta, res_cadena.errores, res_cadena.intentos_modelo, res_cadena.estado
+
+        respuesta, errores, intentos, agotado = self._generar_y_validar(
+            pulso,
+            esquema,
+            recuerdos=recuerdos,
+            motivos_rechazo=motivos_rechazo,
+            es_reformulacion=es_reformulacion,
+            es_cadena=False,
+        )
+        if respuesta is not None:
+            return respuesta, [], intentos, "completa"
+        if agotado:
+            return None, errores, intentos, "presupuesto_agotado"
+        return None, errores, intentos, "rechazada_local"
+
     def procesar_pulso(
         self,
         pulso: dict[str, Any],
@@ -576,7 +660,7 @@ class CicloMente:
         esquema = estrechar_esquema(pulso)
         recuerdos_efectivos = self._resolver_recuerdos_para_pulso(pulso, recuerdos)
 
-        respuesta, errores, intentos, agotado = self._generar_y_validar(
+        respuesta, errores, intentos, estado_local = self._preparar_respuesta_pulso(
             pulso,
             esquema,
             recuerdos=recuerdos_efectivos,
@@ -588,7 +672,7 @@ class CicloMente:
             return ResultadoPulso(
                 pulso_id=pulso_id,
                 epoca=epoca,
-                estado="presupuesto_agotado" if agotado else "rechazada_local",
+                estado=estado_local,
                 respuesta=None,
                 intentos_modelo=intentos,
                 errores_locales=errores,
@@ -642,7 +726,7 @@ class CicloMente:
                 motivos_rechazo=motivos,
             )
 
-        respuesta_ref, errores_ref, intentos_ref, agotado_ref = self._generar_y_validar(
+        respuesta_ref, errores_ref, intentos_ref, estado_local_ref = self._preparar_respuesta_pulso(
             pulso,
             esquema,
             recuerdos=recuerdos_efectivos,
@@ -655,7 +739,7 @@ class CicloMente:
             return ResultadoPulso(
                 pulso_id=pulso_id,
                 epoca=epoca,
-                estado="presupuesto_agotado" if agotado_ref else "rechazada_local",
+                estado=estado_local_ref,
                 respuesta=None,
                 intentos_modelo=total_intentos,
                 motivos_rechazo=motivos,

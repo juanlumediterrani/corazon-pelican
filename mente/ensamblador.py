@@ -74,6 +74,15 @@ def _formatear_recuerdos(recuerdos: list[Any]) -> list[str]:
     for item in recuerdos:
         if isinstance(item, dict):
             texto = item.get("texto") or item.get("prosa") or str(item)
+            origen = item.get("origen_diario")
+            if isinstance(origen, list) and origen:
+                etiqueta = ", ".join(f"`{ep}`" for ep in origen if isinstance(ep, str) and ep)
+                if etiqueta:
+                    lineas.append(f"- {texto} (origen: {etiqueta})")
+                    continue
+            if item.get("fuente") == "diario" and isinstance(item.get("id"), str) and item["id"]:
+                lineas.append(f"- `{item['id']}` — {texto}")
+                continue
             lineas.append(f"- {texto}")
         else:
             lineas.append(f"- {item}")
@@ -102,6 +111,9 @@ def ensamblar_prompt(
     pulso: dict[str, Any],
     recuerdos: list[Any] | None = None,
     motivos_rechazo: list[Any] | None = None,
+    *,
+    pasos_cadena: list[dict[str, Any]] | None = None,
+    instruccion_paso: str | None = None,
 ) -> PromptEnsamblado:
     """Ensambla el prompt de la mente manteniendo el prefijo `sistema` invariante entre pulsos."""
     sistema = construir_prefijo_sistema(voz)
@@ -198,5 +210,15 @@ def ensamblar_prompt(
             "## Rechazo anterior — reformula tu respuesta\n"
             + "\n".join(_formatear_motivos_rechazo(motivos_rechazo))
         )
+
+    if pasos_cadena:
+        lineas_pasos = [
+            f"{i}. **{paso.get('paso', f'paso_{i}')}**: {paso.get('pensamiento', '')}"
+            for i, paso in enumerate(pasos_cadena, start=1)
+        ]
+        secciones.append("## Pensamiento previo de la cadena\n" + "\n".join(lineas_pasos))
+
+    if instruccion_paso:
+        secciones.append(f"## Paso actual de la cadena\n{instruccion_paso}")
 
     return PromptEnsamblado(sistema=sistema, usuario="\n\n".join(secciones))

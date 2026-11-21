@@ -588,6 +588,26 @@ namespace CorazonPelican.Core.Atencion
                 pulso.IntencionActiva = new IntencionActiva { Id = intencionActiva, Objetivo = intencionActiva };
             }
 
+            var compromisosActivos = this.Estado.Compromisos
+                .Where(c => !string.Equals(c.Estado, "cumplido", StringComparison.Ordinal)
+                            && !string.Equals(c.Estado, "incumplido", StringComparison.Ordinal))
+                .Select(c => new CompromisoProximo
+                {
+                    Id = c.Id,
+                    Con = c.Destinatario,
+                    Prosa = string.IsNullOrWhiteSpace(c.Tipo) ? c.Objeto : $"{c.Tipo}: {c.Objeto}",
+                    PlazoJuego = new TiempoJuego
+                    {
+                        Dia = c.PlazoVigente?.Dia ?? diaPulso,
+                        Hora = Math.Clamp(c.PlazoVigente?.Hora ?? HoraJuego.InicioDia, HoraJuego.InicioDia, HoraJuego.FinDia),
+                    },
+                })
+                .ToList();
+            if (compromisosActivos.Count > 0)
+            {
+                pulso.CompromisosProximos = compromisosActivos;
+            }
+
             if (motivoPulso == Motivos.Hito)
             {
                 var hito = disparo.Hito ?? HitosRutina.DelMotor(HitosRutina.Despertar, this.Perfil.Rutina);
