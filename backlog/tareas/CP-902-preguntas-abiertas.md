@@ -1,7 +1,7 @@
 ---
 id: CP-902
 titulo: Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros)
-estado: en-curso
+estado: hecha
 prioridad: P2
 hito: D
 depende_de: []
@@ -9,6 +9,7 @@ tipo: planning
 complejidad: media
 duracion_min: 60
 sensibilidad: public
+fecha: 2026-11-21
 ---
 
 ## Objetivo
@@ -38,13 +39,12 @@ Son decisiones del autor del diseño. El registro de decisiones y pendientes viv
 - **P-13 (GSS §14.1–§14.3).** La generación de obras se pospone a **Fase 2**, comenzando primero por **Elliott** (obra en texto, `CP-410`) y siguiendo después con las obras visuales de Leah (`CP-013`, `CP-015`, `CP-401`–`CP-406`). Sin efectos mecánicos en v1; venta a precio fijo por formato en Fase 2. `CP-508` deja de depender de `CP-406`.
 - **P-14 (GSS §14.4–§14.5).** En v1 el personaje no inicia un diálogo completo solo (sí puede acercarse + `murmurar`/`gesto` según apertura). Cambios de rutina con efecto mecánico quedan para v2.
 - **Dr4co Core:** retirada la fila «Inscripción en Dr4co Core» de [`docs/decisiones.md`](../../docs/decisiones.md) §2 por tratarse de un plugin de OpenClaw ajeno a este proyecto.
-
-Único punto pendiente para cerrar `CP-902`: confirmar **`UniqueID`** y **`Author`** del mod en [`CorazonPelican/manifest.json`](../../CorazonPelican/manifest.json) (actualmente `Dr4co.CorazonPelican` / `Dr4co`).
+- **Identificador del mod:** confirmado mantener `UniqueID: "Dr4co.CorazonPelican"` y `Author: "Dr4co"` en [`CorazonPelican/manifest.json`](../../CorazonPelican/manifest.json) (y sin cambios en las menciones actuales de plantilla).
 
 ## Criterios de aceptación
 
-- [ ] Cada fila de `docs/decisiones.md` §2 está decidida (y pasa a §1) o tiene tarea y fecha. *(Pendiente solo confirmación de `UniqueID`/`Author` del mod).*
-- [x] Las decisiones aceptadas actualizan los documentos y las tareas afectadas en el mismo cambio. (`2026-11-21`: `README.md`, `design.md`, `architecture.md`, `docs/decisiones.md`, `CP-013`, `CP-015`, `CP-401`–`CP-406`, `CP-410`, `CP-508`, `CP-111`, `backlog/README.md`).
+- [x] Cada fila de `docs/decisiones.md` §2 está decidida (y pasa a §1) o tiene tarea y fecha. (`2026-11-21`: `P-5`, `P-7`, `P-10`, `P-13`, `P-14` e identificador `Dr4co.CorazonPelican` registrados en [`docs/decisiones.md`](../../docs/decisiones.md) §1; retirada la fila ajena de Dr4co Core).
+- [x] Las decisiones aceptadas actualizan los documentos y las tareas afectadas en el mismo cambio. (`2026-11-21`: `README.md`, `design.md`, `architecture.md`, `docs/decisiones.md`, `CP-013`, `CP-015`, `CP-401`–`CP-406`, `CP-410`, `CP-508`, `CP-111`, `CP-902`, `backlog/README.md`).
 
 ## Fuera de alcance
 

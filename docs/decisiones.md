@@ -148,13 +148,13 @@ fuera de v1 y pasa a una **Fase 2**:
 - Los cambios de rutina con efecto mecánico (p. ej. cerrar una tienda) quedan fuera de v1
   (`GSS §14.5`); para v2 requerirán aviso visible, límites en el perfil y coherencia con el canon.
 
+### Identificador del mod (2026-11-21)
+
+Se mantiene `UniqueID: "Dr4co.CorazonPelican"` y `Author: "Dr4co"` en [`CorazonPelican/manifest.json`](../CorazonPelican/manifest.json) (`CP-001`, `CP-902`).
+
 ## 2. Pendiente de decidir
 
-*(La fila «Inscripción en Dr4co Core» se retiró el 2026-11-21 por tratarse de un plugin de OpenClaw ajeno a este proyecto.)*
-
-| # | Propuesta o pregunta | Recomendación | Tarea |
-|---|---|---|---|
-| — | `UniqueID` y `Author` del mod | `Dr4co.CorazonPelican` / `Dr4co` en `CorazonPelican/manifest.json` (pendiente de confirmación) | CP-902, CP-001 |
+*(No quedan decisiones abiertas en `CP-902` tras el 2026-11-21; la fila «Inscripción en Dr4co Core» se retiró por tratarse de un plugin de OpenClaw ajeno a este proyecto.)*
 
 ## 3. Riesgos técnicos abiertos
 

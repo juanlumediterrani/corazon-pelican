@@ -39,8 +39,7 @@ Esta ficha está pendiente y tiene todas sus dependencias hechas.
 |---|---|
 | P2 | CP-006 medición de lugares 🎮 |
 
-CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge
-el único pendiente abierto (`UniqueID` / `Author`).
+CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisiones.md`](../docs/decisiones.md) han quedado cerradas (`CP-902`).
 
 ## Tareas
 
@@ -111,7 +110,7 @@ el único pendiente abierto (`UniqueID` / `Author`).
 | [CP-602](tareas/CP-602-sucesos-pelican.md) | IntegracionPelicanModule · sucesos del servidor como percepción | F6 | P3 | CP-101 | pendiente |
 | [CP-603](tareas/CP-603-encuentro.md) | Sesión de encuentro · Pelican, un humano y el granjero de Voyager con Leah 🎮 | F6 | P3 | CP-508, CP-601, CP-602 | pendiente |
 | [CP-901](tareas/CP-901-adrs.md) | Redactar ADR-0001 a ADR-0006 | D | P2 | CP-001 | hecha |
-| [CP-902](tareas/CP-902-preguntas-abiertas.md) | Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros) | D | P2 | — | en-curso |
+| [CP-902](tareas/CP-902-preguntas-abiertas.md) | Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros) | D | P2 | — | hecha |
 | [CP-903](tareas/CP-903-estado-y-ruta-del-proyecto.md) | Actualizar el estado del proyecto y la ruta de tareas listas | D | P2 | CP-901 | hecha |
 | [CP-904](tareas/CP-904-vida-propia-del-habitante.md) | Revisar el diseño y las aceptaciones desde la vida propia del habitante | D | P1 | — | hecha |
 | [CP-905](tareas/CP-905-revision-argon.md) | Registrar la revisión de Argón y la prueba de continuidad entre días | D | P1 | — | hecha |
