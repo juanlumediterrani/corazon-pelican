@@ -1,8 +1,11 @@
 # `ARCHITECTURE.md` — ADS · Especificación de Arquitectura (*Corazón Pelican*)
 
-> **Estado al 2026-11-19.** Existen el contrato compartido, el cargador de perfiles, FakeWorld,
-> la saliencia, las bandas y los disparadores. La tabla del [backlog](backlog/README.md) indica
-> qué partes de esta arquitectura esperan implementación o verificación en el juego.
+> **Estado al 2026-11-21.** Están implementados el dominio puro (`CorazonPelican.Core/`), los módulos
+> SMAPI de anfitrión (`PersistenciaModule`, `ApiModule`, `HabitanteModule`, `CorreoProrrogaModule` y
+> `ConsolaModule`) y el proceso `mente/` en Python (cadenas de hitos, humor, memoria, proveedores HTTP
+> y presupuestos de tokens), cubiertos en `FakeWorld` y las suites locales C# y Python. La tabla del
+> [backlog](backlog/README.md) indica qué partes requieren verificación en juego vivo 🎮 (a partir de
+> `CP-006`) o permanecen en spikes.
 > **Hechos del juego comprobados:** [`docs/notas-juego.md`](docs/notas-juego.md).
 > **Documento hermano:** [`design.md`](design.md) (GSS: qué hace y por qué).
 > **Convención:** lo marcado **[verificar]** depende de un detalle de Stardew Valley 1.6.15 o de
