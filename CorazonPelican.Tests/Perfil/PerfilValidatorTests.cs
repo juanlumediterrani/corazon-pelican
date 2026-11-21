@@ -157,6 +157,43 @@ public class PerfilValidatorTests
     }
 
     [Fact]
+    public void Atencion_ausente_y_valida_pasan_y_valores_fuera_de_rango_fallan()
+    {
+        var sinAtencion = Leah();
+        sinAtencion.Atencion = null;
+        Assert.True(Validar(sinAtencion).EsValido);
+        var jsonSinAtencion = JsonConvert.SerializeObject(sinAtencion, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+        Assert.True(Contrato.Esquemas.EsValido("perfil", System.Text.Json.Nodes.JsonNode.Parse(jsonSinAtencion)));
+
+        var valida = Leah();
+        valida.Atencion = new ConfigAtencion
+        {
+            BuferMaxEntradas = 6,
+            BuferVentanaRecienteMin = 30,
+            BuferSemividaAntiguasMin = 20,
+            HuellaSemividaMin = 15,
+        };
+        Assert.True(Validar(valida).EsValido);
+        var jsonValido = JsonConvert.SerializeObject(valida, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+        Assert.True(Contrato.Esquemas.EsValido("perfil", System.Text.Json.Nodes.JsonNode.Parse(jsonValido)));
+
+        var invalida = Leah();
+        invalida.Atencion = new ConfigAtencion
+        {
+            BuferMaxEntradas = 0,
+            BuferVentanaRecienteMin = -1,
+            BuferSemividaAntiguasMin = 0,
+            HuellaSemividaMin = -5,
+        };
+        var res = Validar(invalida);
+        Assert.False(res.EsValido);
+        TieneError(res, "atencion.bufer_max_entradas", "mayor o igual que 1");
+        TieneError(res, "atencion.bufer_ventana_reciente_min", "no puede ser negativo");
+        TieneError(res, "atencion.bufer_semivida_antiguas_min", "mayor que 0");
+        TieneError(res, "atencion.huella_semivida_min", "mayor que 0");
+    }
+
+    [Fact]
     public void Ida_y_vuelta_con_newtonsoft_sigue_cumpliendo_el_esquema()
     {
         var vuelta = JsonConvert.SerializeObject(Leah(), new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });

@@ -66,7 +66,7 @@ namespace CorazonPelican.Core.Atencion
             TelemetriaJsonl? telemetria = null,
             MedidorCosteBucle? medidor = null,
             Func<Pulso, Pulso>? publicarPulso = null,
-            int maxEntradasBufer = Bufer.MaxEntradasPorDefecto,
+            int? maxEntradasBufer = null,
             int tamanoMaxMemoriaKB = 512,
             int tiempoMaxRespuestaMs = 8000,
             string modoValidacionMenciones = CorazonConfig.ValidacionMencionesRechazar)
@@ -94,11 +94,14 @@ namespace CorazonPelican.Core.Atencion
                 ? CorazonConfig.ValidacionMencionesAviso
                 : CorazonConfig.ValidacionMencionesRechazar;
 
+            var configAtencion = perfil.ObtenerConfigAtencion();
+            var topeBufer = maxEntradasBufer ?? configAtencion.BuferMaxEntradas;
+
             this.Novedad = new Novedad();
             this.ClasificadorBandas = new ClasificadorBandas(perfil.Umbrales);
-            this.Bufer = new Bufer(maxEntradasBufer);
-            this.pendientesDiario = new Bufer(Math.Max(maxEntradasBufer, 64));
-            this.Huella = new HuellaAtencion();
+            this.Bufer = new Bufer(topeBufer, configAtencion.BuferVentanaRecienteMin, configAtencion.BuferSemividaAntiguasMin);
+            this.pendientesDiario = new Bufer(Math.Max(topeBufer, 64), configAtencion.BuferVentanaRecienteMin, configAtencion.BuferSemividaAntiguasMin);
+            this.Huella = new HuellaAtencion(configAtencion.HuellaSemividaMin);
             this.Disparadores = new Disparadores(perfil, modoReloj, estado.Contadores);
             this.Disparadores.CompromisoSinCupo += disparo =>
             {

@@ -65,6 +65,7 @@ namespace CorazonPelican.Core.Perfil
             ValidarFormatos(perfil.FormatosObra, r);
             ValidarRutina(perfil.Rutina, r);
             ValidarHumor(perfil.Humor, r);
+            ValidarAtencion(perfil.Atencion, r);
             return r;
         }
 
@@ -384,6 +385,38 @@ namespace CorazonPelican.Core.Perfil
             if (humor.UmbralDisipacion >= humor.MaxIntensidad)
             {
                 r.Errores.Add(new("humor.umbral_disipacion", "debe ser menor que humor.max_intensidad."));
+            }
+        }
+
+        private static void ValidarAtencion(ConfigAtencion? atencion, ResultadoValidacionPerfil r)
+        {
+            if (atencion is null)
+            {
+                return;
+            }
+
+            if (atencion.BuferMaxEntradas < 1)
+            {
+                r.Errores.Add(new("atencion.bufer_max_entradas", "debe ser mayor o igual que 1 entrada."));
+            }
+
+            if (atencion.BuferVentanaRecienteMin < 0)
+            {
+                r.Errores.Add(new("atencion.bufer_ventana_reciente_min", "no puede ser negativo."));
+            }
+
+            if (double.IsNaN(atencion.BuferSemividaAntiguasMin)
+                || double.IsInfinity(atencion.BuferSemividaAntiguasMin)
+                || atencion.BuferSemividaAntiguasMin <= 0)
+            {
+                r.Errores.Add(new("atencion.bufer_semivida_antiguas_min", "debe ser mayor que 0 minutos de juego."));
+            }
+
+            if (double.IsNaN(atencion.HuellaSemividaMin)
+                || double.IsInfinity(atencion.HuellaSemividaMin)
+                || atencion.HuellaSemividaMin <= 0)
+            {
+                r.Errores.Add(new("atencion.huella_semivida_min", "debe ser mayor que 0 minutos de juego."));
             }
         }
     }

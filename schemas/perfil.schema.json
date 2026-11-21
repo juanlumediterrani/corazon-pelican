@@ -104,6 +104,17 @@
         "umbral_sustitucion": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
       },
       "additionalProperties": false
+    },
+    "atencion": {
+      "description": "Velocidad de consolidación del búfer y fuga de la huella de atención por personaje (P-10, CP-111). Valores ausentes usan los valores por defecto del motor.",
+      "type": "object",
+      "properties": {
+        "bufer_max_entradas": { "type": "integer", "minimum": 1 },
+        "bufer_ventana_reciente_min": { "type": "integer", "minimum": 0 },
+        "bufer_semivida_antiguas_min": { "type": "number", "exclusiveMinimum": 0 },
+        "huella_semivida_min": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "additionalProperties": false
     }
   },
   "required": ["id", "npc", "rasgos", "umbrales", "refractario", "presupuesto", "lexico", "plantillas", "apertura", "voz", "acciones", "formatos_obra", "rutina"],

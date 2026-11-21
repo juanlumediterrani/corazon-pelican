@@ -252,4 +252,81 @@ public class BuferHuellaTests
 
         Assert.True(AtencionRestanteTrasSilencio(15) < AtencionRestanteTrasSilencio(90));
     }
+
+    [Fact]
+    public void MotorHabitante_usa_parametros_de_atencion_del_perfil_o_los_valores_por_defecto_p10()
+    {
+        var plantillas = CargarPlantillasLeah();
+
+        // 1. Perfil sin bloque "atencion" -> valores por defecto del motor.
+        var perfilDefecto = CargarPerfilLeah();
+        perfilDefecto.Atencion = null;
+        var motorDefecto = new MotorHabitante(perfilDefecto, plantillas, new CorazonPelican.Core.Memoria.EstadoPersonaje());
+        Assert.Equal(Bufer.MaxEntradasPorDefecto, motorDefecto.Bufer.MaxEntradas);
+        Assert.Equal(Bufer.VentanaRecientePorDefectoMin, motorDefecto.Bufer.VentanaRecienteMinJuego);
+        Assert.Equal(Bufer.SemividaAntiguasPorDefectoMin, motorDefecto.Bufer.SemividaAntiguasMinJuego);
+        Assert.Equal(HuellaAtencion.SemividaPorDefectoMin, motorDefecto.Huella.SemividaMin);
+
+        // 2. Perfil distraído (tope 2, ventana corta, semividas cortas) vs atento (tope 8, semividas largas).
+        var perfilDistraido = CargarPerfilLeah();
+        perfilDistraido.Umbrales.Pico = 0.999;
+        perfilDistraido.Umbrales.Deriva = 100.0;
+        perfilDistraido.Atencion = new ConfigAtencion
+        {
+            BuferMaxEntradas = 2,
+            BuferVentanaRecienteMin = 20,
+            BuferSemividaAntiguasMin = 10,
+            HuellaSemividaMin = 10,
+        };
+
+        var perfilAtento = CargarPerfilLeah();
+        perfilAtento.Umbrales.Pico = 0.999;
+        perfilAtento.Umbrales.Deriva = 100.0;
+        perfilAtento.Atencion = new ConfigAtencion
+        {
+            BuferMaxEntradas = 8,
+            BuferVentanaRecienteMin = 120,
+            BuferSemividaAntiguasMin = 120,
+            HuellaSemividaMin = 90,
+        };
+
+        var motorDistraido = new MotorHabitante(perfilDistraido, plantillas, new CorazonPelican.Core.Memoria.EstadoPersonaje());
+        var motorAtento = new MotorHabitante(perfilAtento, plantillas, new CorazonPelican.Core.Memoria.EstadoPersonaje());
+
+        var lago = new EntidadObservada("agua:Mountain:lago", CategoriaEntidad.Terreno, "el lago", "Mountain", 40, 34, new[] { "agua" });
+        var pasarela = new EntidadObservada("obj:Mountain:40,30:pasarela", CategoriaEntidad.Objeto, "la pasarela de madera", "Mountain", 40, 30, new[] { "madera" });
+        var obsLago14 = new Observacion(68, 1400, "Mountain", 40, 30, 1.0, "soleado", new[] { lago });
+        var obsPasarela15 = new Observacion(68, 1500, "Mountain", 40, 30, 1.0, "soleado", new[] { pasarela });
+
+        var pasoLagoDist = motorDistraido.ProcesarPaso(obsLago14, null, 1_000, minutosJuego: 10);
+        var pasoLagoAtento = motorAtento.ProcesarPaso(obsLago14, null, 1_000, minutosJuego: 10);
+        Assert.Empty(pasoLagoDist.Pulsos);
+        Assert.Empty(pasoLagoAtento.Pulsos);
+
+        // Silencio de 60 minutos de juego sin entidades en ambos motores -> fuga distinta de la huella del lago.
+        var obsSilencio = new Observacion(68, 1500, "Mountain", 40, 30, 1.0, "soleado", Array.Empty<EntidadObservada>());
+        var pasoSilDist = motorDistraido.ProcesarPaso(obsSilencio, null, 2_000, minutosJuego: 60);
+        var pasoSilAtento = motorAtento.ProcesarPaso(obsSilencio, null, 2_000, minutosJuego: 60);
+        Assert.Empty(pasoSilDist.Pulsos);
+        Assert.Empty(pasoSilAtento.Pulsos);
+
+        var atencionDistraido = motorDistraido.Huella.Entidades.Single(e => e.Ref == lago.Ref).Atencion;
+        var atencionAtento = motorAtento.Huella.Entidades.Single(e => e.Ref == lago.Ref).Atencion;
+        Assert.True(atencionDistraido < atencionAtento);
+
+        // Llenamos acciones/percepciones para comprobar consolidación con distinta capacidad de búfer.
+        motorDistraido.Bufer.RegistrarAccion(68, 1400, "Anotas el agua.", 0.9);
+        motorDistraido.Bufer.RegistrarAccion(68, 1420, "Miras los juncos.", 0.8);
+        motorDistraido.ProcesarPaso(obsPasarela15, null, 3_000, minutosJuego: 10);
+
+        motorAtento.Bufer.RegistrarAccion(68, 1400, "Anotas el agua.", 0.9);
+        motorAtento.Bufer.RegistrarAccion(68, 1420, "Miras los juncos.", 0.8);
+        motorAtento.ProcesarPaso(obsPasarela15, null, 3_000, minutosJuego: 10);
+
+        var pulsoDistraido = motorDistraido.ForzarPulso(obsPasarela15, 4_000).Pulso!;
+        var pulsoAtento = motorAtento.ForzarPulso(obsPasarela15, 4_000).Pulso!;
+
+        Assert.Equal(2, pulsoDistraido.Bufer.Count);
+        Assert.True(pulsoAtento.Bufer.Count > pulsoDistraido.Bufer.Count);
+    }
 }

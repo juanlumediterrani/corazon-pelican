@@ -26,9 +26,28 @@ namespace CorazonPelican.Core.Perfil
         [DataMember(Name = "formatos_obra")] public List<string> FormatosObra { get; set; } = new();
         [DataMember(Name = "rutina")] public Rutina Rutina { get; set; } = new();
         [DataMember(Name = "humor", EmitDefaultValue = false)] public ConfigHumor? Humor { get; set; }
+        [DataMember(Name = "atencion", EmitDefaultValue = false)] public ConfigAtencion? Atencion { get; set; }
 
         /// <summary>Devuelve los parámetros de humor del perfil o sus valores calibrados por defecto (CP-210).</summary>
         public ConfigHumor ObtenerConfigHumor() => this.Humor ?? new ConfigHumor();
+
+        /// <summary>Devuelve los parámetros de consolidación del búfer y fuga de la huella del perfil o los valores por defecto del motor (P-10, CP-111).</summary>
+        public ConfigAtencion ObtenerConfigAtencion() => this.Atencion ?? new ConfigAtencion();
+    }
+
+    /// <summary>Parámetros por personaje de consolidación del búfer y fuga de la huella de atención (P-10, CP-111).</summary>
+    [DataContract]
+    public sealed class ConfigAtencion
+    {
+        public const int BuferMaxEntradasPorDefecto = 12;
+        public const int BuferVentanaRecienteMinPorDefecto = 60;
+        public const double BuferSemividaAntiguasMinPorDefecto = 60.0;
+        public const double HuellaSemividaMinPorDefecto = 30.0;
+
+        [DataMember(Name = "bufer_max_entradas")] public int BuferMaxEntradas { get; set; } = BuferMaxEntradasPorDefecto;
+        [DataMember(Name = "bufer_ventana_reciente_min")] public int BuferVentanaRecienteMin { get; set; } = BuferVentanaRecienteMinPorDefecto;
+        [DataMember(Name = "bufer_semivida_antiguas_min")] public double BuferSemividaAntiguasMin { get; set; } = BuferSemividaAntiguasMinPorDefecto;
+        [DataMember(Name = "huella_semivida_min")] public double HuellaSemividaMin { get; set; } = HuellaSemividaMinPorDefecto;
     }
 
     /// <summary>Parámetros de conservación, atenuación y sustitución del humor entre días (P-9, CP-210).</summary>
