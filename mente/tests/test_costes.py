@@ -318,6 +318,84 @@ class TestRegistroCostesYPresupuesto:
         assert presupuesto.puede_gastar("deriva")
         assert presupuesto.tokens_ordinarios == 0
 
+    def test_cadenas_computan_contra_limite_diario_cuando_no_hay_cupo_separado(self):
+        momento = datetime(2026, 11, 21, 10, 0, tzinfo=timezone.utc)
+        presupuesto = PresupuestoTokens(
+            limite_tokens_dia=100,
+            modelo="gpt-4o-mini",
+            reloj_utc=lambda: momento,
+        )
+
+        # Una llamada de cadena de 100 tokens impide admitir la siguiente cadena u ordinaria ese día.
+        presupuesto.registrar_llamada(
+            epoca="ep-cad",
+            pulso_id=1,
+            motivo="hito",
+            es_cadena=True,
+            uso=UsoTokens(tokens_entrada=80, tokens_cache=0, tokens_salida=20),
+        )
+        assert presupuesto.tokens_cadenas == 100
+        assert not presupuesto.puede_gastar("hito", es_cadena=True)
+        assert not presupuesto.puede_gastar("deriva", es_cadena=False)
+        assert presupuesto.puede_gastar("interlocucion")
+
+        # Gasto mixto (60 ordinarios + 40 cadena = 100) también agota el tope diario compartido.
+        presupuesto_mixto = PresupuestoTokens(
+            limite_tokens_dia=100,
+            modelo="gpt-4o-mini",
+            reloj_utc=lambda: momento,
+        )
+        presupuesto_mixto.registrar_llamada(
+            epoca="ep-mix",
+            pulso_id=1,
+            motivo="deriva",
+            es_cadena=False,
+            uso=UsoTokens(tokens_entrada=50, tokens_cache=0, tokens_salida=10),
+        )
+        assert presupuesto_mixto.puede_gastar("hito", es_cadena=True)
+        presupuesto_mixto.registrar_llamada(
+            epoca="ep-mix",
+            pulso_id=2,
+            motivo="hito",
+            es_cadena=True,
+            uso=UsoTokens(tokens_entrada=30, tokens_cache=0, tokens_salida=10),
+        )
+        assert not presupuesto_mixto.puede_gastar("hito", es_cadena=True)
+        assert not presupuesto_mixto.puede_gastar("deriva", es_cadena=False)
+        assert presupuesto_mixto.puede_gastar("interlocucion")
+
+        # Con cupo de cadenas separado, cada contador respeta su propio límite.
+        presupuesto_sep = PresupuestoTokens(
+            limite_tokens_dia=100,
+            limite_tokens_cadenas=200,
+            modelo="gpt-4o-mini",
+            reloj_utc=lambda: momento,
+        )
+        presupuesto_sep.registrar_llamada(
+            epoca="ep-sep",
+            pulso_id=1,
+            motivo="hito",
+            es_cadena=True,
+            uso=UsoTokens(tokens_entrada=120, tokens_cache=0, tokens_salida=30),
+        )
+        assert presupuesto_sep.puede_gastar("hito", es_cadena=True)
+        assert presupuesto_sep.puede_gastar("deriva", es_cadena=False)
+        presupuesto_sep.registrar_llamada(
+            epoca="ep-sep",
+            pulso_id=2,
+            motivo="hito",
+            es_cadena=True,
+            uso=UsoTokens(tokens_entrada=40, tokens_cache=0, tokens_salida=10),
+        )
+        assert not presupuesto_sep.puede_gastar("hito", es_cadena=True)
+        assert presupuesto_sep.puede_gastar("deriva", es_cadena=False)
+
+        # Reinicio al cambiar de día UTC libera ambos cupos.
+        momento = momento + timedelta(days=1)
+        assert presupuesto.puede_gastar("hito", es_cadena=True)
+        assert presupuesto.tokens_cadenas == 0
+        assert presupuesto_mixto.puede_gastar("deriva", es_cadena=False)
+
 
 class TestInformeCosteDiario:
     def test_estimar_coste_diario_vanilla_y_pelican(self):

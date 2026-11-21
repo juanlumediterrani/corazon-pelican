@@ -34,11 +34,11 @@ la legibilidad de los cuadros.
 
 ## Tareas listas
 
-Estas cuatro fichas están pendientes y tienen todas sus dependencias hechas.
+Estas tres fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P2 | CP-006 medición de lugares 🎮 · CP-216 tokens de cadenas · CP-506 validador de menciones · CP-509 prórroga por carta |
+| P2 | CP-006 medición de lugares 🎮 · CP-506 validador de menciones · CP-509 prórroga por carta |
 
 CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../docs/decisiones.md) recoge las preguntas que siguen abiertas.
 
@@ -83,7 +83,7 @@ CP-013, CP-014, CP-101 y CP-902 están en curso. El [registro de decisiones](../
 | [CP-213](tareas/CP-213-aplicar-respuestas-en-el-host.md) | Confirmar las respuestas de memoria después de aplicarlas en el host | F2 | P1 | CP-203, CP-206, CP-109 | hecha |
 | [CP-214](tareas/CP-214-recuperar-recuerdos-en-hitos.md) | Llevar los recuerdos pertinentes al prompt de un hito ordinario | F2 | P1 | CP-204, CP-206 | hecha |
 | [CP-215](tareas/CP-215-conectar-proveedor-de-la-mente.md) | Conectar un proveedor de modelo al ciclo de la mente | F2 | P1 | CP-204 | hecha |
-| [CP-216](tareas/CP-216-computar-tokens-de-cadenas.md) | Contabilizar las cadenas contra el límite diario de tokens | F2 | P2 | CP-207 | pendiente |
+| [CP-216](tareas/CP-216-computar-tokens-de-cadenas.md) | Contabilizar las cadenas contra el límite diario de tokens | F2 | P2 | CP-207 | hecha |
 | [CP-301](tareas/CP-301-intencion-validador.md) | Intención con ciclo de vida, pesos de atención y validador de precondiciones | F3 | P1 | CP-105, CP-203 | hecha |
 | [CP-302](tareas/CP-302-cuerpo-vocabulario.md) | CuerpoNpc · vocabulario de acciones v1 sobre Leah 🎮 | F3 | P1 | CP-011, CP-012, CP-301 | pendiente |
 | [CP-303](tareas/CP-303-reclamacion-y-degradacion.md) | Reclamación, volver_a_rutina y degradación a la Leah vanilla | F3 | P1 | CP-011, CP-302 | pendiente |

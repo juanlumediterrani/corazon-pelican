@@ -350,10 +350,12 @@ class PresupuestoTokens:
             if self.limite_tokens_cadenas is not None:
                 return self.tokens_cadenas < self.limite_tokens_cadenas
             if self.limite_tokens_dia is not None:
-                return self.tokens_ordinarios < self.limite_tokens_dia
+                return (self.tokens_ordinarios + self.tokens_cadenas) < self.limite_tokens_dia
             return True
         if self.limite_tokens_dia is not None:
-            return self.tokens_ordinarios < self.limite_tokens_dia
+            if self.limite_tokens_cadenas is not None:
+                return self.tokens_ordinarios < self.limite_tokens_dia
+            return (self.tokens_ordinarios + self.tokens_cadenas) < self.limite_tokens_dia
         return True
 
     def esta_agotado(self, *, es_cadena: bool = False) -> bool:
