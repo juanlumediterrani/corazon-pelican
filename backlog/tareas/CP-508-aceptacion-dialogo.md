@@ -1,7 +1,8 @@
 ---
 id: CP-508
 titulo: Aceptación de fase 5 · una promesa hecha hoy y cumplida mañana 🎮
-estado: pendiente
+estado: hecha
+fecha: 2026-11-22
 prioridad: P2
 hito: F5
 depende_de: [CP-502, CP-504, CP-505, CP-506, CP-507, CP-509, CP-305]
@@ -22,11 +23,11 @@ GSS §1, ADS §14 fase 5 y acuerdo [`P-13`](../../docs/decisiones.md) (`2026-11-
 
 ## Criterios de aceptación
 
-- [ ] `backlog/reportes/CP-508.md` con la conversación, el compromiso acordado (sin requerir obra PNG generada en taller), la intención resultante y su cumplimiento al día siguiente en vivo.
-- [ ] Con ambos cupos agotados y el destinatario ausente, recibir una carta antes del vencimiento y aceptar la nueva fecha. En un segundo caso, dejar que venza el plazo, abrir la carta y comprobar que se lee sin opción de responder. Incluir los plazos y resultados en el informe.
-- [ ] R-07, R-08 (guarda en Core), R-09, R-12 y R-15 con tests verdes citados.
-- [ ] Puntuación con la rúbrica de CP-205 de toda la conversación.
-- [ ] Prueba negativa: con 1 corazón Leah rechaza la petición o encargo de forma creíble.
+- [x] `backlog/reportes/CP-508.md` con la conversación, el compromiso acordado (sin requerir obra PNG generada en taller), la intención resultante y su cumplimiento al día siguiente en vivo. (`backlog/reportes/CP-508.md` §1)
+- [x] Con ambos cupos agotados y el destinatario ausente, recibir una carta antes del vencimiento y aceptar la nueva fecha. En un segundo caso, dejar que venza el plazo, abrir la carta y comprobar que se lee sin opción de responder. Incluir los plazos y resultados en el informe. (`backlog/reportes/CP-508.md` §3 + `ProrrogaCompromisoTests`)
+- [x] R-07, R-08 (guarda en Core), R-09, R-12 y R-15 con tests verdes citados. (`ActosAntesDeFraseTests`, `ActoRegalaTests`, `ProrrogaCompromisoTests`, `ConvivenciaValleyTalkTests`, `MencionesAncladasTests`)
+- [x] Puntuación con la rúbrica de CP-205 de toda la conversación. (`backlog/reportes/CP-508.md` §4)
+- [x] Prueba negativa: con 1 corazón Leah rechaza la petición o encargo de forma creíble. (`backlog/reportes/CP-508.md` §2: rechazo `apertura_insuficiente` + `OpcionesJugadorTests`)
 
 ## Fuera de alcance
 
