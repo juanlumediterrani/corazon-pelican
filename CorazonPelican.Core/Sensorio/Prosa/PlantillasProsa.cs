@@ -87,6 +87,10 @@ namespace CorazonPelican.Core.Sensorio.Prosa
         [JsonPropertyName("huella")]
         public PlantillasHuella Huella { get; set; } = new();
 
+        [DataMember(Name = "reflejo_dialogo", EmitDefaultValue = false)]
+        [JsonPropertyName("reflejo_dialogo")]
+        public List<string>? ReflejoDialogo { get; set; }
+
         public static PlantillasProsa DesdeJson(string json)
         {
             if (string.IsNullOrWhiteSpace(json))

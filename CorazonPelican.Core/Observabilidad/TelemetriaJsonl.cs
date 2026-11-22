@@ -79,6 +79,20 @@ namespace CorazonPelican.Core.Observabilidad
         [JsonPropertyName("pasos")] public List<MedicionPaso> Pasos { get; set; } = new();
     }
 
+    /// <summary>Evento de turno de diálogo registrado en <c>dialogos.jsonl</c> (GSS §8.2, §12; CP-503).</summary>
+    public sealed class RegistroDialogoTelemetria
+    {
+        [JsonPropertyName("tiempo_real_utc")] public string TiempoRealUtc { get; set; } = string.Empty;
+        [JsonPropertyName("epoca")] public string? Epoca { get; set; }
+        [JsonPropertyName("personaje")] public string Personaje { get; set; } = string.Empty;
+        [JsonPropertyName("interlocutor_ref")] public string InterlocutorRef { get; set; } = string.Empty;
+        [JsonPropertyName("tiempo_juego")] public TiempoJuego TiempoJuego { get; set; } = new();
+        [JsonPropertyName("evento")] public string Evento { get; set; } = string.Empty;
+        [JsonPropertyName("pulso_id")] public long? PulsoId { get; set; }
+        [JsonPropertyName("reaccion_ms")] public double? ReaccionMs { get; set; }
+        [JsonPropertyName("detalle")] public string? Detalle { get; set; }
+    }
+
     /// <summary>
     /// Escritor append-only en UTF-8 (sin BOM) de telemetría JSONL bajo <c>{base}/{saveId}/</c> (ADS §12.2).
     /// Es solo registro para análisis y aceptación: ningún componente de memoria del personaje lee de ella.
@@ -92,6 +106,7 @@ namespace CorazonPelican.Core.Observabilidad
         public const string ArchivoRechazos = "rechazos.jsonl";
         public const string ArchivoActos = "actos.jsonl";
         public const string ArchivoCostes = "costes.jsonl";
+        public const string ArchivoDialogos = "dialogos.jsonl";
 
         private static readonly Encoding Utf8SinBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
@@ -301,6 +316,37 @@ namespace CorazonPelican.Core.Observabilidad
                 Pasos = new List<MedicionPaso>(mediciones),
             };
             this.EscribirObjeto(ArchivoCostes, registro);
+        }
+
+        public void RegistrarDialogo(
+            string personaje,
+            string interlocutorRef,
+            int dia,
+            int hora,
+            string evento,
+            long? pulsoId = null,
+            double? reaccionMs = null,
+            string? detalle = null,
+            string? epoca = null)
+        {
+            if (!this.Habilitada)
+            {
+                return;
+            }
+
+            var registro = new RegistroDialogoTelemetria
+            {
+                TiempoRealUtc = DateTimeOffset.UtcNow.ToString("O"),
+                Epoca = epoca,
+                Personaje = personaje ?? string.Empty,
+                InterlocutorRef = interlocutorRef ?? string.Empty,
+                TiempoJuego = new TiempoJuego { Dia = dia, Hora = hora },
+                Evento = evento ?? string.Empty,
+                PulsoId = pulsoId,
+                ReaccionMs = reaccionMs.HasValue ? Math.Round(reaccionMs.Value, 3) : null,
+                Detalle = detalle,
+            };
+            this.EscribirObjeto(ArchivoDialogos, registro);
         }
 
         private void EscribirObjeto<T>(string nombreArchivo, T valor)

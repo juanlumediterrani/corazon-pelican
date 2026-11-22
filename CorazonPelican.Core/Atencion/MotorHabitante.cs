@@ -144,6 +144,12 @@ namespace CorazonPelican.Core.Atencion
 
         public EvaluadorReflejos Reflejos { get; }
 
+        public GestorDialogo Dialogo { get; } = new();
+
+        public bool EstaMenteCaida => this.menteCaidaReportada;
+
+        public event Action<DesenlaceDialogoTurno>? ResultadoDialogoDisponible;
+
         public RastreadorTasaMenciones RastreadorMenciones => this.rastreadorMenciones;
 
         public Observacion? UltimaObservacion { get; private set; }
@@ -298,8 +304,7 @@ namespace CorazonPelican.Core.Atencion
             var medios = this.EjecutorCuerpo.Contexto.Medios;
             return this.EjecutorCuerpo.Ocupado
                 || this.EjecutorCuerpo.Continua is not null
-                || medios.EstaReclamado
-                || medios.EstaEnAnimacionActividad;
+                || medios.EstaReclamado;
         }
 
         private void EvaluarDegradacionAutomatica(long ahoraMs)
@@ -936,7 +941,148 @@ namespace CorazonPelican.Core.Atencion
             }
 
             this.telemetria?.RegistrarRespuesta(respuesta, this.Perfil.Id);
+
+            if (!string.IsNullOrWhiteSpace(respuesta.Frase))
+            {
+                var ahoraDlgMs = ahoraRespuestaMs ?? 0;
+                var presente = this.ComprobarInterlocutorPresenteEnUltimaObs(pulso.Interlocutor?.Ref);
+                var resDialogo = this.Dialogo.ProcesarRespuesta(pulso, respuesta, presente, this.Estado, ahoraDlgMs);
+                if (resDialogo.Desenlace != DesenlaceTurnoDialogo.Ninguno)
+                {
+                    if (resDialogo.Desenlace == DesenlaceTurnoDialogo.GuardadaLoQueIbaADecir)
+                    {
+                        this.telemetria?.RegistrarDialogo(
+                            this.Perfil.Id,
+                            pulso.Interlocutor?.Ref ?? string.Empty,
+                            obsVigente.Dia,
+                            obsVigente.Hora,
+                            "alejado_memoria",
+                            pulsoId: pulso.Id,
+                            detalle: resDialogo.RecuerdoGuardado,
+                            epoca: this.Epoca);
+                    }
+
+                    this.ResultadoDialogoDisponible?.Invoke(resDialogo);
+                }
+            }
+
             return new Resultado { Estado = Resultado.Aceptada };
+        }
+
+        /// <summary>
+        /// Inicia un turno de diálogo interceptado (CP-503): genera el reflejo inmediato (&lt; 300 ms),
+        /// emite o reutiliza el pulso de interlocución con <c>caduca_en_ms</c> y registra en telemetría.
+        /// </summary>
+        public ReaccionInmediataDialogo IniciarTurnoDialogo(
+            Observacion observacion,
+            string interlocutorRef,
+            string nombreInterlocutor,
+            long ahoraMs,
+            double reaccionMs = 0,
+            bool enEvento = false,
+            bool valleyTalkActivo = false,
+            int? caducaEnMs = null,
+            HorarioDia? horario = null,
+            AgendaDia? agendaDia = null)
+        {
+            if (observacion is null)
+            {
+                throw new ArgumentNullException(nameof(observacion));
+            }
+
+            if (enEvento)
+            {
+                throw new InvalidOperationException("No se puede iniciar un turno de interlocución durante un evento con guion (CP-503).");
+            }
+
+            var decision = GestorDialogo.EvaluarIntercepcion(new ContextoIntercepcionDialogo(
+                this.MenteHabilitada,
+                this.menteCaidaReportada,
+                enEvento,
+                valleyTalkActivo));
+
+            if (!decision.Interceptar)
+            {
+                throw new InvalidOperationException($"Intercepción no permitida: {decision.Motivo}.");
+            }
+
+            var obs = NormalizarObservacion(observacion);
+            this.UltimaObservacion = obs;
+            var efectivoCaducaMs = caducaEnMs ?? this.tiempoMaxRespuestaMs;
+
+            var reaccion = this.Dialogo.IniciarTurno(
+                interlocutorRef,
+                nombreInterlocutor,
+                Math.Max(1, obs.Dia),
+                this.Plantillas,
+                ahoraMs,
+                efectivoCaducaMs,
+                refInterlocutor =>
+                {
+                    var disparo = this.Disparadores.Interlocucion(refInterlocutor, obs, ahoraMs);
+                    var bandas = Array.Empty<EntidadEnBanda>();
+                    var (pulso, _) = this.EmitirPulsoDesdeDisparo(
+                        obs,
+                        disparo,
+                        bandas,
+                        horario,
+                        agendaDia,
+                        this.EstadoAtencionActual,
+                        this.IntencionActivaVigente?.PesosAtencionActivos,
+                        this.IntencionActivaVigente?.Id,
+                        this.ObraEnCursoActual,
+                        origenTelemetria: Motivos.Interlocucion);
+                    return pulso;
+                });
+
+            this.telemetria?.RegistrarDialogo(
+                this.Perfil.Id,
+                interlocutorRef,
+                Math.Max(1, obs.Dia),
+                Math.Clamp(obs.Hora, HoraJuego.InicioDia, HoraJuego.FinDia),
+                "reflejo",
+                pulsoId: reaccion.Pulso?.Id,
+                reaccionMs: reaccionMs,
+                detalle: reaccion.LineaBreve,
+                epoca: this.Epoca);
+
+            return reaccion;
+        }
+
+        public DesenlaceDialogoTurno EvaluarTickDialogo(long ahoraMs, bool interlocutorPresente, int dia, int hora, string interlocutorRef)
+        {
+            var anticipada = this.Dialogo.ConsumirRespuestaAnticipadaSiLista(interlocutorPresente, this.Estado);
+            if (anticipada is not null)
+            {
+                return anticipada;
+            }
+
+            var res = this.Dialogo.EvaluarTick(ahoraMs, interlocutorPresente);
+            if (res.Desenlace == DesenlaceTurnoDialogo.CaducadoCaerAVanilla)
+            {
+                this.menteCaidaReportada = true;
+                this.telemetria?.RegistrarDialogo(
+                    this.Perfil.Id,
+                    interlocutorRef,
+                    Math.Max(1, dia),
+                    Math.Clamp(hora, HoraJuego.InicioDia, HoraJuego.FinDia),
+                    "caducada",
+                    detalle: GestorDialogo.TextoCaducado,
+                    epoca: this.Epoca);
+            }
+
+            return res;
+        }
+
+        private bool ComprobarInterlocutorPresenteEnUltimaObs(string? interlocutorRef)
+        {
+            if (string.IsNullOrWhiteSpace(interlocutorRef) || this.UltimaObservacion is null)
+            {
+                return true;
+            }
+
+            return this.UltimaObservacion.Entidades.Any(e =>
+                string.Equals(e.Ref, interlocutorRef, StringComparison.Ordinal));
         }
 
         /// <summary>Proyecta la instantánea de memoria para la API aplicando la atenuación vigente del humor.</summary>

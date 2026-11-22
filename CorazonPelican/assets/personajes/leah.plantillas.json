@@ -340,5 +340,10 @@
       "Durante {tiempo} has dejado correr el rato sin fijarte en nada concreto.",
       "A lo largo de {tiempo}, nada del entorno ha reclamado demasiado tu atención."
     ]
-  }
+  },
+  "reflejo_dialogo": [
+    "Un momento... estaba dándole vueltas a algo.",
+    "Ah, dime... dame un segundo para ordenar la idea.",
+    "Espera un instante, te estaba escuchando."
+  ]
 }

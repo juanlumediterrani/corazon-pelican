@@ -37,8 +37,7 @@ Estas dos fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-503 DialogoModule · reflejo inmediato, respuesta pensada y caída a vanilla 🎮 |
-| P2 | CP-306 control de rutina · agenda del día, reequilibrio en cascada y cambios de hitos |
+| P2 | CP-306 control de rutina · agenda del día, reequilibrio en cascada y cambios de hitos · CP-504 opciones del jugador |
 | P3 | CP-601 Pelican 4Ever · WorldLifeModule ignora NPCs reclamados |
 
 CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisiones.md`](../docs/decisiones.md) han quedado cerradas (`CP-902`).
@@ -101,7 +100,7 @@ CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisio
 | [CP-410](tareas/CP-410-obras-texto-elliott.md) | Segundo personaje y obras en texto · Elliott como primera entrega de Fase 2 | F4 | P2 | CP-508 | dormida |
 | [CP-501](tareas/CP-501-actos-validador.md) | Actos de habla y validador «todos válidos o ninguno» | F5 | P1 | CP-107, CP-301 | hecha |
 | [CP-502](tareas/CP-502-compromisos.md) | Compromisos con plazo cuya saliencia sube hasta provocar una pulsión | F5 | P1 | CP-501, CP-201, CP-202 | hecha |
-| [CP-503](tareas/CP-503-dialogo-intercepcion.md) | DialogoModule · reflejo inmediato, respuesta pensada y caída a vanilla 🎮 | F5 | P1 | CP-010, CP-501, CP-304 | pendiente |
+| [CP-503](tareas/CP-503-dialogo-intercepcion.md) | DialogoModule · reflejo inmediato, respuesta pensada y caída a vanilla 🎮 | F5 | P1 | CP-010, CP-501, CP-304 | hecha |
 | [CP-504](tareas/CP-504-opciones-jugador.md) | Opciones del jugador desde affordances reales y texto libre | F5 | P2 | CP-503, CP-014 | pendiente |
 | [CP-505](tareas/CP-505-valleytalk.md) | Convivencia con ValleyTalk · nunca dos voces para la misma persona | F5 | P3 | CP-503 | pendiente |
 | [CP-506](tareas/CP-506-validador-menciones.md) | Validador de menciones · la mente no nombra lo que no existe para Leah | F5 | P2 | CP-501, CP-206 | hecha |
