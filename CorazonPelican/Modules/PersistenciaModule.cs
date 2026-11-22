@@ -13,6 +13,8 @@ namespace CorazonPelican.Modules
     {
         private readonly GestorPersistenciaPartida gestor = new();
         private ModContext? context;
+        private IPelicanApi? pelicanApi;
+        private Action? hookPreGuardadoPelican;
 
         public string Nombre => "Persistencia";
 
@@ -22,6 +24,7 @@ namespace CorazonPelican.Modules
         {
             this.context = contexto;
 
+            contexto.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
             contexto.Helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
             contexto.Helper.Events.GameLoop.Saving += this.OnSaving;
             contexto.Helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
@@ -29,14 +32,57 @@ namespace CorazonPelican.Modules
 
         public void Dispose()
         {
+            if (this.pelicanApi is not null && this.hookPreGuardadoPelican is not null)
+            {
+                try
+                {
+                    this.pelicanApi.UnregisterPreSaveHook(this.hookPreGuardadoPelican);
+                }
+                catch
+                {
+                }
+            }
+
+            this.pelicanApi = null;
+            this.hookPreGuardadoPelican = null;
+
             if (this.context is null)
             {
                 return;
             }
 
+            this.context.Helper.Events.GameLoop.GameLaunched -= this.OnGameLaunched;
             this.context.Helper.Events.GameLoop.SaveLoaded -= this.OnSaveLoaded;
             this.context.Helper.Events.GameLoop.Saving -= this.OnSaving;
             this.context.Helper.Events.GameLoop.ReturnedToTitle -= this.OnReturnedToTitle;
+        }
+
+        private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
+        {
+            if (this.context is null || !this.context.Helper.ModRegistry.IsLoaded(ModContext.Pelican4EverUniqueId))
+            {
+                return;
+            }
+
+            try
+            {
+                var api = this.context.Helper.ModRegistry.GetApi<IPelicanApi>(ModContext.Pelican4EverUniqueId);
+                if (api is null)
+                {
+                    return;
+                }
+
+                this.hookPreGuardadoPelican ??= this.OnPelicanPreSave;
+                api.RegisterPreSaveHook(this.hookPreGuardadoPelican);
+                this.pelicanApi = api;
+                this.context.Monitor.Log("[Persistencia] Suscrito al hook pre-guardado de Pelican 4Ever (CP-604).", LogLevel.Trace);
+            }
+            catch (Exception ex)
+            {
+                this.context.Monitor.Log(
+                    $"[Persistencia] Pelican 4Ever no expone RegisterPreSaveHook todavía ({ex.Message}).",
+                    LogLevel.Trace);
+            }
         }
 
         private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -76,8 +122,14 @@ namespace CorazonPelican.Modules
         }
 
         private void OnSaving(object? sender, SavingEventArgs e)
+            => this.GuardarEnPartida("Saving");
+
+        private void OnPelicanPreSave()
+            => this.GuardarEnPartida("checkpoint/rollover Pelican");
+
+        private void GuardarEnPartida(string origen)
         {
-            if (this.context is null || !Context.IsMainPlayer)
+            if (this.context is null || !Context.IsWorldReady || !Context.IsMainPlayer)
             {
                 return;
             }
@@ -90,19 +142,19 @@ namespace CorazonPelican.Modules
                 if (resultado.OmitidoPorProteccion)
                 {
                     this.context.Monitor.Log(
-                        $"Guardado omitido para proteger la memoria original de la partida «{resultado.PartidaAfectada}»: {resultado.Motivo}",
+                        $"Guardado ({origen}) omitido para proteger la memoria original de la partida «{resultado.PartidaAfectada}»: {resultado.Motivo}",
                         LogLevel.Warn);
                     return;
                 }
 
                 this.context.Monitor.Log(
-                    $"Estado de Corazón Pelican guardado (personajes: {this.context.EstadoPartida.Personajes.Count}, esquema v{this.context.EstadoPartida.VersionEsquema}).",
+                    $"Estado de Corazón Pelican guardado ({origen}; personajes: {this.context.EstadoPartida.Personajes.Count}, esquema v{this.context.EstadoPartida.VersionEsquema}).",
                     LogLevel.Trace);
             }
             catch (Exception ex)
             {
                 this.context.Monitor.Log(
-                    $"No se pudo guardar «{PersistenciaEstado.ClaveGuardado}»: {ex}",
+                    $"No se pudo guardar «{PersistenciaEstado.ClaveGuardado}» ({origen}): {ex}",
                     LogLevel.Error);
             }
         }

@@ -158,4 +158,40 @@ public class ProteccionGuardadoTests
         Assert.Single(recargadaNueva.ObtenerSiExiste("leah")!.Diario);
         Assert.Equal(jsonFutura, almacen["partida_afectada_999"]);
     }
+
+    [Fact]
+    public void Hook_pre_guardado_vuelca_el_estado_antes_de_checkpoint_y_respeta_proteccion_cp110()
+    {
+        var almacen = new Dictionary<string, string>(StringComparer.Ordinal);
+        var gestor = new GestorPersistenciaPartida();
+
+        var carga = gestor.Cargar(
+            "partida_checkpoint",
+            () => almacen.TryGetValue("partida_checkpoint", out var raw) ? PersistenciaEstado.Deserializar(raw) : null,
+            new[] { "leah" });
+        Assert.True(carga.Exito);
+
+        gestor.EstadoActual.ObtenerOIniciar("leah").AgregarEpisodio(3, 1430, "Dibujando en el claro antes del checkpoint.", 0.7);
+        Action hookPreGuardado = () => gestor.Guardar(e => almacen["partida_checkpoint"] = PersistenciaEstado.Serializar(e));
+
+        hookPreGuardado();
+
+        Assert.True(almacen.ContainsKey("partida_checkpoint"));
+        var recargada = PersistenciaEstado.Deserializar(almacen["partida_checkpoint"]);
+        Assert.Single(recargada.ObtenerSiExiste("leah")!.Diario);
+
+        // Si la carga posterior falla por versión futura, el hook pre-guardado tampoco sobrescribe.
+        almacen["partida_futura"] = """{ "version_esquema": 99, "personajes": {} }""";
+        gestor.Limpiar();
+        var cargaFutura = gestor.Cargar(
+            "partida_futura",
+            () => JsonConvert.DeserializeObject<EstadoPartida>(almacen["partida_futura"]),
+            new[] { "leah" });
+        Assert.False(cargaFutura.Exito);
+
+        var escrituras = 0;
+        var res = gestor.Guardar(_ => escrituras++);
+        Assert.True(res.OmitidoPorProteccion);
+        Assert.Equal(0, escrituras);
+    }
 }

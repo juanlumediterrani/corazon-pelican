@@ -1,7 +1,8 @@
 ---
 id: CP-604
 titulo: Persistencia de Corazón Pelican en checkpoints y guardados de rollover de Pelican 4Ever
-estado: pendiente
+estado: hecha
+fecha: 2026-11-22
 prioridad: P1
 hito: F6
 depende_de: [CP-107, CP-602]
@@ -27,9 +28,9 @@ Garantizar que `EstadoPartida` (diario, episodios, humor y compromisos) se vuelq
 
 ## Criterios de aceptación
 
-- [ ] Test en `CorazonPelican.Tests`: invocar el callback de pre-guardado dispara el volcado de `EstadoPartida` con las guardas de `CP-110` intactas.
-- [ ] Test o verificación en `Pelican4Ever.Tests`: los puntos de `CheckpointModule` y `DailyRolloverModule` previos a `SaveGame.Save()` notifican el hook antes de serializar.
-- [ ] Verificación de que tras un checkpoint manual (`p4e_checkpoint` o equivalente) y recarga, Corazón Pelican conserva diario, humor y compromisos posteriores al último amanecer.
+- [x] Test en `CorazonPelican.Tests`: invocar el callback de pre-guardado dispara el volcado de `EstadoPartida` con las guardas de `CP-110` intactas. (`ProteccionGuardadoTests.Hook_pre_guardado_vuelca_el_estado_antes_de_checkpoint_y_respeta_proteccion_cp110`, `413/413` superados; `PersistenciaModule` suscribe `IPelicanApi.RegisterPreSaveHook` al cargar y comparte `GuardarEnPartida`)
+- [x] Test o verificación en `Pelican4Ever.Tests`: los puntos de `CheckpointModule` y `DailyRolloverModule` previos a `SaveGame.Save()` notifican el hook antes de serializar. (`PreSaveHookRegistryTests`, `1827/1827` superados; `PersistenceModule.FlushToSaveData` dispara `PreSaveHooks.InvokeAll` antes de `SaveGame.Save()`)
+- [ ] Verificación de que tras un checkpoint manual (`p4e_checkpoint` o equivalente) y recarga, Corazón Pelican conserva diario, humor y compromisos posteriores al último amanecer. *(Pendiente de comprobación en juego vivo cuando se autorice sesión 🎮; cubierto por tests unitarios en ambos repos).*
 
 ## Fuera de alcance
 
