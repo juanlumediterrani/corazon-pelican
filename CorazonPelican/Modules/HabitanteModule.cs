@@ -379,6 +379,7 @@ namespace CorazonPelican.Modules
             }
 
             var obs = this.observador.Observar(npc, npc.currentLocation);
+            obs = this.context.SucesosPelican.AplicarAObservacion(obs);
             this.context.UltimasObservaciones[personajeId] = obs;
             return obs;
         }

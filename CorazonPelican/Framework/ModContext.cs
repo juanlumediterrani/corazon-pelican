@@ -65,6 +65,9 @@ namespace CorazonPelican.Framework
         /// <summary>Última observación recogida por personaje gobernado.</summary>
         public Dictionary<string, Observacion> UltimasObservaciones { get; } = new(StringComparer.Ordinal);
 
+        /// <summary>Sucesos de Pelican 4Ever encolados en segundo plano para la siguiente observación (CP-602).</summary>
+        public ColaSucesosPelican SucesosPelican { get; } = new();
+
         /// <summary>Motores por personaje gobernado en la partida actual (solo anfitrión, CP-109).</summary>
         public Dictionary<string, MotorHabitante> MotoresHabitante { get; } = new(StringComparer.Ordinal);
 

@@ -58,6 +58,7 @@ namespace CorazonPelican
                 new PersistenciaModule(),
                 new ApiModule(),
                 new HabitanteModule(),
+                new IntegracionPelicanModule(),
                 new DialogoModule(),
                 new CorreoProrrogaModule(),
                 new ConsolaModule(),
