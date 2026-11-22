@@ -1,7 +1,7 @@
 ---
 id: CP-601
 titulo: Pelican 4Ever · WorldLifeModule ignora NPCs reclamados por Corazón Pelican
-estado: pendiente
+estado: en-curso
 prioridad: P3
 hito: F6
 depende_de: [CP-303]
@@ -26,8 +26,8 @@ Abrir y hacer en Pelican el cambio pequeño que exige la ADS §11.1: el *micro-w
 
 ## Criterios de aceptación
 
-- [ ] Test en Pelican: un NPC con la clave no recibe destinos de *micro-wandering*.
-- [ ] La clave se documenta como contrato entre ambos mods (nombre exacto y semántica).
+- [x] Test en Pelican: un NPC con la clave no recibe destinos de *micro-wandering*. (`NpcShopkeeperLogicTests.CanMicroWander_BlocksExternallyControlledNpc_CorazonPelican`, 40/40 superados en la rama `cp-601-micro-wandering` de `Stardew Valley MORPG`, commit `fe76df7` en worktree aislado sin interferir con el otro agente; pendiente fusionar en `main` e inscribir en su `backlog.md`)
+- [x] La clave se documenta como contrato entre ambos mods (nombre exacto y semántica). (`NpcShopkeeperLogic.CorazonPelicanControlKey = "CorazonPelican.Control"` en Pelican 4Ever y `ReclamacionNpc.ClaveControlModData = "CorazonPelican.Control"` en Corazón Pelican)
 
 ## Fuera de alcance
 

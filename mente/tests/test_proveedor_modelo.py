@@ -9,6 +9,7 @@ import httpx
 
 from mente.cliente_motor import CicloMente, ClienteMotor, RegistroTelemetria
 from mente.costes import PresupuestoTokens
+from mente.ensamblador import PromptEnsamblado
 from mente.modelos import ConfigModelo, crear_modelo
 from mente.tests.test_mente import EJEMPLOS_VALIDOS, MotorSimulado, VOZ_LEAH
 
@@ -209,3 +210,38 @@ class TestProveedoresHttpSimulados:
             res_red = CicloMente(cliente_red, modelo_red_err, VOZ_LEAH).ejecutar_paso(espera_ms=0)
 
         assert [r.estado for r in res_red] == ["error_proveedor"]
+
+
+def test_proveedor_bedrock_nova_2_lite_formato_putre() -> None:
+    """Comprueba el formato nativo messages-v1 de Bedrock Nova 2 Lite (usado por Putre)."""
+    captura: dict[str, Any] = {}
+
+    def invoker(model_id: str, body: dict[str, Any]) -> dict[str, Any]:
+        captura["model_id"] = model_id
+        captura["body"] = body
+        return {
+            "output": {
+                "message": {
+                    "role": "assistant",
+                    "content": [{"text": '```json\n{"pensamiento": "El bosque está tranquilo.", "epoca": "ep-1", "basada_en": 1}\n```'}],
+                }
+            },
+            "usage": {"inputTokens": 120, "outputTokens": 24, "cacheReadInputTokens": 40},
+        }
+
+    modelo = crear_modelo(
+        ConfigModelo(proveedor="bedrock", modelo="eu.amazon.nova-2-lite-v1:0"),
+        bedrock_invoker=invoker,
+    )
+    prompt = PromptEnsamblado(sistema="Eres Leah.", usuario="Escena del claro.")
+    salida = modelo.generar(prompt, {"type": "object", "properties": {"pensamiento": {"type": "string"}}})
+
+    assert captura["model_id"] == "eu.amazon.nova-2-lite-v1:0"
+    assert captura["body"]["schemaVersion"] == "messages-v1"
+    assert isinstance(salida, str)
+    datos = json.loads(salida)
+    assert datos["pensamiento"] == "El bosque está tranquilo."
+    assert modelo.ultimo_uso is not None
+    assert modelo.ultimo_uso.tokens_entrada == 120
+    assert modelo.ultimo_uso.tokens_salida == 24
+    assert modelo.ultimo_uso.tokens_cache == 40

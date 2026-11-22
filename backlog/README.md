@@ -107,7 +107,7 @@ CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisio
 | [CP-507](tareas/CP-507-pensamiento-anticipado.md) | Pensamiento anticipado y su cancelación | F5 | P2 | CP-503, CP-201 | en-curso |
 | [CP-508](tareas/CP-508-aceptacion-dialogo.md) | Aceptación de fase 5 · una promesa hecha hoy y cumplida mañana 🎮 | F5 | P2 | CP-502, CP-504, CP-505, CP-506, CP-507, CP-509, CP-305 | pendiente |
 | [CP-509](tareas/CP-509-prorroga-por-carta.md) | Pedir una prórroga por carta y aplicar la respuesta del destinatario | F5 | P2 | CP-502 | hecha |
-| [CP-601](tareas/CP-601-pelican-micro-wandering.md) | Pelican 4Ever · WorldLifeModule ignora NPCs reclamados por Corazón Pelican | F6 | P3 | CP-303 | pendiente |
+| [CP-601](tareas/CP-601-pelican-micro-wandering.md) | Pelican 4Ever · WorldLifeModule ignora NPCs reclamados por Corazón Pelican | F6 | P3 | CP-303 | en-curso |
 | [CP-602](tareas/CP-602-sucesos-pelican.md) | IntegracionPelicanModule · sucesos del servidor como percepción | F6 | P3 | CP-101 | hecha |
 | [CP-603](tareas/CP-603-encuentro.md) | Sesión de encuentro · Pelican, un humano y el granjero de Voyager con Leah 🎮 | F6 | P3 | CP-508, CP-601, CP-602 | pendiente |
 | [CP-901](tareas/CP-901-adrs.md) | Redactar ADR-0001 a ADR-0006 | D | P2 | CP-001 | hecha |

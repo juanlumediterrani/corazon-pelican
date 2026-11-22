@@ -5,6 +5,8 @@ from __future__ import annotations
 import copy
 import json
 import os
+import subprocess
+import tempfile
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
@@ -315,11 +317,12 @@ _URL_BASE_POR_PROVEEDOR = {
     "anthropic": "https://api.anthropic.com/v1",
     "gemini": "https://generativelanguage.googleapis.com/v1beta",
     "google": "https://generativelanguage.googleapis.com/v1beta",
+    "bedrock": "bedrock-runtime",
 }
 
 
 class ModeloProveedorConfigurado:
-    """Adaptador HTTP para proveedores OpenAI-compatibles, Anthropic y Gemini."""
+    """Adaptador HTTP/Bedrock para proveedores OpenAI-compatibles, Anthropic, Gemini y AWS Bedrock."""
 
     def __init__(
         self,
@@ -327,12 +330,14 @@ class ModeloProveedorConfigurado:
         *,
         transport: httpx.BaseTransport | None = None,
         client: httpx.Client | None = None,
+        bedrock_invoker: Callable[[str, dict[str, Any]], dict[str, Any]] | None = None,
     ) -> None:
         self.config = config
         self.modelo = config.modelo
         self.ultimo_uso: UsoTokens | None = None
         self._transport = transport
         self._client = client
+        self._bedrock_invoker = bedrock_invoker
 
     def _resolver_credenciales(self) -> tuple[str, str | None, str]:
         proveedor = self.config.proveedor.lower().strip()
@@ -546,9 +551,124 @@ class ModeloProveedorConfigurado:
                 return texto
         raise ErrorModeloError("El proveedor Gemini no devolvió texto en `candidates[0].content.parts`.")
 
+    def _invocar_bedrock(
+        self,
+        prompt: PromptEnsamblado,
+        esquema: dict[str, Any],
+    ) -> dict[str, Any] | str:
+        instruccion_json = (
+            "Responde ÚNICAMENTE con un objeto JSON válido que cumpla exactamente "
+            f"este esquema JSON (sin bloques Markdown ni texto extra):\n{json.dumps(esquema, ensure_ascii=False)}"
+        )
+        body = {
+            "schemaVersion": "messages-v1",
+            "system": [{"text": f"{prompt.sistema}\n\n{instruccion_json}"}],
+            "messages": [{"role": "user", "content": [{"text": prompt.usuario}]}],
+            "inferenceConfig": {
+                "maxTokens": self.config.max_tokens,
+                "temperature": self.config.temperatura,
+            },
+        }
+        model_id = self.config.modelo or "eu.amazon.nova-2-lite-v1:0"
+
+        if self._bedrock_invoker is not None:
+            payload = self._bedrock_invoker(model_id, body)
+        else:
+            payload = self._llamar_bedrock_nativo(model_id, body)
+
+        usage = payload.get("usage")
+        if isinstance(usage, dict):
+            cached = int(usage.get("cacheReadInputTokens") or 0)
+            inp = int(usage.get("inputTokens") or 0)
+            out = int(usage.get("outputTokens") or 0)
+            self.ultimo_uso = UsoTokens(
+                tokens_entrada=max(0, inp),
+                tokens_cache=max(0, cached),
+                tokens_salida=max(0, out),
+            )
+
+        output = payload.get("output")
+        msg = output.get("message") if isinstance(output, dict) else None
+        parts = msg.get("content") if isinstance(msg, dict) else None
+        if not isinstance(parts, list) or not parts:
+            raise ErrorModeloError("El proveedor Bedrock devolvió una respuesta sin `output.message.content`.")
+        texto = "".join(part.get("text", "") for part in parts if isinstance(part, dict)).strip()
+        if not texto:
+            raise ErrorModeloError("El proveedor Bedrock devolvió texto vacío.")
+        # Limpiar posibles fences ```json si el modelo los incluyó
+        if texto.startswith("```"):
+            lineas = texto.splitlines()
+            if len(lineas) >= 3 and lineas[-1].strip().startswith("```"):
+                texto = "\n".join(lineas[1:-1]).strip()
+        return texto
+
+    def _llamar_bedrock_nativo(self, model_id: str, body: dict[str, Any]) -> dict[str, Any]:
+        try:
+            import boto3  # type: ignore[import-not-found]
+        except ImportError:
+            boto3 = None
+
+        if boto3 is not None:
+            try:
+                client = boto3.client("bedrock-runtime")
+                resp = client.invoke_model(
+                    modelId=model_id,
+                    body=json.dumps(body),
+                    contentType="application/json",
+                    accept="application/json",
+                )
+                return json.loads(resp["body"].read())
+            except Exception as exc:
+                raise ErrorModeloError(f"Fallo de AWS Bedrock ({model_id}): {exc}") from exc
+
+        # Fallback oficial usando AWS CLI (`aws bedrock-runtime invoke-model`) cuando boto3 no está instalado.
+        tmp_path: str | None = None
+        try:
+            with tempfile.NamedTemporaryFile(prefix="cp-bedrock-", suffix=".json", delete=False) as tmp:
+                tmp_path = tmp.name
+            proc = subprocess.run(
+                [
+                    "aws",
+                    "bedrock-runtime",
+                    "invoke-model",
+                    "--model-id",
+                    model_id,
+                    "--content-type",
+                    "application/json",
+                    "--accept",
+                    "application/json",
+                    "--cli-binary-format",
+                    "raw-in-base64-out",
+                    "--body",
+                    json.dumps(body),
+                    tmp_path,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=self.config.timeout_s,
+                check=False,
+            )
+            if proc.returncode != 0:
+                detalle = (proc.stderr or proc.stdout or "").strip().replace("\n", " ")[:240]
+                raise ErrorModeloError(f"AWS CLI bedrock-runtime devolvió código {proc.returncode}: {detalle}")
+            with open(tmp_path, encoding="utf-8") as fh:
+                return json.load(fh)
+        except ErrorModeloError:
+            raise
+        except Exception as exc:
+            raise ErrorModeloError(f"Fallo invocando AWS Bedrock CLI ({model_id}): {exc}") from exc
+        finally:
+            if tmp_path and os.path.exists(tmp_path):
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+
     def generar(self, prompt: PromptEnsamblado, esquema: dict[str, Any]) -> dict[str, Any] | str:
         self.ultimo_uso = None
         proveedor, api_key, base_url = self._resolver_credenciales()
+        if proveedor == "bedrock":
+            return self._invocar_bedrock(prompt, esquema)
         if proveedor in {"openai", "local"}:
             return self._invocar_openai_compatible(prompt, esquema, base_url, api_key)
         if proveedor == "anthropic":
@@ -585,6 +705,7 @@ def crear_modelo(
     fake_generador: GeneradorFake | None = None,
     transport: httpx.BaseTransport | None = None,
     client: httpx.Client | None = None,
+    bedrock_invoker: Callable[[str, dict[str, Any]], dict[str, Any]] | None = None,
 ) -> ModeloMente:
     """Enruta la configuración de modelo sin exigir claves reales para pruebas."""
     cfg = config or ConfigModelo()
@@ -596,6 +717,6 @@ def crear_modelo(
             presupuesto_tokens_dia=cfg.presupuesto_tokens_dia,
             modelo=cfg.modelo,
         )
-    if proveedor in {"openai", "anthropic", "gemini", "google", "local"}:
-        return ModeloProveedorConfigurado(cfg, transport=transport, client=client)
+    if proveedor in {"openai", "anthropic", "gemini", "google", "local", "bedrock"}:
+        return ModeloProveedorConfigurado(cfg, transport=transport, client=client, bedrock_invoker=bedrock_invoker)
     raise ErrorModeloError(f"Proveedor de modelo desconocido: '{cfg.proveedor}'.")
