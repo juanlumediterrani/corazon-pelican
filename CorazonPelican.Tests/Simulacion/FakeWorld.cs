@@ -7,10 +7,10 @@ using CorazonPelican.Core.Tiempo;
 namespace CorazonPelican.Tests.Simulacion;
 
 /// <summary>Un lugar del escenario, con la casilla a la que se va al pedir <c>ir_a</c>.</summary>
-public sealed record LugarSimulado(string Id, string Ubicacion, int X, int Y, string? Prosa = null)
+public sealed record LugarSimulado(string Id, string Ubicacion, int X, int Y, string? Prosa = null, bool Sentable = true)
 {
     public Lugar AlLexico()
-        => new() { Id = this.Id, Ubicacion = this.Ubicacion, Area = new() { this.X, this.Y, 1, 1 }, Prosa = this.Prosa ?? this.Id };
+        => new() { Id = this.Id, Ubicacion = this.Ubicacion, Area = new() { this.X, this.Y, 1, 1 }, Prosa = this.Prosa ?? this.Id, Sentable = this.Sentable };
 }
 
 /// <summary>Posición del personaje gobernado en el mundo simulado.</summary>
@@ -135,6 +135,9 @@ public sealed class FakeWorld
         this.Personaje.X = destino.Area[0];
         this.Personaje.Y = destino.Area[1];
     }
+
+    internal bool ExisteEntidadVisible(string referencia)
+        => this.entidades.Any(e => e.Ubicacion == this.Personaje.Ubicacion && string.Equals(e.Ref, referencia, StringComparison.Ordinal));
 
     private List<Observacion> AvanzarObservando(TimeSpan duracion, bool observar)
     {

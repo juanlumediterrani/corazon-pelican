@@ -27,17 +27,23 @@ namespace CorazonPelican.Core.Sensorio
         IReadOnlyDictionary<string, double> Rasgos,
         EstadoAtencion Estado,
         double UmbralPeriferia,
-        IReadOnlyDictionary<string, double>? PesosIntencion = null)
+        IReadOnlyDictionary<string, double>? PesosIntencion = null,
+        string? FocoObjetivoRef = null)
     {
         /// <summary>Devuelve un contexto con los pesos de atención de <paramref name="intencion"/> si está activa; si no, restaura 1.</summary>
         public ContextoSaliencia ConIntencion(IntencionPersonaje? intencion)
             => this with { PesosIntencion = intencion?.PesosAtencionActivos };
 
+        /// <summary>Devuelve un contexto con el foco del sensorio orientado a <paramref name="objetivoRef"/> (GSS §3.6).</summary>
+        public ContextoSaliencia ConFoco(string? objetivoRef)
+            => this with { FocoObjetivoRef = objetivoRef };
+
         /// <summary>Construye el contexto de saliencia a partir del perfil y, opcionalmente, la intención activa.</summary>
         public static ContextoSaliencia DesdePerfil(
             PerfilPersonaje perfil,
             EstadoAtencion? estado = null,
-            IntencionPersonaje? intencionActiva = null)
+            IntencionPersonaje? intencionActiva = null,
+            string? focoObjetivoRef = null)
         {
             if (perfil is null)
             {
@@ -48,7 +54,8 @@ namespace CorazonPelican.Core.Sensorio
                 perfil.Rasgos,
                 estado ?? EstadoAtencion.Abierta,
                 perfil.Umbrales.Periferia,
-                intencionActiva?.PesosAtencionActivos);
+                intencionActiva?.PesosAtencionActivos,
+                focoObjetivoRef);
         }
     }
 
@@ -78,14 +85,21 @@ namespace CorazonPelican.Core.Sensorio
         /// <summary>Cuánto amplía cada corazón el peso y el alcance de una persona («lo nota llegar de lejos»).</summary>
         public const double PorCorazon = 0.1;
 
+        /// <summary>Multiplicador de atención directa cuando el cuerpo ejecuta <c>mirar(objetivo)</c> (GSS §3.6).</summary>
+        public const double FactorFocoMirada = 3.0;
+
         public static DesgloseSaliencia Calcular(EntidadObservada entidad, int desdeX, int desdeY, ContextoSaliencia contexto, double novedad)
         {
             var rasgos = PesoPorEtiquetas(entidad.Etiquetas, contexto.Rasgos);
             var intencion = contexto.PesosIntencion is null ? 1.0 : PesoPorEtiquetas(entidad.Etiquetas, contexto.PesosIntencion);
+            var focoDirecto = !string.IsNullOrWhiteSpace(contexto.FocoObjetivoRef)
+                && string.Equals(entidad.Ref, contexto.FocoObjetivoRef, StringComparison.Ordinal)
+                ? FactorFocoMirada
+                : 1.0;
             var relacion = 1 + (PorCorazon * Math.Max(0, entidad.Corazones ?? 0));
             var casillas = Math.Sqrt(Math.Pow(entidad.X - desdeX, 2) + Math.Pow(entidad.Y - desdeY, 2));
             var distancia = Math.Exp(-casillas / (AlcanceBaseCasillas * relacion));
-            var bruto = rasgos * contexto.Estado.Factor * intencion * Math.Clamp(novedad, 0, 1) * relacion * distancia;
+            var bruto = rasgos * contexto.Estado.Factor * intencion * focoDirecto * Math.Clamp(novedad, 0, 1) * relacion * distancia;
 
             var total = bruto / (1 + bruto);
             if (!entidad.Visible)

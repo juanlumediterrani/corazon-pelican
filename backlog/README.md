@@ -37,7 +37,8 @@ Estas dos fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-302 CuerpoNpc · vocabulario de acciones v1 sobre Leah 🎮 |
+| P1 | CP-303 reclamación, volver_a_rutina y degradación a la Leah vanilla |
+| P2 | CP-304 reflejos del perfil en menos de 100 ms |
 
 CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisiones.md`](../docs/decisiones.md) han quedado cerradas (`CP-902`).
 
@@ -85,7 +86,7 @@ CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisio
 | [CP-215](tareas/CP-215-conectar-proveedor-de-la-mente.md) | Conectar un proveedor de modelo al ciclo de la mente | F2 | P1 | CP-204 | hecha |
 | [CP-216](tareas/CP-216-computar-tokens-de-cadenas.md) | Contabilizar las cadenas contra el límite diario de tokens | F2 | P2 | CP-207 | hecha |
 | [CP-301](tareas/CP-301-intencion-validador.md) | Intención con ciclo de vida, pesos de atención y validador de precondiciones | F3 | P1 | CP-105, CP-203 | hecha |
-| [CP-302](tareas/CP-302-cuerpo-vocabulario.md) | CuerpoNpc · vocabulario de acciones v1 sobre Leah 🎮 | F3 | P1 | CP-011, CP-012, CP-301 | pendiente |
+| [CP-302](tareas/CP-302-cuerpo-vocabulario.md) | CuerpoNpc · vocabulario de acciones v1 sobre Leah 🎮 | F3 | P1 | CP-011, CP-012, CP-301 | hecha |
 | [CP-303](tareas/CP-303-reclamacion-y-degradacion.md) | Reclamación, volver_a_rutina y degradación a la Leah vanilla | F3 | P1 | CP-011, CP-302 | pendiente |
 | [CP-304](tareas/CP-304-reflejos.md) | Reflejos del perfil en menos de 100 ms | F3 | P2 | CP-302 | pendiente |
 | [CP-305](tareas/CP-305-aceptacion-cuerpo.md) | Aceptación de fase 3 · intenciones cumplidas y rechazadas en vivo 🎮 | F3 | P2 | CP-303, CP-304, CP-306, CP-208 | pendiente |

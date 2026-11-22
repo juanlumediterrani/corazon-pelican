@@ -108,7 +108,16 @@ namespace CorazonPelican.Modules
                     Epoca = this.context.Api.EpocaVigente ?? "local",
                 };
 
+                var cuerpo = new CuerpoNpc(
+                    perfil,
+                    motor.LugaresOfrecidos,
+                    this.context.ModoRelojEfectivo,
+                    this.context.Monitor,
+                    () => this.ObservarPersonaje(id));
+                motor.ConectarEjecutorCuerpo(cuerpo.Ejecutor, () => this.cronometro.ElapsedMilliseconds);
+
                 this.context.MotoresHabitante[id] = motor;
+                this.context.CuerposHabitante[id] = cuerpo;
             }
 
             CoordinadorApiAnfitrion.Conectar(
@@ -130,6 +139,15 @@ namespace CorazonPelican.Modules
             if (this.context is null || !Context.IsWorldReady || !Context.IsMainPlayer || !this.context.MotorActivoEnPartida)
             {
                 return;
+            }
+
+            var ahoraTickMs = this.cronometro.ElapsedMilliseconds;
+            using (this.context.CostesBucle.Medir("cuerpo"))
+            {
+                foreach (var cuerpo in this.context.CuerposHabitante.Values)
+                {
+                    cuerpo.AvanzarTick(ahoraTickMs);
+                }
             }
 
             if (!e.IsMultipleOf((uint)this.context.Config.SensorioCadenciaTicks))
@@ -205,6 +223,7 @@ namespace CorazonPelican.Modules
             {
                 CoordinadorApiAnfitrion.Desconectar(this.context.Api);
                 this.context.MotoresHabitante.Clear();
+                this.context.CuerposHabitante.Clear();
                 this.context.ProveedorObservacion = null;
                 this.context.RelojMs = null;
                 this.context.Telemetria = null;

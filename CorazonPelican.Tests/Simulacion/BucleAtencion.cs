@@ -58,7 +58,12 @@ public sealed class BucleAtencion
             var ahora = this.Mundo.Reloj.MilisegundosReales;
             this.PasarSucesosDelCuerpo(observacion, ahora);
 
-            var saliencias = Saliencia.Calcular(observacion, this.contexto, this.novedad);
+            var contextoPaso = (this.contexto with
+            {
+                Estado = this.Mundo.Cuerpo.EstadoAtencion,
+                FocoObjetivoRef = this.Mundo.Cuerpo.FocoObjetivoRef,
+            });
+            var saliencias = Saliencia.Calcular(observacion, contextoPaso, this.novedad);
             this.novedad.Exponer(observacion.Entidades.Select(e => e.Ref), minutosPorPaso);
             var enBandas = this.bandas.Clasificar(saliencias);
             this.Disparos.AddRange(this.Disparadores.Observar(observacion, enBandas, this.Mundo.HorarioHoy, ahora, minutosPorPaso));

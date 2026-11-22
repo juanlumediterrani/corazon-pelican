@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CorazonPelican.Adaptador;
 using CorazonPelican.Core.Api;
 using CorazonPelican.Core.Atencion;
 using CorazonPelican.Core.Config;
@@ -66,6 +67,9 @@ namespace CorazonPelican.Framework
 
         /// <summary>Motores por personaje gobernado en la partida actual (solo anfitrión, CP-109).</summary>
         public Dictionary<string, MotorHabitante> MotoresHabitante { get; } = new(StringComparer.Ordinal);
+
+        /// <summary>Cuerpos nativos por personaje gobernado en la partida actual (solo anfitrión, CP-302).</summary>
+        public Dictionary<string, CuerpoNpc> CuerposHabitante { get; } = new(StringComparer.Ordinal);
 
         /// <summary>Escritor de telemetría JSONL de la partida actual (solo anfitrión, CP-109).</summary>
         public TelemetriaJsonl? Telemetria { get; internal set; }

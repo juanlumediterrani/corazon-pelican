@@ -72,7 +72,7 @@ public class CuerpoNoBloqueaTests
             new PasoPlan { Accion = "sentarse", Lugar = "orilla_norte" },
         });
         mundoCalentamiento.EmitirPulso(pulsoCalentamiento);
-        mundoCalentamiento.Avanzar(TimeSpan.FromSeconds(5));
+        mundoCalentamiento.Avanzar(TimeSpan.FromSeconds(10));
         motor.DrenarCola();
 
         using var http = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{puerto}/api/v1/") };

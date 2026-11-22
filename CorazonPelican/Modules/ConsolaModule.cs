@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using CorazonPelican.Core;
 using CorazonPelican.Core.Atencion;
+using CorazonPelican.Core.Contrato;
+using CorazonPelican.Core.Intencion;
 using CorazonPelican.Core.Perfil;
 using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Tiempo;
@@ -49,6 +52,10 @@ namespace CorazonPelican.Modules
                 "cp_lugares",
                 "Comprueba en vivo que todas las áreas del perfil de un personaje están medidas y son transitables: cp_lugares [personaje].",
                 this.OnLugares);
+            contexto.Helper.ConsoleCommands.Add(
+                "cp_cuerpo",
+                "Ejecuta o inspecciona planes del vocabulario v1 sobre CuerpoNpc: cp_cuerpo <estado|plan|avanzar> ...",
+                this.OnCuerpo);
         }
 
         private void OnEstado(string comando, string[] args)
@@ -407,6 +414,161 @@ namespace CorazonPelican.Modules
             }
 
             log.Log($"Resumen lugares [{perfil.Id}]: OK {ok}/{perfil.Lexico.Lugares.Count}.", ok == perfil.Lexico.Lugares.Count ? LogLevel.Info : LogLevel.Warn);
+        }
+
+        private void OnCuerpo(string comando, string[] args)
+        {
+            var log = this.context.Monitor;
+            if (!Context.IsWorldReady || !Context.IsMainPlayer)
+            {
+                log.Log("cp_cuerpo requiere una partida cargada en el anfitrión.", LogLevel.Warn);
+                return;
+            }
+
+            var sub = args.Length > 0 ? args[0].ToLowerInvariant() : "estado";
+            if (sub == "estado")
+            {
+                var id = args.Length >= 2 ? args[1] : this.context.CuerposHabitante.Keys.FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(id) || !this.context.CuerposHabitante.TryGetValue(id, out var cuerpo))
+                {
+                    log.Log("Uso: cp_cuerpo estado [personaje]", LogLevel.Warn);
+                    return;
+                }
+
+                var npc = cuerpo.ObtenerNpc();
+                var motor = this.context.MotoresHabitante.GetValueOrDefault(id);
+                var ultimosSucesos = string.Join(", ", cuerpo.Ejecutor.Sucesos.TakeLast(6).Select(s => $"{s.Tipo}:{s.Accion}({s.Detalle ?? "-"})"));
+                log.Log(
+                    $"[Cuerpo:{id}] pos={cuerpo.UbicacionActual}@({cuerpo.CasillaX},{cuerpo.CasillaY}) dir={npc?.FacingDirection} " +
+                    $"ocupado={cuerpo.Ejecutor.Ocupado} actual={cuerpo.Ejecutor.AccionActual?.Nombre ?? "-"} " +
+                    $"continua={cuerpo.Ejecutor.Continua ?? "-"} sentada={cuerpo.Ejecutor.Sentada} " +
+                    $"animActividad={cuerpo.EstaEnAnimacionActividad} frame={npc?.Sprite.CurrentFrame} " +
+                    $"atencion={cuerpo.Ejecutor.Contexto.EstadoAtencion.Apertura:0.0} foco={cuerpo.Ejecutor.Contexto.FocoObjetivoRef ?? "-"} " +
+                    $"bufer={motor?.Bufer.Entradas.Count ?? 0} sucesos=[{ultimosSucesos}]",
+                    LogLevel.Info);
+                return;
+            }
+
+            if (sub == "plan")
+            {
+                if (args.Length < 4)
+                {
+                    log.Log("Uso: cp_cuerpo plan <personaje> <id_plan> <accion[:arg]> [accion2[:arg2] ...]", LogLevel.Warn);
+                    return;
+                }
+
+                var id = args[1];
+                var idPlan = args[2];
+                if (!this.context.CuerposHabitante.TryGetValue(id, out var cuerpo)
+                    || !this.context.MotoresHabitante.TryGetValue(id, out var motor))
+                {
+                    log.Log($"No existe personaje gobernado '{id}'.", LogLevel.Warn);
+                    return;
+                }
+
+                var pasos = args.Skip(3).Select(ParsearPasoConsola).ToList();
+                var obs = this.context.ProveedorObservacion?.Invoke(id);
+                var ahoraMs = Math.Max(this.context.RelojMs?.Invoke() ?? 0, (motor.Disparadores.UltimoPulsoMs ?? 0) + 100);
+                if (obs is not null && motor.UltimaObservacion is null)
+                {
+                    motor.ProcesarPaso(obs, horario: null, ahoraMs, 0);
+                    ahoraMs = Math.Max(ahoraMs + 100, (motor.Disparadores.UltimoPulsoMs ?? 0) + 100);
+                }
+
+                motor.Disparadores.IniciarPlanIntencion(idPlan, ahoraMs);
+                cuerpo.EjecutarPlan(pasos, ahoraMs, idPlan);
+                log.Log(
+                    $"[Cuerpo:{id}] Plan '{idPlan}' iniciado ({pasos.Count} pasos) desde {cuerpo.UbicacionActual}@({cuerpo.CasillaX},{cuerpo.CasillaY}).",
+                    LogLevel.Info);
+                return;
+            }
+
+            if (sub == "avanzar")
+            {
+                var maxTicks = args.Length >= 2 && int.TryParse(args[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var m)
+                    ? m
+                    : 8000;
+                var id = args.Length >= 3 ? args[2] : this.context.CuerposHabitante.Keys.FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(id)
+                    || !this.context.CuerposHabitante.TryGetValue(id, out var cuerpo)
+                    || !this.context.MotoresHabitante.TryGetValue(id, out var motor))
+                {
+                    log.Log("Uso: cp_cuerpo avanzar [maxTicks] [personaje]", LogLevel.Warn);
+                    return;
+                }
+
+                var npc = cuerpo.ObtenerNpc();
+                if (npc is null || Game1.currentGameTime is null)
+                {
+                    return;
+                }
+
+                var origen = $"{cuerpo.UbicacionActual}@({cuerpo.CasillaX},{cuerpo.CasillaY})";
+                var recorrido = new List<string> { origen };
+                var ultimaLoc = cuerpo.UbicacionActual;
+                var ticks = 0;
+                var ahoraBaseMs = Math.Max(this.context.RelojMs?.Invoke() ?? 0, (motor.Disparadores.UltimoPulsoMs ?? 0) + 200);
+
+                while ((cuerpo.Ejecutor.Ocupado || cuerpo.EstaEnAnimacionActividad) && ticks < maxTicks && npc.currentLocation is not null)
+                {
+                    ticks++;
+                    npc.update(Game1.currentGameTime, npc.currentLocation);
+                    cuerpo.AvanzarTick(ahoraBaseMs + (ticks * 16));
+                    var locActual = cuerpo.UbicacionActual;
+                    if (!string.Equals(locActual, ultimaLoc, StringComparison.Ordinal))
+                    {
+                        recorrido.Add($"{locActual}@({cuerpo.CasillaX},{cuerpo.CasillaY})");
+                        ultimaLoc = locActual;
+                    }
+
+                    if (!cuerpo.Ejecutor.Ocupado && cuerpo.Ejecutor.Continua == "dibujar")
+                    {
+                        break;
+                    }
+                }
+
+                var ahoraFinMs = (this.context.RelojMs?.Invoke() ?? ahoraBaseMs) + (ticks * 16);
+                var obsFin = this.context.ProveedorObservacion?.Invoke(id);
+                var pulsosEmitidos = 0;
+                if (obsFin is not null)
+                {
+                    var res = motor.ProcesarPaso(obsFin, horario: null, ahoraFinMs, 0.2);
+                    pulsosEmitidos = res.Pulsos.Count;
+                }
+
+                recorrido.Add($"{cuerpo.UbicacionActual}@({cuerpo.CasillaX},{cuerpo.CasillaY})");
+                log.Log(
+                    $"[Cuerpo:{id}] Avanzados {ticks} ticks | recorrido=[{string.Join(" -> ", recorrido)}] | " +
+                    $"ocupado={cuerpo.Ejecutor.Ocupado} continua={cuerpo.Ejecutor.Continua ?? "-"} sentada={cuerpo.Ejecutor.Sentada} " +
+                    $"dir={npc.FacingDirection} animActividad={cuerpo.EstaEnAnimacionActividad} frame={npc.Sprite.CurrentFrame} " +
+                    $"pulsosEmitidos={pulsosEmitidos} bufer=[{string.Join(" | ", motor.Bufer.Entradas.Select(e => e.Prosa))}]",
+                    LogLevel.Info);
+                return;
+            }
+
+            log.Log("Subcomando desconocido. Usa: cp_cuerpo estado | cp_cuerpo plan ... | cp_cuerpo avanzar [maxTicks]", LogLevel.Warn);
+        }
+
+        private static PasoPlan ParsearPasoConsola(string token)
+        {
+            var idx = token.IndexOf(':', StringComparison.Ordinal);
+            var accion = idx >= 0 ? token.Substring(0, idx) : token;
+            var arg = idx >= 0 ? token.Substring(idx + 1) : null;
+
+            return accion switch
+            {
+                "ir_a" or "sentarse" => new PasoPlan { Accion = accion, Lugar = arg },
+                "mirar" => new PasoPlan { Accion = accion, Objetivo = arg },
+                "dibujar" => new PasoPlan { Accion = accion, Obra = arg ?? "nueva" },
+                "gesto" => new PasoPlan { Accion = accion, Tipo = arg },
+                "murmurar" => new PasoPlan { Accion = accion, Texto = arg?.Replace('_', ' ') },
+                "esperar" => new PasoPlan
+                {
+                    Accion = accion,
+                    DuracionMin = int.TryParse(arg, NumberStyles.Integer, CultureInfo.InvariantCulture, out var d) ? d : 10,
+                },
+                _ => new PasoPlan { Accion = accion },
+            };
         }
 
         private static bool ContieneCasilla(System.Collections.Generic.IReadOnlyList<int> area, int x, int y)

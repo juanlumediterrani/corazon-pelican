@@ -149,6 +149,73 @@ namespace CorazonPelican.Core.Atencion
 
         public string Epoca { get; set; } = "local";
 
+        /// <summary>Estado de atención vigente del cuerpo (p. ej. estrecha al dibujar, abierta al pasear o levantar la vista).</summary>
+        public EstadoAtencion EstadoAtencionActual { get; set; } = EstadoAtencion.Abierta;
+
+        /// <summary>Referencia de entidad enfocada por <c>mirar</c>, o <c>null</c> tras <c>levantar_la_vista</c> (GSS §3.6).</summary>
+        public string? FocoSensorioRef { get; set; }
+
+        /// <summary>Obra activa mientras el personaje está dibujando.</summary>
+        public string? ObraEnCursoActual { get; set; }
+
+        /// <summary>Intención activa en curso sobre el personaje, si la hay.</summary>
+        public IntencionPersonaje? IntencionActivaVigente { get; private set; }
+
+        /// <summary>Ejecutor del cuerpo conectado a este motor, si se vinculó (CP-302).</summary>
+        public EjecutorCuerpo? EjecutorCuerpo { get; private set; }
+
+        private Func<long>? relojMotorMs;
+
+        /// <summary>Vincula un <see cref="EjecutorCuerpo"/> para registrar prosa de acción en el búfer y disparar hitos al terminar planes.</summary>
+        public void ConectarEjecutorCuerpo(EjecutorCuerpo ejecutor, Func<long>? relojMs = null)
+        {
+            this.EjecutorCuerpo = ejecutor ?? throw new ArgumentNullException(nameof(ejecutor));
+            this.relojMotorMs = relojMs;
+
+            ejecutor.AccionIniciada += (paso, _) =>
+            {
+                this.SincronizarDesdeContextoCuerpo(ejecutor.Contexto);
+                var obs = this.UltimaObservacion;
+                var dia = obs?.Dia ?? Math.Max(1, this.Estado.Contadores?.Dia ?? 1);
+                var hora = obs?.Hora ?? HoraJuego.InicioDia;
+                var nombres = obs?.Entidades.ToDictionary(e => e.Ref, e => e.Nombre, StringComparer.Ordinal);
+                this.RegistrarAccion(paso, dia, hora, nombresEntidades: nombres);
+            };
+
+            ejecutor.AccionBloqueada += (_, _, ahoraMs) =>
+            {
+                this.SincronizarDesdeContextoCuerpo(ejecutor.Contexto);
+                if (this.IntencionActivaVigente is { EstaActiva: true } activa)
+                {
+                    activa.Bloquear(this.UltimaObservacion, this.Disparadores, ahoraMs);
+                    this.Estado.IntencionActiva = null;
+                }
+            };
+
+            ejecutor.PlanTerminado += (idPlan, ahoraMs) =>
+            {
+                this.SincronizarDesdeContextoCuerpo(ejecutor.Contexto);
+                if (this.IntencionActivaVigente is { EstaActiva: true } activa
+                    && (string.IsNullOrWhiteSpace(idPlan) || string.Equals(activa.Id, idPlan, StringComparison.Ordinal)))
+                {
+                    activa.Cumplir();
+                    this.Estado.IntencionActiva = null;
+                }
+
+                if (!string.IsNullOrWhiteSpace(idPlan) && this.UltimaObservacion is { } obs)
+                {
+                    this.Disparadores.TerminarPlanIntencion(idPlan, obs, ahoraMs);
+                }
+            };
+        }
+
+        private void SincronizarDesdeContextoCuerpo(ContextoEjecucionAccion contexto)
+        {
+            this.EstadoAtencionActual = contexto.EstadoAtencion;
+            this.FocoSensorioRef = contexto.FocoObjetivoRef;
+            this.ObraEnCursoActual = contexto.AccionContinua == "dibujar" ? contexto.ObraEnCurso : null;
+        }
+
         /// <summary>
         /// Ejecuta un paso completo del bucle para <paramref name="observacion"/>:
         /// saliencia/novedad, bandas, búfer y huella, disparadores y emisión de escena/pulso/diario.
@@ -169,6 +236,16 @@ namespace CorazonPelican.Core.Atencion
                 throw new ArgumentNullException(nameof(observacion));
             }
 
+            if (this.EjecutorCuerpo is not null)
+            {
+                this.SincronizarDesdeContextoCuerpo(this.EjecutorCuerpo.Contexto);
+            }
+
+            var estadoEfectivo = estadoAtencion ?? this.EstadoAtencionActual;
+            var pesosEfectivos = pesosIntencion ?? this.IntencionActivaVigente?.PesosAtencionActivos;
+            var intencionEfectiva = intencionActiva ?? this.IntencionActivaVigente?.Id ?? this.Estado.IntencionActiva?.Id;
+            var obraEfectiva = obraEnCurso ?? this.ObraEnCursoActual;
+
             var obs = NormalizarObservacion(observacion);
             this.UltimaObservacion = obs;
             this.SincronizarAgenda(obs.Dia, horario, agendaDia);
@@ -185,9 +262,10 @@ namespace CorazonPelican.Core.Atencion
             {
                 var contextoSaliencia = new ContextoSaliencia(
                     this.Perfil.Rasgos,
-                    estadoAtencion ?? EstadoAtencion.Abierta,
+                    estadoEfectivo,
                     this.Perfil.Umbrales.Periferia,
-                    pesosIntencion);
+                    pesosEfectivos,
+                    this.FocoSensorioRef);
                 saliencias = Saliencia.Calcular(obs, contextoSaliencia, this.Novedad);
                 this.Novedad.Exponer(obs.Entidades.Select(e => e.Ref), minutosJuego);
             }
@@ -229,10 +307,10 @@ namespace CorazonPelican.Core.Atencion
                             bandas,
                             horario,
                             agendaDia,
-                            estadoAtencion,
-                            pesosIntencion,
-                            intencionActiva,
-                            obraEnCurso,
+                            estadoEfectivo,
+                            pesosEfectivos,
+                            intencionEfectiva,
+                            obraEfectiva,
                             origenTelemetria: disparo.Motivo);
                         pulsos.Add(pulso);
                         escenaEmitida = escena;
@@ -260,16 +338,27 @@ namespace CorazonPelican.Core.Atencion
                 throw new ArgumentNullException(nameof(observacion));
             }
 
+            if (this.EjecutorCuerpo is not null)
+            {
+                this.SincronizarDesdeContextoCuerpo(this.EjecutorCuerpo.Contexto);
+            }
+
+            var estadoEfectivo = estadoAtencion ?? this.EstadoAtencionActual;
+            var pesosEfectivos = pesosIntencion ?? this.IntencionActivaVigente?.PesosAtencionActivos;
+            var intencionEfectiva = intencionActiva ?? this.IntencionActivaVigente?.Id ?? this.Estado.IntencionActiva?.Id;
+            var obraEfectiva = obraEnCurso ?? this.ObraEnCursoActual;
+
             var obs = NormalizarObservacion(observacion);
             var contextoSaliencia = new ContextoSaliencia(
                 this.Perfil.Rasgos,
-                estadoAtencion ?? EstadoAtencion.Abierta,
+                estadoEfectivo,
                 this.Perfil.Umbrales.Periferia,
-                pesosIntencion);
+                pesosEfectivos,
+                this.FocoSensorioRef);
 
             var saliencias = Saliencia.Calcular(obs, contextoSaliencia, this.Novedad);
             var bandasSinMutar = new ClasificadorBandas(this.Perfil.Umbrales).Clasificar(saliencias);
-            var contextoEscena = this.CrearContextoEscena(estadoAtencion, pesosIntencion, intencionActiva, obraEnCurso);
+            var contextoEscena = this.CrearContextoEscena(estadoEfectivo, pesosEfectivos, intencionEfectiva, obraEfectiva);
             return GeneradorEscena.Generar(obs, bandasSinMutar, this.LugaresOfrecidos, this.Plantillas, contextoEscena);
         }
 
@@ -563,8 +652,21 @@ namespace CorazonPelican.Core.Atencion
 
             if (intencionValidada is not null)
             {
+                if (this.IntencionActivaVigente is { EstaActiva: true } anterior)
+                {
+                    anterior.Sustituir();
+                }
+
                 intencionValidada.Activar();
+                this.IntencionActivaVigente = intencionValidada;
                 this.Estado.IntencionActiva = intencionValidada.AIntencionActivaContrato();
+
+                if (this.EjecutorCuerpo is not null && intencionValidada.Plan.Count > 0)
+                {
+                    var ahoraMs = this.relojMotorMs?.Invoke() ?? 0;
+                    this.Disparadores.IniciarPlanIntencion(intencionValidada.Id, ahoraMs);
+                    this.EjecutorCuerpo.EjecutarPlan(intencionValidada.Plan, ahoraMs, intencionValidada.Id);
+                }
             }
 
             if (respuesta.Actos is { Count: > 0 })
