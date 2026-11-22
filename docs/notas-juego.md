@@ -159,8 +159,13 @@ personaje aparezca en `ValleyTalkDesactivadoPara` (sin leer ni modificar la conf
 - `Pelican4Ever/Modules/AdminApiModule.cs`: servidor `HttpListener` (patrón para `ApiModule`).
 - `Pelican4Ever.Core/Admin/MainThreadActionQueue.cs`: cola al hilo principal.
 - `Pelican4Ever/Framework/IModule.cs`: registro de módulos aislados.
-- `Pelican4Ever/Modules/WorldLifeModule.cs`: *micro-wandering* que debe ignorar
-  `modData["CorazonPelican.Control"]` (CP-601).
+- `Pelican4Ever/Modules/WorldLifeModule.cs` y `Pelican4Ever/Modules/RealTimeClockModule.cs`: contrato
+  `modData["CorazonPelican.Control"]` (`NpcShopkeeperLogic.CorazonPelicanControlKey` ↔
+  `ReclamacionNpc.ClaveControlModData`; implementado en la rama aislada `cp-601-micro-wandering`
+  de `Stardew Valley MORPG`, commits `fe76df7` y `4766210`). Mientras la clave exista en `npc.modData`,
+  Pelican 4Ever omite el *micro-wandering* (`CanMicroWander`), `Prefix_CheckSchedule` y
+  `CatchUpSchedule`; Corazón Pelican la añade al reclamar (`ReclamacionNpc.Reclamar`) y la borra al
+  liberar (`VolverARutina` / nuevo día) (CP-601).
 - `docs/host-api.md`: `GET /api/v1/host/events?since=N` (CP-602).
 - Ojo: compilar con `-p:EnableModDeploy=false` para no desplegar al juego en comprobaciones.
 
