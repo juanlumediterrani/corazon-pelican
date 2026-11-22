@@ -70,6 +70,11 @@ namespace CorazonPelican.Core.Sensorio
             }
 
             var tipo = evento.Type.Trim();
+            if (!EsTipoDiegetico(tipo))
+            {
+                return null;
+            }
+
             string descripcion;
             string? actorRef = ExtraerCadena(evento.Data, "playerId")
                 ?? ExtraerCadena(evento.Data, "farmerId");
@@ -93,12 +98,13 @@ namespace CorazonPelican.Core.Sensorio
                 var quien = string.IsNullOrWhiteSpace(nombreJugador) ? "un vecino" : nombreJugador.Trim();
                 descripcion = $"se ha marchado {quien} del valle";
             }
-            else if (tipo.IndexOf("festival", StringComparison.OrdinalIgnoreCase) >= 0)
+            else if (tipo.StartsWith("festival.", StringComparison.OrdinalIgnoreCase))
             {
                 var detalle = string.IsNullOrWhiteSpace(evento.Summary) ? tipo : evento.Summary.Trim();
                 descripcion = $"celebración en el valle: {detalle}";
             }
-            else if (!string.IsNullOrWhiteSpace(evento.Summary))
+            else if (string.Equals(tipo, "host.announcement", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(evento.Summary))
             {
                 descripcion = evento.Summary.Trim();
             }
@@ -128,6 +134,20 @@ namespace CorazonPelican.Core.Sensorio
             return new SucesoPelicanProyectado(evento.Id, entidad, suceso);
         }
 
+        public static bool EsTipoDiegetico(string? tipo)
+        {
+            if (string.IsNullOrWhiteSpace(tipo))
+            {
+                return false;
+            }
+
+            var t = tipo.Trim();
+            return string.Equals(t, "player.connected", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(t, "player.disconnected", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(t, "host.announcement", StringComparison.OrdinalIgnoreCase)
+                || t.StartsWith("festival.", StringComparison.OrdinalIgnoreCase);
+        }
+
         private static string? ExtraerCadena(Dictionary<string, JsonElement>? data, string clave)
         {
             if (data is null)
@@ -152,13 +172,27 @@ namespace CorazonPelican.Core.Sensorio
         }
     }
 
-    /// <summary>Cola concurrente entre el hilo HTTP de fondo y el hilo principal de observación (CP-602).</summary>
+    /// <summary>Cola concurrente entre el hilo HTTP de fondo y el hilo principal de observación (CP-602, CP-607).</summary>
     public sealed class ColaSucesosPelican
     {
-        private readonly ConcurrentQueue<EventoHostPelican> pendientes = new();
-        private long ultimoIdEncolado;
+        private const int CapacidadMaxima = 128;
 
-        public int CantidadPendiente => this.pendientes.Count;
+        private readonly object sync = new();
+        private readonly List<EventoHostPelican> eventos = new();
+        private readonly Dictionary<string, long> ultimoIdPorPersonaje = new(StringComparer.Ordinal);
+        private long ultimoIdEncolado;
+        private long secuenciaSintetica;
+
+        public int CantidadPendiente
+        {
+            get
+            {
+                lock (this.sync)
+                {
+                    return this.eventos.Count;
+                }
+            }
+        }
 
         public void Encolar(EventoHostPelican evento)
         {
@@ -167,27 +201,92 @@ namespace CorazonPelican.Core.Sensorio
                 return;
             }
 
-            if (evento.Id > 0 && evento.Id <= this.ultimoIdEncolado)
+            if (!ConversorSucesosPelican.EsTipoDiegetico(evento.Type))
             {
                 return;
             }
 
-            if (evento.Id > this.ultimoIdEncolado)
+            lock (this.sync)
             {
-                this.ultimoIdEncolado = evento.Id;
-            }
+                var idEfectivo = evento.Id;
+                if (idEfectivo > 0)
+                {
+                    if (idEfectivo <= this.ultimoIdEncolado)
+                    {
+                        return;
+                    }
 
-            this.pendientes.Enqueue(evento);
+                    this.ultimoIdEncolado = idEfectivo;
+                }
+                else
+                {
+                    this.secuenciaSintetica--;
+                    evento = new EventoHostPelican
+                    {
+                        Id = this.secuenciaSintetica,
+                        Type = evento.Type,
+                        TimestampUtc = evento.TimestampUtc,
+                        GameDay = evento.GameDay,
+                        GameTime = evento.GameTime,
+                        Summary = evento.Summary,
+                        Data = evento.Data,
+                    };
+                }
+
+                this.eventos.Add(evento);
+                if (this.eventos.Count > CapacidadMaxima)
+                {
+                    this.eventos.RemoveRange(0, this.eventos.Count - CapacidadMaxima);
+                }
+            }
         }
 
         public Observacion AplicarAObservacion(Observacion observacion)
+            => this.AplicarAObservacion(observacion, personajeId: null);
+
+        public Observacion AplicarAObservacion(Observacion observacion, string? personajeId)
         {
             if (observacion is null)
             {
                 throw new ArgumentNullException(nameof(observacion));
             }
 
-            if (this.pendientes.IsEmpty)
+            List<EventoHostPelican>? lote = null;
+            lock (this.sync)
+            {
+                if (this.eventos.Count == 0)
+                {
+                    return observacion;
+                }
+
+                if (string.IsNullOrWhiteSpace(personajeId))
+                {
+                    lote = new List<EventoHostPelican>(this.eventos);
+                    this.eventos.Clear();
+                }
+                else
+                {
+                    var clave = personajeId.Trim();
+                    this.ultimoIdPorPersonaje.TryGetValue(clave, out var ultimoVisto);
+                    lote = new List<EventoHostPelican>();
+                    var nuevoUltimo = ultimoVisto;
+                    foreach (var ev in this.eventos)
+                    {
+                        if (ev.Id > ultimoVisto || (ev.Id < 0 && !this.ultimoIdPorPersonaje.ContainsKey(clave)))
+                        {
+                            lote.Add(ev);
+                            if (ev.Id > nuevoUltimo)
+                            {
+                                nuevoUltimo = ev.Id;
+                            }
+                        }
+                    }
+
+                    this.ultimoIdPorPersonaje[clave] = nuevoUltimo;
+                }
+            }
+
+            if (lote is null || lote.Count == 0)
             {
                 return observacion;
             }
@@ -196,7 +295,7 @@ namespace CorazonPelican.Core.Sensorio
             var sucesos = observacion.Sucesos?.ToList() ?? new List<SucesoObservado>();
             var cambio = false;
 
-            while (this.pendientes.TryDequeue(out var evento))
+            foreach (var evento in lote)
             {
                 var proyectado = ConversorSucesosPelican.Convertir(evento, observacion.Ubicacion, observacion.X, observacion.Y);
                 if (proyectado is null)

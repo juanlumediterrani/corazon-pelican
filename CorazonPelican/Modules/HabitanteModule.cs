@@ -229,6 +229,7 @@ namespace CorazonPelican.Modules
                         obs = this.observador.Observar(npc, npc.currentLocation);
                     }
 
+                    obs = this.context.SucesosPelican.AplicarAObservacion(obs, id);
                     this.context.UltimasObservaciones[id] = obs;
                     var horario = LeerHorario(npc);
                     motor.Epoca = this.context.Api.EpocaVigente ?? motor.Epoca;
@@ -379,7 +380,7 @@ namespace CorazonPelican.Modules
             }
 
             var obs = this.observador.Observar(npc, npc.currentLocation);
-            obs = this.context.SucesosPelican.AplicarAObservacion(obs);
+            obs = this.context.SucesosPelican.AplicarAObservacion(obs, personajeId);
             this.context.UltimasObservaciones[personajeId] = obs;
             return obs;
         }

@@ -1,7 +1,8 @@
 ---
 id: CP-607
 titulo: IntegracionPelican · drenar sucesos en tick ordinario, filtrar ruido de admin y soportar varios personajes
-estado: pendiente
+estado: hecha
+fecha: 2026-11-22
 prioridad: P2
 hito: F6
 depende_de: [CP-602]
@@ -30,8 +31,8 @@ Auditoría de `CP-602`:
 
 ## Criterios de aceptación
 
-- [ ] Tests en `CorazonPelican.Tests` (`SucesosPelicanTests`): eventos de `checkpoint.created`, `economy.daily`, `host.lockdown` y similares devuelven `null` (no entran en la escena), mientras `player.connected` y `festival.*` entran tanto en tick ordinario como para múltiples personajes.
-- [ ] Verificación de que `HabitanteModule.OnUpdateTicked` entrega el suceso en el siguiente paso de observación sin esperar a `CuerpoNpc` ni `OnDayEnding`.
+- [x] Tests en `CorazonPelican.Tests` (`SucesosPelicanTests`): eventos de `checkpoint.created`, `economy.daily`, `host.lockdown` y similares devuelven `null` (no entran en la escena), mientras `player.connected` y `festival.*` entran tanto en tick ordinario como para múltiples personajes. (`SucesosPelicanTests.Filtra_ruido_administrativo_y_entrega_sucesos_a_multiples_personajes_CP607`, `416/416` superados)
+- [x] Verificación de que `HabitanteModule.OnUpdateTicked` entrega el suceso en el siguiente paso de observación sin esperar a `CuerpoNpc` ni `OnDayEnding`. (`HabitanteModule.OnUpdateTicked` y `ObservarPersonaje` aplican `SucesosPelican.AplicarAObservacion(obs, id)` por personaje sin perder sucesos entre múltiples motores)
 
 ## Fuera de alcance
 
