@@ -206,6 +206,7 @@ namespace CorazonPelican.Modules
             var minutosJuego = Game1.shouldTimePass() && !enNightHold
                 ? transcurridoMs * 10.0 / HoraJuego.MilisegundosPorDiezMinutos(this.context.ModoRelojEfectivo)
                 : 0.0;
+            var esDiaFestival = this.EsDiaFestivalEnCalendario();
 
             foreach (var (id, motor) in this.context.MotoresHabitante)
             {
@@ -235,8 +236,12 @@ namespace CorazonPelican.Modules
                     obs = this.context.SucesosPelican.AplicarAObservacion(obs, id);
                     this.context.UltimasObservaciones[id] = obs;
                     var horario = LeerHorario(npc);
+                    var condicionesDia = CalendarioFestivales.ConstruirCondicionesDia(
+                        obs.Clima,
+                        esDiaFestival,
+                        esBoda: Game1.weddingToday);
                     motor.Epoca = this.context.Api.EpocaVigente ?? motor.Epoca;
-                    motor.ProcesarPaso(obs, horario, ahoraMs, minutosJuego);
+                    motor.ProcesarPaso(obs, horario, ahoraMs, minutosJuego, condicionesDia: condicionesDia);
                 }
                 catch (Exception ex)
                 {
@@ -326,6 +331,29 @@ namespace CorazonPelican.Modules
             try
             {
                 return this.pelicanApi.IsNightHold();
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool EsDiaFestivalEnCalendario()
+        {
+            if (Game1.isFestival())
+            {
+                return true;
+            }
+
+            if (this.context is null)
+            {
+                return false;
+            }
+
+            try
+            {
+                var fechas = this.context.Helper.GameContent.Load<System.Collections.Generic.Dictionary<string, string>>("Data/Festivals/FestivalDates");
+                return CalendarioFestivales.ResolverFestivalEnFecha(fechas, Game1.currentSeason, Game1.dayOfMonth) is not null;
             }
             catch
             {

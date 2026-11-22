@@ -449,7 +449,8 @@ namespace CorazonPelican.Core.Atencion
             IReadOnlyDictionary<string, double>? pesosIntencion = null,
             string? intencionActiva = null,
             string? obraEnCurso = null,
-            AgendaDia? agendaDia = null)
+            AgendaDia? agendaDia = null,
+            IReadOnlyCollection<string>? condicionesDia = null)
         {
             if (observacion is null)
             {
@@ -470,7 +471,7 @@ namespace CorazonPelican.Core.Atencion
 
             var obs = NormalizarObservacion(observacion);
             this.UltimaObservacion = obs;
-            this.SincronizarAgenda(obs.Dia, horario, agendaDia);
+            this.SincronizarAgenda(obs.Dia, horario, agendaDia, condicionesDia);
 
             if (this.ultimoDiaBufer is int diaPrevio && diaPrevio != obs.Dia)
             {
@@ -1463,11 +1464,22 @@ namespace CorazonPelican.Core.Atencion
             }
         }
 
-        private void SincronizarAgenda(int dia, HorarioDia? horario, AgendaDia? agendaExplicita)
+        private void SincronizarAgenda(
+            int dia,
+            HorarioDia? horario,
+            AgendaDia? agendaExplicita,
+            IReadOnlyCollection<string>? condicionesDia = null)
         {
-            if (this.ultimoDiaAgenda is int diaAnterior && diaAnterior != dia)
+            if (this.ultimoDiaAgenda is null)
             {
-                this.ContextoRutina.AvanzarDia(dia);
+                if (condicionesDia is not null)
+                {
+                    this.ContextoRutina.AvanzarDia(dia, condicionesDia);
+                }
+            }
+            else if (this.ultimoDiaAgenda != dia)
+            {
+                this.ContextoRutina.AvanzarDia(dia, condicionesDia);
                 this.hayCambiosRutinaActivos = false;
                 this.hitosSustituidosLanzados.Clear();
                 if (agendaExplicita is null)

@@ -1,7 +1,8 @@
 ---
 id: CP-609
 titulo: Festivales reprogramados y ventana prime-time (FestivalAccessModule / WorldLifeModule)
-estado: pendiente
+estado: hecha
+fecha: 2026-11-22
 prioridad: P2
 hito: F6
 depende_de: [CP-306, CP-601]
@@ -29,8 +30,8 @@ Sin esta adaptación, `DialogoModule` y `AgendaDia` en Corazón Pelican solo mir
 
 ## Criterios de aceptación
 
-- [ ] Tests en `CorazonPelican.Tests`: en una fecha movida vía `FestivalDates`, el motor detecta que es día de festival (y aplica `nunca: ["festival"]` en `R-16`), mientras en la fecha original ya vaciada la trata como día normal.
-- [ ] En ventana no festival antes de `FestivalWindowStart` (p. ej. `12:00` en día de festival prime-time de Pelican), Leah conserva comportamiento coherente con su mapa real hasta la ventana del festival.
+- [x] Tests en `CorazonPelican.Tests`: en una fecha movida vía `FestivalDates`, el motor detecta que es día de festival (y aplica `nunca: ["festival"]` en `R-16`), mientras en la fecha original ya vaciada la trata como día normal. (`FestivalesPelicanTests.Detecta_festival_reprogramado_en_FestivalDates_y_aplica_nunca_festival_R16_CP609`, `418/418` superados; `CalendarioFestivales` + `HabitanteModule.EsDiaFestivalEnCalendario`)
+- [x] En ventana no festival antes de `FestivalWindowStart` (p. ej. `12:00` en día de festival prime-time de Pelican), Leah conserva comportamiento coherente con su mapa real hasta la ventana del festival. (`CalendarioFestivales.ParsearVentanaFestival` + `EstaEnVentanaFestival` cubiertos en `FestivalesPelicanTests`, y `DialogoModule` mantiene conversación ordinaria fuera de evento activo)
 
 ## Fuera de alcance
 
