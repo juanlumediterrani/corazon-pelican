@@ -43,6 +43,7 @@ namespace CorazonPelican.Modules
             public string InterlocutorRef { get; init; } = "";
             public string Ubicacion { get; init; } = "";
             public long? PulsoId { get; init; }
+            public long TargetPlayerId { get; init; }
         }
 
         public string Nombre => "Dialogo";
@@ -57,6 +58,7 @@ namespace CorazonPelican.Modules
 
             contexto.Helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
             contexto.Helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
+            contexto.Helper.Events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
             contexto.Helper.ConsoleCommands.Add(
                 "cp_dialogo",
                 "Inspecciona o prueba turnos de DialogoModule en vivo: cp_dialogo <estado|simular_respuesta <texto>|forzar_caducidad>.",
@@ -69,6 +71,7 @@ namespace CorazonPelican.Modules
             {
                 this.context.Helper.Events.GameLoop.UpdateTicked -= this.OnUpdateTicked;
                 this.context.Helper.Events.GameLoop.ReturnedToTitle -= this.OnReturnedToTitle;
+                this.context.Helper.Events.Multiplayer.ModMessageReceived -= this.OnModMessageReceived;
             }
 
             if (ReferenceEquals(instanciaActiva, this))
@@ -87,6 +90,139 @@ namespace CorazonPelican.Modules
 
         private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
             => this.turnosActivos.Clear();
+
+        private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
+        {
+            if (this.context is null
+                || !Context.IsWorldReady
+                || !string.Equals(e.FromModID, this.context.Manifest.UniqueID, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (Context.IsMainPlayer && e.Type == ProtocoloMultijugador.MsgDialogoIniciar)
+            {
+                var solicitud = e.ReadAs<DialogoSolicitudRemota>();
+                if (!ProtocoloMultijugador.EsPeticionDialogoValida(solicitud) || !this.context.MotorActivoEnPartida)
+                {
+                    return;
+                }
+
+                string? personajeId = null;
+                foreach (var (id, perfil) in this.context.PersonajesGobernados)
+                {
+                    if (string.Equals(perfil.Npc, solicitud!.NpcName, StringComparison.Ordinal))
+                    {
+                        personajeId = id;
+                        break;
+                    }
+                }
+
+                if (personajeId is null || !this.context.MotoresHabitante.TryGetValue(personajeId, out var motor))
+                {
+                    return;
+                }
+
+                var npc = Game1.getCharacterFromName(motor.Perfil.Npc);
+                var obs = this.context.ProveedorObservacion?.Invoke(personajeId)
+                    ?? motor.UltimaObservacion
+                    ?? new Observacion(
+                        Math.Max(1, Game1.Date?.TotalDays ?? 1),
+                        Game1.timeOfDay,
+                        npc?.currentLocation?.NameOrUniqueName ?? string.Empty,
+                        npc?.TilePoint.X ?? 0,
+                        npc?.TilePoint.Y ?? 0,
+                        1.0,
+                        "soleado",
+                        Array.Empty<EntidadObservada>());
+
+                var ahoraMs = this.context.RelojMs?.Invoke() ?? 0;
+                var interlocutorRef = ProtocoloMultijugador.ConstruirReferenciaGranjero(e.FromPlayerID);
+                var interlocutorNombre = string.IsNullOrWhiteSpace(solicitud!.FarmerName) ? "granjero" : solicitud.FarmerName;
+                this.SuscribirResultadoDialogoSiFalta(personajeId, motor);
+
+                var enEvento = Game1.CurrentEvent != null || Game1.isFestival();
+                var reaccion = motor.IniciarTurnoDialogo(
+                    obs,
+                    interlocutorRef,
+                    interlocutorNombre,
+                    ahoraMs,
+                    reaccionMs: 0,
+                    enEvento: enEvento,
+                    valleyTalkActivo: this.EstaValleyTalkActivo(personajeId, motor.Perfil.Npc));
+
+                if (!string.IsNullOrWhiteSpace(reaccion.FraseAnticipada))
+                {
+                    this.context.Helper.Multiplayer.SendMessage(
+                        new DialogoResultadoRemoto
+                        {
+                            NpcName = motor.Perfil.Npc,
+                            Tipo = "frase",
+                            Frase = reaccion.FraseAnticipada,
+                        },
+                        ProtocoloMultijugador.MsgDialogoResultado,
+                        new[] { this.context.Manifest.UniqueID },
+                        new[] { e.FromPlayerID });
+                    return;
+                }
+
+                this.turnosActivos[personajeId] = new TurnoEnVivo
+                {
+                    PersonajeId = personajeId,
+                    NpcName = motor.Perfil.Npc,
+                    InterlocutorRef = interlocutorRef,
+                    Ubicacion = npc?.currentLocation?.NameOrUniqueName ?? string.Empty,
+                    PulsoId = reaccion.Pulso?.Id,
+                    TargetPlayerId = e.FromPlayerID,
+                };
+                return;
+            }
+
+            if (!Context.IsMainPlayer && e.Type == ProtocoloMultijugador.MsgDialogoResultado)
+            {
+                var resultado = e.ReadAs<DialogoResultadoRemoto>();
+                if (resultado is null || string.IsNullOrWhiteSpace(resultado.NpcName))
+                {
+                    return;
+                }
+
+                var npc = Game1.getCharacterFromName(resultado.NpcName);
+                if (npc is null)
+                {
+                    return;
+                }
+
+                if (Game1.activeClickableMenu is DialogueBox)
+                {
+                    Game1.exitActiveMenu();
+                }
+
+                npc.CurrentDialogue.Clear();
+                if (string.Equals(resultado.Tipo, "frase", StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(resultado.Frase))
+                {
+                    npc.CurrentDialogue.Push(new Dialogue(npc, null, resultado.Frase));
+                }
+                else
+                {
+                    npc.doEmote(GestorDialogo.EmoteCaducado);
+                    if (Game1.player is not null && Game1.player.friendshipData.TryGetValue(npc.Name, out var amistad))
+                    {
+                        var corazones = amistad.Points / 250;
+                        if (!npc.checkForNewCurrentDialogue(corazones))
+                        {
+                            npc.checkForNewCurrentDialogue(corazones, noPreface: true);
+                        }
+                    }
+
+                    if (npc.CurrentDialogue.Count == 0)
+                    {
+                        npc.CurrentDialogue.Push(new Dialogue(npc, null, GestorDialogo.TextoCaducado));
+                    }
+                }
+
+                Game1.drawDialogue(npc);
+            }
+        }
 
         private void AplicarParches()
         {
@@ -145,7 +281,10 @@ namespace CorazonPelican.Modules
                 }
 
                 var npc = Game1.getCharacterFromName(turno.NpcName);
-                var presente = EstaInterlocutorPresente(npc, Game1.player);
+                var jugadorTurno = turno.TargetPlayerId == Game1.player.UniqueMultiplayerID
+                    ? Game1.player
+                    : Game1.GetPlayer(turno.TargetPlayerId, onlyOnline: true);
+                var presente = EstaInterlocutorPresente(npc, jugadorTurno);
 
                 var res = motor.EvaluarTickDialogo(ahoraMs, presente, dia, hora, turno.InterlocutorRef);
                 if (res.Desenlace == DesenlaceTurnoDialogo.CaducadoCaerAVanilla)
@@ -296,7 +435,23 @@ namespace CorazonPelican.Modules
                 }
 
                 var npc = Game1.getCharacterFromName(primerTurno.NpcName);
-                if (npc is not null)
+                if (primerTurno.TargetPlayerId != Game1.player.UniqueMultiplayerID)
+                {
+                    this.context.Helper.Multiplayer.SendMessage(
+                        new DialogoResultadoRemoto
+                        {
+                            NpcName = primerTurno.NpcName,
+                            Tipo = "frase",
+                            Frase = res.Frase,
+                        },
+                        ProtocoloMultijugador.MsgDialogoResultado,
+                        new[] { this.context.Manifest.UniqueID },
+                        new[] { primerTurno.TargetPlayerId });
+                    this.context.Monitor.Log(
+                        $"[Dialogo:{primerTurno.PersonajeId}] Frase pensada enviada a farmhand {primerTurno.TargetPlayerId}: \"{res.Frase}\"",
+                        LogLevel.Info);
+                }
+                else if (npc is not null)
                 {
                     if (Game1.activeClickableMenu is DialogueBox)
                     {
@@ -352,6 +507,20 @@ namespace CorazonPelican.Modules
 
         private void MostrarCaidaAVanilla(NPC? npc, TurnoEnVivo turno)
         {
+            if (this.context is not null && turno.TargetPlayerId != Game1.player.UniqueMultiplayerID)
+            {
+                this.context.Helper.Multiplayer.SendMessage(
+                    new DialogoResultadoRemoto
+                    {
+                        NpcName = turno.NpcName,
+                        Tipo = "vanilla",
+                    },
+                    ProtocoloMultijugador.MsgDialogoResultado,
+                    new[] { this.context.Manifest.UniqueID },
+                    new[] { turno.TargetPlayerId });
+                return;
+            }
+
             if (npc is null)
             {
                 return;
@@ -458,7 +627,12 @@ namespace CorazonPelican.Modules
                 return true;
             }
 
-            if (!instancia.context.EstaActivo || !Context.IsMainPlayer || !instancia.context.MotorActivoEnPartida)
+            if (!instancia.context.EstaActivo)
+            {
+                return true;
+            }
+
+            if (Context.IsMainPlayer && !instancia.context.MotorActivoEnPartida)
             {
                 return true;
             }
@@ -473,21 +647,43 @@ namespace CorazonPelican.Modules
                 }
             }
 
-            if (personajeId is null || !instancia.context.MotoresHabitante.TryGetValue(personajeId, out var motor))
+            if (personajeId is null)
             {
                 return true;
             }
 
             var enEvento = Game1.CurrentEvent != null || Game1.isFestival();
-            var decision = GestorDialogo.EvaluarIntercepcion(new ContextoIntercepcionDialogo(
-                motor.MenteHabilitada && instancia.context.Config.MenteHabilitada,
-                motor.EstaMenteCaida,
-                enEvento,
-                instancia.EstaValleyTalkActivo(personajeId, __instance.Name)));
-
-            if (!decision.Interceptar)
+            MotorHabitante? motor = null;
+            if (Context.IsMainPlayer)
             {
-                return true;
+                if (!instancia.context.MotoresHabitante.TryGetValue(personajeId, out motor))
+                {
+                    return true;
+                }
+
+                var decision = GestorDialogo.EvaluarIntercepcion(new ContextoIntercepcionDialogo(
+                    motor.MenteHabilitada && instancia.context.Config.MenteHabilitada,
+                    motor.EstaMenteCaida,
+                    enEvento,
+                    instancia.EstaValleyTalkActivo(personajeId, __instance.Name)));
+
+                if (!decision.Interceptar)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                var decisionCliente = GestorDialogo.EvaluarIntercepcion(new ContextoIntercepcionDialogo(
+                    instancia.context.Config.MenteHabilitada,
+                    MenteCaida: false,
+                    enEvento,
+                    instancia.EstaValleyTalkActivo(personajeId, __instance.Name)));
+
+                if (!decisionCliente.Interceptar)
+                {
+                    return true;
+                }
             }
 
             enPrefixCheckAction = true;
@@ -559,8 +755,29 @@ namespace CorazonPelican.Modules
 
                 __instance.grantConversationFriendship(who);
 
+                if (!Context.IsMainPlayer)
+                {
+                    __instance.doEmote(GestorDialogo.EmotePensando);
+                    __instance.CurrentDialogue.Clear();
+                    __instance.CurrentDialogue.Push(new Dialogue(__instance, null, GestorDialogo.ReflejoPorDefecto));
+                    Game1.drawDialogue(__instance);
+
+                    instancia.context.Helper.Multiplayer.SendMessage(
+                        new DialogoSolicitudRemota
+                        {
+                            NpcName = __instance.Name,
+                            FarmerName = who.Name,
+                        },
+                        ProtocoloMultijugador.MsgDialogoIniciar,
+                        new[] { instancia.context.Manifest.UniqueID },
+                        new[] { Game1.MasterPlayer.UniqueMultiplayerID });
+
+                    __result = true;
+                    return false;
+                }
+
                 var obs = instancia.context.ProveedorObservacion?.Invoke(personajeId)
-                    ?? motor.UltimaObservacion
+                    ?? motor!.UltimaObservacion
                     ?? new Observacion(
                         Math.Max(1, Game1.Date?.TotalDays ?? 1),
                         Game1.timeOfDay,
@@ -572,10 +789,10 @@ namespace CorazonPelican.Modules
                         Array.Empty<EntidadObservada>());
 
                 var ahoraMs = instancia.context.RelojMs?.Invoke() ?? 0;
-                var interlocutorRef = $"farmer:{who.UniqueMultiplayerID}";
-                instancia.SuscribirResultadoDialogoSiFalta(personajeId, motor);
+                var interlocutorRef = ProtocoloMultijugador.ConstruirReferenciaGranjero(who.UniqueMultiplayerID);
+                instancia.SuscribirResultadoDialogoSiFalta(personajeId, motor!);
 
-                var reaccion = motor.IniciarTurnoDialogo(
+                var reaccion = motor!.IniciarTurnoDialogo(
                     obs,
                     interlocutorRef,
                     who.Name,
@@ -615,6 +832,7 @@ namespace CorazonPelican.Modules
                     InterlocutorRef = interlocutorRef,
                     Ubicacion = __instance.currentLocation?.NameOrUniqueName ?? string.Empty,
                     PulsoId = reaccion.Pulso?.Id,
+                    TargetPlayerId = who.UniqueMultiplayerID,
                 };
 
                 instancia.context.Monitor.Log(

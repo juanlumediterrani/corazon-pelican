@@ -50,7 +50,14 @@ namespace CorazonPelican.Modules
 
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
-            this.IniciarServidor();
+            if (this.context is null)
+            {
+                return;
+            }
+
+            // No abrir el puerto HTTP en pantalla de título: si esta instancia entra como cliente multijugador,
+            // evita colisionar con el puerto 25560 del anfitrión local (CP-606).
+            this.context.EstadoApi = "esperando partida de anfitrión";
         }
 
         private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -99,7 +106,7 @@ namespace CorazonPelican.Modules
             }
 
             this.context.Api.MarcarSinMundo("Vuelta a la pantalla de título.");
-            this.IniciarServidor();
+            this.DetenerServidor("esperando partida de anfitrión");
         }
 
         private void IniciarServidor()

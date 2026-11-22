@@ -37,7 +37,7 @@ Estas dos fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P1 | CP-606 multijugador farmhand diálogo y cartas |
+| P1 | — (CP-606 en curso a falta de prueba en vivo 🎮) |
 | P2 | CP-305 aceptación de fase 3 🎮 · CP-504 opciones del jugador · CP-507 recuerdos y voz en diálogo 🎮 · CP-607 drenado y filtro de sucesos Pelican · CP-608 NightHold y arranque desfasado · CP-609 festivales reprogramados y prime-time |
 | P3 | CP-603 sesión de encuentro · Pelican, humano y granjero de Voyager con Leah 🎮 · CP-610 limpieza control AccionIrA, velocidad residual y p4e_time |
 
@@ -113,7 +113,7 @@ CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisio
 | [CP-603](tareas/CP-603-encuentro.md) | Sesión de encuentro · Pelican, un humano y el granjero de Voyager con Leah 🎮 | F6 | P3 | CP-508, CP-601, CP-602 | pendiente |
 | [CP-604](tareas/CP-604-persistencia-checkpoints-pelican.md) | Persistencia de Corazón Pelican en checkpoints y guardados de rollover de Pelican 4Ever | F6 | P1 | CP-107, CP-602 | hecha |
 | [CP-605](tareas/CP-605-headless-guard-dialogos.md) | Pelican 4Ever · HeadlessEventGuardModule respeta diálogos y cartas activos de Corazón Pelican | F6 | P1 | CP-601 | hecha |
-| [CP-606](tareas/CP-606-multijugador-farmhand-dialogo-cartas.md) | Multijugador farmhand · puente de diálogo y cartas de prórroga + API loopback solo en anfitrión | F6 | P1 | CP-503, CP-509, CP-601 | pendiente |
+| [CP-606](tareas/CP-606-multijugador-farmhand-dialogo-cartas.md) | Multijugador farmhand · puente de diálogo y cartas de prórroga + API loopback solo en anfitrión | F6 | P1 | CP-503, CP-509, CP-601 | en-curso |
 | [CP-607](tareas/CP-607-sucesos-pelican-tick-y-filtro.md) | IntegracionPelican · drenar sucesos en tick ordinario, filtrar ruido de admin y soportar varios personajes | F6 | P2 | CP-602 | pendiente |
 | [CP-608](tareas/CP-608-madrugada-nighthold-arranque.md) | Madrugada NightHold (2550) y arranque con desfase horario en HabitanteModule | F6 | P2 | CP-201, CP-601 | pendiente |
 | [CP-609](tareas/CP-609-festivales-pelican.md) | Festivales reprogramados y ventana prime-time (FestivalAccessModule / WorldLifeModule) | F6 | P2 | CP-306, CP-601 | pendiente |

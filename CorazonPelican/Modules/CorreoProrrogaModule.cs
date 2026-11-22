@@ -24,11 +24,12 @@ namespace CorazonPelican.Modules
     internal sealed class CorreoProrrogaModule : IModule, IDisposable
     {
         private readonly HashSet<string> cartasRegistradasEnAsset = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> cartasRemotasEnCliente = new(StringComparer.Ordinal);
         private ModContext? context;
 
         public string Nombre => "CorreoProrroga";
 
-        public LadoModulo Lado => LadoModulo.Anfitrion;
+        public LadoModulo Lado => LadoModulo.Ambos;
 
         public void Registrar(ModContext contexto)
         {
@@ -39,6 +40,7 @@ namespace CorazonPelican.Modules
             contexto.Helper.Events.GameLoop.OneSecondUpdateTicked += this.OnOneSecondUpdateTicked;
             contexto.Helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
             contexto.Helper.Events.Display.MenuChanged += this.OnMenuChanged;
+            contexto.Helper.Events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
         }
 
         public void Dispose()
@@ -53,11 +55,16 @@ namespace CorazonPelican.Modules
             this.context.Helper.Events.GameLoop.OneSecondUpdateTicked -= this.OnOneSecondUpdateTicked;
             this.context.Helper.Events.GameLoop.ReturnedToTitle -= this.OnReturnedToTitle;
             this.context.Helper.Events.Display.MenuChanged -= this.OnMenuChanged;
+            this.context.Helper.Events.Multiplayer.ModMessageReceived -= this.OnModMessageReceived;
             this.cartasRegistradasEnAsset.Clear();
+            this.cartasRemotasEnCliente.Clear();
         }
 
         private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
-            => this.cartasRegistradasEnAsset.Clear();
+        {
+            this.cartasRegistradasEnAsset.Clear();
+            this.cartasRemotasEnCliente.Clear();
+        }
 
         private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
         {
@@ -69,6 +76,11 @@ namespace CorazonPelican.Modules
             e.Edit(asset =>
             {
                 var mail = asset.AsDictionary<string, string>().Data;
+                foreach (var (cartaId, contenido) in this.cartasRemotasEnCliente)
+                {
+                    mail[cartaId] = contenido;
+                }
+
                 foreach (var (id, perfil) in this.context.PersonajesGobernados)
                 {
                     var estado = this.context.EstadoPartida.ObtenerSiExiste(id);
@@ -138,6 +150,19 @@ namespace CorazonPelican.Modules
 
                     if (!destinatario.hasOrWillReceiveMail(carta.CartaId))
                     {
+                        if (destinatario.UniqueMultiplayerID != Game1.player.UniqueMultiplayerID)
+                        {
+                            this.context.Helper.Multiplayer.SendMessage(
+                                new ProrrogaMailSyncRemoto
+                                {
+                                    CartaId = carta.CartaId,
+                                    ContenidoMail = GestorProrrogaCartas.FormatearParaDataMail(carta),
+                                },
+                                ProtocoloMultijugador.MsgProrrogaSincronizarMail,
+                                new[] { this.context.Manifest.UniqueID },
+                                new[] { destinatario.UniqueMultiplayerID });
+                        }
+
                         Game1.player.team.RequestSetMail(
                             PlayerActionTarget.All,
                             carta.CartaId,
@@ -161,18 +186,29 @@ namespace CorazonPelican.Modules
 
         private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
         {
-            if (this.context is null
-                || !Context.IsWorldReady
-                || !Context.IsMainPlayer
-                || !this.context.MotorActivoEnPartida)
+            if (this.context is null || !Context.IsWorldReady)
             {
                 return;
             }
 
             if (e.OldMenu is not LetterViewerMenu letter
                 || e.NewMenu is not null
-                || string.IsNullOrWhiteSpace(letter.mailTitle)
-                || !letter.mailTitle.StartsWith(GestorProrrogaCartas.PrefijoCartaId, StringComparison.Ordinal))
+                || !ProtocoloMultijugador.EsCartaProrroga(letter.mailTitle))
+            {
+                return;
+            }
+
+            if (!Context.IsMainPlayer)
+            {
+                this.context.Helper.Multiplayer.SendMessage(
+                    new ProrrogaAbrirCartaRemoto { CartaId = letter.mailTitle },
+                    ProtocoloMultijugador.MsgProrrogaAbrirCarta,
+                    new[] { this.context.Manifest.UniqueID },
+                    new[] { Game1.MasterPlayer.UniqueMultiplayerID });
+                return;
+            }
+
+            if (!this.context.MotorActivoEnPartida)
             {
                 return;
             }
@@ -220,6 +256,142 @@ namespace CorazonPelican.Modules
                 respuestas,
                 (who, clave) => this.AplicarRespuestaDesdeMenu(estado, letter.mailTitle, who, clave),
                 speaker: npc);
+        }
+
+        private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
+        {
+            if (this.context is null
+                || !Context.IsWorldReady
+                || !string.Equals(e.FromModID, this.context.Manifest.UniqueID, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (!Context.IsMainPlayer && e.Type == ProtocoloMultijugador.MsgProrrogaSincronizarMail)
+            {
+                var sync = e.ReadAs<ProrrogaMailSyncRemoto>();
+                if (sync is null || !ProtocoloMultijugador.EsCartaProrroga(sync.CartaId) || string.IsNullOrWhiteSpace(sync.ContenidoMail))
+                {
+                    return;
+                }
+
+                this.cartasRemotasEnCliente[sync.CartaId] = sync.ContenidoMail;
+                this.context.Helper.GameContent.InvalidateCache("Data/Mail");
+                return;
+            }
+
+            if (!Context.IsMainPlayer && e.Type == ProtocoloMultijugador.MsgProrrogaInvalidarMail)
+            {
+                this.context.Helper.GameContent.InvalidateCache("Data/Mail");
+                return;
+            }
+
+            if (Context.IsMainPlayer && e.Type == ProtocoloMultijugador.MsgProrrogaAbrirCarta)
+            {
+                var abrir = e.ReadAs<ProrrogaAbrirCartaRemoto>();
+                if (abrir is null || !ProtocoloMultijugador.EsCartaProrroga(abrir.CartaId) || !this.context.MotorActivoEnPartida)
+                {
+                    return;
+                }
+
+                var coincidencia = this.BuscarEstadoPorCarta(abrir.CartaId);
+                if (coincidencia is null)
+                {
+                    return;
+                }
+
+                var (estado, perfil, compromiso) = coincidencia.Value;
+                var lectorRef = ProtocoloMultijugador.ConstruirReferenciaGranjero(e.FromPlayerID);
+                var vista = GestorProrrogaCartas.AbrirCarta(estado, perfil, abrir.CartaId, lectorRef, TiempoJuegoActual());
+                if (vista is null || !vista.PuedeResponder)
+                {
+                    return;
+                }
+
+                var plazoPropuestoTexto = FormatearTiempo(vista.Carta.PlazoPropuesto);
+                var plazoOriginalTexto = FormatearTiempo(vista.Carta.PlazoVigente);
+                var objeto = string.IsNullOrWhiteSpace(compromiso.Objeto) ? "lo prometido" : compromiso.Objeto;
+
+                this.context.Helper.Multiplayer.SendMessage(
+                    new ProrrogaPreguntaRemota
+                    {
+                        CartaId = abrir.CartaId,
+                        NpcName = perfil.Npc,
+                        Pregunta = $"{vista.Carta.RemitenteNombre} pide aplazar «{objeto}» del {plazoOriginalTexto} al {plazoPropuestoTexto}.",
+                        TextoAceptar = $"Aceptar prórroga ({plazoPropuestoTexto})",
+                        TextoRechazar = $"Mantener plazo original ({plazoOriginalTexto})",
+                    },
+                    ProtocoloMultijugador.MsgProrrogaMostrarPregunta,
+                    new[] { this.context.Manifest.UniqueID },
+                    new[] { e.FromPlayerID });
+                return;
+            }
+
+            if (!Context.IsMainPlayer && e.Type == ProtocoloMultijugador.MsgProrrogaMostrarPregunta)
+            {
+                var pregunta = e.ReadAs<ProrrogaPreguntaRemota>();
+                if (pregunta is null || !ProtocoloMultijugador.EsCartaProrroga(pregunta.CartaId) || Game1.currentLocation is null)
+                {
+                    return;
+                }
+
+                var respuestas = new[]
+                {
+                    new Response("aceptar", pregunta.TextoAceptar),
+                    new Response("rechazar", pregunta.TextoRechazar),
+                };
+
+                var npc = Game1.getCharacterFromName(pregunta.NpcName);
+                Game1.currentLocation.createQuestionDialogue(
+                    pregunta.Pregunta,
+                    respuestas,
+                    (_, clave) =>
+                    {
+                        this.context.Helper.Multiplayer.SendMessage(
+                            new ProrrogaRespuestaRemota
+                            {
+                                CartaId = pregunta.CartaId,
+                                Aceptar = string.Equals(clave, "aceptar", StringComparison.Ordinal),
+                            },
+                            ProtocoloMultijugador.MsgProrrogaResponderCarta,
+                            new[] { this.context.Manifest.UniqueID },
+                            new[] { Game1.MasterPlayer.UniqueMultiplayerID });
+                    },
+                    speaker: npc);
+                return;
+            }
+
+            if (Context.IsMainPlayer && e.Type == ProtocoloMultijugador.MsgProrrogaResponderCarta)
+            {
+                var resp = e.ReadAs<ProrrogaRespuestaRemota>();
+                if (resp is null || !ProtocoloMultijugador.EsCartaProrroga(resp.CartaId) || !this.context.MotorActivoEnPartida)
+                {
+                    return;
+                }
+
+                var coincidencia = this.BuscarEstadoPorCarta(resp.CartaId);
+                if (coincidencia is null)
+                {
+                    return;
+                }
+
+                var (estado, _, _) = coincidencia.Value;
+                var respondienteRef = ProtocoloMultijugador.ConstruirReferenciaGranjero(e.FromPlayerID);
+                var resultado = GestorProrrogaCartas.ResponderCarta(estado, resp.CartaId, respondienteRef, resp.Aceptar, TiempoJuegoActual());
+                this.context.Monitor.Log(
+                    $"Respuesta remota a carta de prórroga «{resp.CartaId}» ({respondienteRef}): {resultado.Codigo} — {resultado.Mensaje}",
+                    resultado.Aplicada ? LogLevel.Info : LogLevel.Warn);
+
+                if (resultado.Aplicada || resultado.Codigo == "plazo_vencido")
+                {
+                    this.context.Helper.GameContent.InvalidateCache("Data/Mail");
+                    this.context.Helper.Multiplayer.SendMessage(
+                        new ProrrogaAbrirCartaRemoto { CartaId = resp.CartaId },
+                        ProtocoloMultijugador.MsgProrrogaInvalidarMail,
+                        new[] { this.context.Manifest.UniqueID },
+                        new[] { e.FromPlayerID });
+                }
+            }
         }
 
         private void AplicarRespuestaDesdeMenu(EstadoPersonaje estado, string cartaId, Farmer who, string clave)

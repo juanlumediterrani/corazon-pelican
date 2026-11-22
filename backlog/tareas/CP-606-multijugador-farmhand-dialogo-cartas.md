@@ -1,7 +1,7 @@
 ---
 id: CP-606
 titulo: Multijugador farmhand · puente de diálogo y cartas de prórroga + API loopback solo en anfitrión
-estado: pendiente
+estado: en-curso
 prioridad: P1
 hito: F6
 depende_de: [CP-503, CP-509, CP-601]
@@ -32,9 +32,9 @@ Detectado en auditoría de integración multijugador:
 
 ## Criterios de aceptación
 
-- [ ] Tests en `CorazonPelican.Tests`: un turno de diálogo y una carta de prórroga iniciados por un `farmer:<id>` distinto al anfitrión completan el flujo en Core con todas las guardas (`R-07`, `R-09`, `R-15`).
-- [ ] En instancia cliente (`!Context.IsMainPlayer`), `ApiModule` no mantiene abierto ni colisiona en `ApiPuerto`.
-- [ ] Verificación en vivo 🎮 con host Pelican + 1 cliente local comprobando conversación de *farmhand* y carta en `TownMailbox` / buzón de residencia.
+- [x] Tests en `CorazonPelican.Tests`: un turno de diálogo y una carta de prórroga iniciados por un `farmer:<id>` distinto al anfitrión completan el flujo en Core con todas las guardas (`R-07`, `R-09`, `R-15`). (`MultijugadorDialogoProrrogaTests`, `415/415` superados; protocolo `ProtocoloMultijugador` y puente SMAPI `ModMessageReceived` implementados en `DialogoModule` y `CorreoProrrogaModule`)
+- [x] En instancia cliente (`!Context.IsMainPlayer`), `ApiModule` no mantiene abierto ni colisiona en `ApiPuerto`. (`ApiModule` solo enlaza el servidor HTTP loopback en `SaveLoaded` cuando `Context.IsMainPlayer` y lo detiene en `ReturnedToTitle`)
+- [ ] Verificación en vivo 🎮 con host Pelican + 1 cliente local comprobando conversación de *farmhand* y carta en `TownMailbox` / buzón de residencia. *(Pendiente de sesión 🎮 autorizada con host + cliente).*
 
 ## Fuera de alcance
 

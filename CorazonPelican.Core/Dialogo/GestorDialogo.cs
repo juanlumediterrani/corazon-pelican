@@ -59,7 +59,7 @@ namespace CorazonPelican.Core.Dialogo
         public const int EmotePensando = 40;
         public const int EmoteCaducado = 40;
         public const string TextoCaducado = "…";
-        private const string ReflejoPorDefecto = "Un segundo... estaba pensando en algo.";
+        public const string ReflejoPorDefecto = "Un segundo... estaba pensando en algo.";
 
         private Pulso? pulsoAnticipado;
         private string? respuestaAnticipada;
