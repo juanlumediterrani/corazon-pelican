@@ -47,7 +47,13 @@ namespace CorazonPelican.Adaptador
             npc.modData[ClaveControlModData] = valor;
             npc.ignoreScheduleToday = true;
             npc.isSleeping.Value = false;
+            npc.speed = 2;
             npc.temporaryController = null;
+            if (!yaReclamado && npc.controller is not null && !npc.controller.NPCSchedule)
+            {
+                npc.controller = null;
+                npc.Halt();
+            }
             npc.queuedSchedulePaths.Clear();
 
             if (!yaReclamado)

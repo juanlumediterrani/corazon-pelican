@@ -1,7 +1,8 @@
 ---
 id: CP-610
 titulo: Limpieza de control tras bloqueo de AccionIrA, velocidad residual de micro-wandering y saltos de reloj de prueba
-estado: pendiente
+estado: hecha
+fecha: 2026-11-22
 prioridad: P3
 hito: F6
 depende_de: [CP-303, CP-601]
@@ -33,9 +34,9 @@ Hallazgos concretos en la auditoría y en la sesión en vivo (`CorazonDev_454975
 
 ## Criterios de aceptación
 
-- [ ] Test en `CorazonPelican.Tests` (FakeWorld + núcleo): tras expirar `AccionIrA` por bloqueo o por salida de animación fallida sin nuevo plan en el pulso de `fin_intencion`, la intención degrada a rutina y retira `CorazonPelican.Control`.
-- [ ] `ReclamacionNpc.Reclamar` garantiza velocidad estándar (`speed = 2`) frente a micro-wandering previo (`speed = 1`).
-- [ ] `Pelican4Ever`: en `p4e_time` / `CatchUpVillagerSchedules`, si algún NPC se omite por `CorazonPelicanControlKey`, se informa explícitamente en el log de consola SMAPI.
+- [x] Test en `CorazonPelican.Tests` (FakeWorld + núcleo): tras expirar `AccionIrA` por bloqueo o por salida de animación fallida sin nuevo plan en el pulso de `fin_intencion`, la intención degrada a rutina y retira `CorazonPelican.Control`. (`LimpiezaControlCP610Tests.AccionIrA_bloqueada_sin_reemplazo_libera_control_tras_tiempo_max_respuesta_CP610`, `419/419` superados; `MaxEsperaSalidaAnimacionMs = 2_000` en `AccionIrA` y degradación por `bloqueoSinReemplazoDesdeMs` en `MotorHabitante`)
+- [x] `ReclamacionNpc.Reclamar` garantiza velocidad estándar (`speed = 2`) frente a micro-wandering previo (`speed = 1`). (`ReclamacionNpc.Reclamar` restablece `npc.speed = 2` y limpia controladores `!NPCSchedule` previos)
+- [x] `Pelican4Ever`: en `p4e_time` / `CatchUpVillagerSchedules`, si algún NPC se omite por `CorazonPelicanControlKey`, se informa explícitamente en el log de consola SMAPI. (`RealTimeClockModule.CatchUpVillagerSchedules`, `1828/1828` superados)
 
 ## Fuera de alcance
 

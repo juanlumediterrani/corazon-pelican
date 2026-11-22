@@ -57,6 +57,7 @@ namespace CorazonPelican.Core.Atencion
         private int? ultimoDiaBufer;
         private int? ultimoDiaAgenda;
         private long siguientePulsoId = 1;
+        private long? bloqueoSinReemplazoDesdeMs;
 
         public MotorHabitante(
             PerfilPersonaje perfil,
@@ -315,6 +316,11 @@ namespace CorazonPelican.Core.Atencion
                 return true;
             }
 
+            if (this.EjecutorCuerpo?.Contexto.Medios.EstaReclamado == true)
+            {
+                return true;
+            }
+
             if (this.EjecutorCuerpo is null)
             {
                 return false;
@@ -383,6 +389,16 @@ namespace CorazonPelican.Core.Atencion
                 && (this.EjecutorCuerpo is null || !this.EjecutorCuerpo.Ocupado))
             {
                 this.DegradarARutina("sin_presupuesto", ahoraMs);
+                return;
+            }
+
+            if (this.bloqueoSinReemplazoDesdeMs is long bloqueadoDesde
+                && (this.EjecutorCuerpo is null || !this.EjecutorCuerpo.Ocupado)
+                && this.pulsoPendienteDesdeMs is null
+                && ahoraMs - bloqueadoDesde >= Math.Max(1_000, (long)this.tiempoMaxRespuestaMs))
+            {
+                this.bloqueoSinReemplazoDesdeMs = null;
+                this.DegradarARutina("accion_bloqueada_sin_reemplazo", ahoraMs);
             }
         }
 
@@ -394,6 +410,7 @@ namespace CorazonPelican.Core.Atencion
 
             ejecutor.AccionIniciada += (paso, _) =>
             {
+                this.bloqueoSinReemplazoDesdeMs = null;
                 this.SincronizarDesdeContextoCuerpo(ejecutor.Contexto);
                 var obs = this.UltimaObservacion;
                 var dia = obs?.Dia ?? Math.Max(1, this.Estado.Contadores?.Dia ?? 1);
@@ -410,6 +427,8 @@ namespace CorazonPelican.Core.Atencion
                     activa.Bloquear(this.UltimaObservacion, this.Disparadores, ahoraMs);
                     this.Estado.IntencionActiva = null;
                 }
+
+                this.bloqueoSinReemplazoDesdeMs = ahoraMs;
             };
 
             ejecutor.PlanTerminado += (idPlan, ahoraMs) =>

@@ -241,6 +241,7 @@ namespace CorazonPelican.Core.Intencion
     public sealed class AccionIrA : AccionCuerpo
     {
         public const long MaxDuracionRutaMs = 180_000;
+        public const long MaxEsperaSalidaAnimacionMs = 2_000;
         public const int OrientacionPorDefecto = 2;
 
         private Lugar? destino;
@@ -289,7 +290,7 @@ namespace CorazonPelican.Core.Intencion
         {
             if (this.esperandoSalidaAnimacion)
             {
-                if (contexto.Medios.EstaEnAnimacionActividad)
+                if (contexto.Medios.EstaEnAnimacionActividad && ahoraMs - this.InicioMs < MaxEsperaSalidaAnimacionMs)
                 {
                     return;
                 }
