@@ -1,7 +1,8 @@
 ---
 id: CP-601
 titulo: Pelican 4Ever · WorldLifeModule ignora NPCs reclamados por Corazón Pelican
-estado: en-curso
+estado: hecha
+fecha: 2026-11-22
 prioridad: P3
 hito: F6
 depende_de: [CP-303]
@@ -27,18 +28,17 @@ Abrir y hacer en Pelican el cambio pequeño que exige la ADS §11.1: el *micro-w
 
 ## Criterios de aceptación
 
-- [x] Test en Pelican: un NPC con la clave no recibe destinos de *micro-wandering*. (`NpcShopkeeperLogicTests.CanMicroWander_BlocksExternallyControlledNpc_CorazonPelican` parametrizado en `"Forest"`, `"Town"`, `"Saloon"`, `"Club"`, ejecutado dentro de la suite completa `Pelican4Ever.Tests`: `1790/1790` superados, `0` errores y `0` advertencias de compilación en la rama aislada `cp-601-micro-wandering` de `Stardew Valley MORPG`, commits `fe76df7` y `4766210` en worktree temporal sin tocar el árbol de trabajo del otro agente)
-- [x] La clave se documenta como contrato entre ambos mods (nombre exacto y semántica). (`NpcShopkeeperLogic.CorazonPelicanControlKey = "CorazonPelican.Control"` en Pelican 4Ever y `ReclamacionNpc.ClaveControlModData = "CorazonPelican.Control"` en Corazón Pelican; documentado en `docs/notas-juego.md` §10)
-- [ ] Pendiente para cerrar a `hecha`: fusionar la rama `cp-601-micro-wandering` en `main` de `Stardew Valley MORPG` e inscribir la tarea espejo en `Stardew Valley MORPG/backlog.md` cuando el otro agente termine y libere el árbol de trabajo actual.
+- [x] Test en Pelican: un NPC con la clave no recibe destinos de *micro-wandering*. (`NpcShopkeeperLogicTests.CanMicroWander_BlocksExternallyControlledNpc_CorazonPelican` parametrizado en `"Forest"`, `"Town"`, `"Saloon"`, `"Club"`, integrado en `main` de `Stardew Valley MORPG` —merge `be875dc` sobre `d5a2aa3` de `dev` + commits `fe76df7` y `4766210`—, ejecutado sobre `main` en `7fb03e9`: `dotnet test --no-build` → `1809/1809` superados, `0` errores y `0` advertencias de compilación)
+- [x] La clave se documenta como contrato entre ambos mods (nombre exacto y semántica). (`NpcShopkeeperLogic.CorazonPelicanControlKey = "CorazonPelican.Control"` en Pelican 4Ever y `ReclamacionNpc.ClaveControlModData = "CorazonPelican.Control"` en Corazón Pelican; documentado en `docs/notas-juego.md` §10 y en la tarea espejo de `Stardew Valley MORPG/backlog.md`, commit `7fb03e9`)
 
-## Contrato y estado en `Stardew Valley MORPG` (rama `cp-601-micro-wandering`)
+## Contrato e integración en `Stardew Valley MORPG` (`main`, `be875dc` / `7fb03e9`)
 
 - **Clave de contrato:** `modData["CorazonPelican.Control"]` (`NpcShopkeeperLogic.CorazonPelicanControlKey` en Pelican 4Ever; `ReclamacionNpc.ClaveControlModData` en Corazón Pelican). Mientras exista en `npc.modData`, Pelican 4Ever considera el NPC controlado externamente; Corazón Pelican la escribe en `ReclamacionNpc.Reclamar` y la retira en `VolverARutina` / liberación de inicio de jornada.
-- **Puntos protegidos en Pelican 4Ever (`fe76df7` + `4766210`):**
+- **Puntos protegidos en Pelican 4Ever (`fe76df7` + `4766210`, integrados en `main` junto con `d5a2aa3` de `dev`):**
   1. `Pelican4Ever.Core/World/NpcShopkeeperLogic.cs` (`CanMicroWander`) + `Pelican4Ever/Modules/WorldLifeModule.cs`: omite el *micro-wandering* cuando `npc.modData.ContainsKey(CorazonPelicanControlKey)`.
   2. `Pelican4Ever/Modules/WorldLifeModule.cs` (`Prefix_CheckSchedule`): cede sin limpiar `controller` ni hacer `Halt()` si el NPC lleva `CorazonPelicanControlKey` (evita cortar rutas externas `!NPCSchedule`).
   3. `Pelican4Ever/Modules/RealTimeClockModule.cs` (`CatchUpSchedule`): no reposiciona al NPC cuando lleva `CorazonPelicanControlKey`.
-- **Verificación registrada en la rama aislada (`/tmp/p4e-cp601`, retirado tras verificar):** `check_harmony_patches.py` `errors=0, warnings=1` (preexistente en `WorldLifeModule.cs:84`), `dotnet build` `0 Advertencia(s), 0 Errores`, `dotnet test --no-build` `1790/1790`.
+- **Verificación registrada tras integrar `main` (`7fb03e9`) y cerrar tarea espejo en `Stardew Valley MORPG/backlog.md`:** `check_harmony_patches.py` `errors=0, warnings=1` (preexistente en `WorldLifeModule.cs:84`), `dotnet build -p:EnableModDeploy=false -p:EnableModZip=false` `0 Advertencia(s), 0 Errores`, `dotnet test --no-build` `1809/1809`.
 
 ## Fuera de alcance
 
