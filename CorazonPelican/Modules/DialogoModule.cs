@@ -23,19 +23,13 @@ namespace CorazonPelican.Modules
     /// </summary>
     internal sealed class DialogoModule : IModule, IDisposable
     {
-        private static readonly string[] PosiblesIdsValleyTalk =
-        {
-            "ValleyTalk",
-            "purrplingcat.ValleyTalk",
-            "Satozaki.ValleyTalk",
-        };
-
         private static DialogoModule? instanciaActiva;
 
         [ThreadStatic]
         private static bool enPrefixCheckAction;
 
         private readonly Dictionary<string, TurnoEnVivo> turnosActivos = new(StringComparer.Ordinal);
+        private readonly HashSet<string> avisosValleyTalkEmitidos = new(StringComparer.Ordinal);
         private ModContext? context;
         private Harmony? harmony;
         private bool parchesAplicados;
@@ -170,7 +164,7 @@ namespace CorazonPelican.Modules
                     this.context.Monitor.Log(
                         $"[Dialogo:{id}] menteHabilitada={motor.MenteHabilitada} menteCaida={motor.EstaMenteCaida} " +
                         $"turnoActivo={motor.Dialogo.HayTurnoActivo} pulsoId={motor.Dialogo.PulsoTurnoActivoId?.ToString() ?? "-"} " +
-                        $"valleyTalk={this.EstaValleyTalkActivo()}",
+                        $"valleyTalk={this.EstaValleyTalkActivo(id, motor.Perfil.Npc)}",
                         LogLevel.Info);
                 }
 
@@ -202,14 +196,33 @@ namespace CorazonPelican.Modules
             this.context.Monitor.Log("[Dialogo] Uso: cp_dialogo estado | cp_dialogo simular_respuesta <texto>", LogLevel.Warn);
         }
 
-        private bool EstaValleyTalkActivo()
+        private bool EstaValleyTalkActivo(string personajeId, string npcName)
         {
             if (this.context is null)
             {
                 return false;
             }
 
-            return PosiblesIdsValleyTalk.Any(id => this.context.Helper.ModRegistry.IsLoaded(id));
+            var mods = this.context.Helper.ModRegistry
+                .GetAll()
+                .Select(m => new ModInstaladoResumen(m.Manifest.UniqueID, m.Manifest.Name, m.Manifest.Author))
+                .ToList();
+
+            var ceder = ConvivenciaValleyTalk.DebeCederAVanilla(
+                personajeId,
+                npcName,
+                mods,
+                this.context.Config.ValleyTalkDesactivadoPara);
+
+            if (ceder && this.avisosValleyTalkEmitidos.Add(personajeId))
+            {
+                var vt = ConvivenciaValleyTalk.DetectarValleyTalk(mods);
+                this.context.Monitor.Log(
+                    ConvivenciaValleyTalk.ConstruirAvisoConsola(personajeId, npcName, vt?.UniqueId),
+                    LogLevel.Warn);
+            }
+
+            return ceder;
         }
 
         private void SuscribirResultadoDialogoSiFalta(string personajeId, MotorHabitante motor)
@@ -385,7 +398,7 @@ namespace CorazonPelican.Modules
                 motor.MenteHabilitada && instancia.context.Config.MenteHabilitada,
                 motor.EstaMenteCaida,
                 enEvento,
-                instancia.EstaValleyTalkActivo()));
+                instancia.EstaValleyTalkActivo(personajeId, __instance.Name)));
 
             if (!decision.Interceptar)
             {
@@ -484,7 +497,7 @@ namespace CorazonPelican.Modules
                     ahoraMs,
                     reaccionMs: crono.Elapsed.TotalMilliseconds,
                     enEvento: enEvento,
-                    valleyTalkActivo: instancia.EstaValleyTalkActivo());
+                    valleyTalkActivo: instancia.EstaValleyTalkActivo(personajeId, __instance.Name));
 
                 if (!string.IsNullOrWhiteSpace(reaccion.FraseAnticipada))
                 {

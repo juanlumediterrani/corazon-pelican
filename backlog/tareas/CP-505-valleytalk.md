@@ -1,7 +1,8 @@
 ---
 id: CP-505
 titulo: Convivencia con ValleyTalk · nunca dos voces para la misma persona
-estado: pendiente
+estado: hecha
+fecha: 2026-11-22
 prioridad: P3
 hito: F5
 depende_de: [CP-503]
@@ -27,9 +28,9 @@ GSS §8.6, ADS §11.3, V-08. No se encontró el UniqueID publicado (mod de Nexus
 
 ## Criterios de aceptación
 
-- [ ] UniqueID de ValleyTalk documentado con su versión y fuente (V-08).
-- [ ] `ConvivenciaValleyTalkTests`: con el mod presente y Leah no listada, no se intercepta (R-12).
-- [ ] La configuración de ValleyTalk no se lee ni se modifica.
+- [x] UniqueID de ValleyTalk documentado con su versión y fuente (V-08). (`dandm1.ValleyTalk` v1.4.0, `Nexus:30319`, en `docs/notas-juego.md` §9)
+- [x] `ConvivenciaValleyTalkTests`: con el mod presente y Leah no listada, no se intercepta (R-12). (`ConvivenciaValleyTalkTests.Con_ValleyTalk_presente_y_Leah_no_listada_cede_a_vanilla_y_no_intercepta`)
+- [x] La configuración de ValleyTalk no se lee ni se modifica. (`DialogoModule.EstaValleyTalkActivo` consulta únicamente `Helper.ModRegistry.GetAll()` y `CorazonConfig.ValleyTalkDesactivadoPara`)
 
 ## Fuera de alcance
 

@@ -146,8 +146,11 @@ documentación oficial: confirmar en vivo. Encaja con la autoridad del host.
 
 ## 9. ValleyTalk (V-08) · CP-505
 
-Mod de Nexus **30319**, autor **dandm1**; diálogo generado por LLM para todo el pueblo. No se
-encontró su UniqueID publicado: leerlo del `manifest.json` del mod instalado.
+Mod de Nexus **30319** (`UpdateKeys: ["Nexus:30319"]`), autor **dandm1**, versión **1.4.0**,
+`UniqueID`: **`dandm1.ValleyTalk`**, `Name`: `"ValleyTalk"`, `EntryDll`: `ValleyTalk.dll`
+(`MinimumApiVersion: 4.0.0`). Diálogo generado por LLM para todo el pueblo. Corazón Pelican
+lo detecta por `UniqueID`, nombre o autor en `ModRegistry` y cede a vanilla salvo que el
+personaje aparezca en `ValleyTalkDesactivadoPara` (sin leer ni modificar la config de ValleyTalk).
 
 ## 10. Proyectos hermanos: qué reutilizar
 
