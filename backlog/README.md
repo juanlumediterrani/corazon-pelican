@@ -65,7 +65,7 @@ CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisio
 | [CP-105](tareas/CP-105-lexico-unico.md) | Léxico único compartido por percepción, acción y diálogo | F1 | P2 | CP-003 | hecha |
 | [CP-106](tareas/CP-106-bufer-diario.md) | Búfer de prosa de acción, huella de atención y diario con consolidación temporal | F1 | P2 | CP-104 | hecha |
 | [CP-107](tareas/CP-107-persistencia-estado.md) | Estado del personaje persistido con la partida, con versión y migraciones | F1 | P1 | CP-106 | hecha |
-| [CP-108](tareas/CP-108-aceptacion-sensorio.md) | Aceptación de fase 1 · un día completo de escenas legibles 🎮 | F1 | P2 | CP-101, CP-104, CP-107, CP-109, CP-006 | pendiente |
+| [CP-108](tareas/CP-108-aceptacion-sensorio.md) | Aceptación de fase 1 · un día completo de escenas legibles 🎮 | F1 | P2 | CP-101, CP-104, CP-107, CP-109, CP-006 | hecha |
 | [CP-109](tareas/CP-109-habitante-y-telemetria.md) | HabitanteModule, telemetría JSONL y comandos cp_escena / cp_pulso | F1 | P1 | CP-101, CP-104, CP-106 | hecha |
 | [CP-110](tareas/CP-110-proteger-memoria-tras-fallo-de-carga.md) | Proteger la memoria guardada si falla la carga o la migración | F1 | P1 | CP-107 | hecha |
 | [CP-111](tareas/CP-111-parametros-atencion-perfil.md) | Parámetros de consolidación de búfer y fuga de huella por personaje (P-10) | F1 | P2 | CP-106 | hecha |
