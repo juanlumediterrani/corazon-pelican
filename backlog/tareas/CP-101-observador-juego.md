@@ -1,7 +1,8 @@
 ---
 id: CP-101
 titulo: ObservadorJuego · del estado del juego a una Observacion de solo lectura
-estado: en-curso
+estado: hecha
+fecha: 2026-11-22
 prioridad: P1
 hito: F1
 depende_de: [CP-003, CP-005]
@@ -29,7 +30,7 @@ GSS §3.1 y ADS §4 (pasos 3 y 4). CP-004 ya creó `Core/Sensorio/Observacion.cs
 
 - [x] Ninguna llamada del observador modifica el estado (revisión + test que compara un FakeWorld antes/después). — Evidencia: revisión de solo lectura en `CorazonPelican/Adaptador/ObservadorJuego.cs` (sin escrituras ni llamadas mutadoras sobre `NPC`, `GameLocation`, `Farmer`, mapas ni `Objects`) y test `ObservadorTests.Observar_no_muta_ningun_campo_ni_entidad_del_mundo` (`dotnet test`: 215/215 superados).
 - [x] Identidades estables: la misma entidad tiene la misma `ref` en dos observaciones consecutivas y tras guardar/cargar. — Evidencia: `CorazonPelican.Core/Sensorio/IdentidadesObservacion.cs` + `ObservadorTests.Identidades_estables_entre_observaciones_consecutivas_y_tras_guardar_y_cargar` (`dotnet test`: 215/215 superados).
-- [ ] En vivo (partida DEV): coste medio del paso «observar» < 1 ms en la pasarela del lago con el jugador cerca.
+- [x] En vivo (partida DEV): coste medio del paso «observar» < 1 ms en la pasarela del lago con el jugador cerca. — Evidencia en vivo en `CorazonDev_454975123` (`cp_estado` en `Forest (34, 25)`): `Coste [observar]: medio=0.064 ms, último=0.008 ms, máx=4.437 ms (82 pasos)`.
 
 ## Notas
 
