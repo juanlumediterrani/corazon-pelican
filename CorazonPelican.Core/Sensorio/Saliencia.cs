@@ -86,7 +86,7 @@ namespace CorazonPelican.Core.Sensorio
         public const double PorCorazon = 0.1;
 
         /// <summary>Multiplicador de atención directa cuando el cuerpo ejecuta <c>mirar(objetivo)</c> (GSS §3.6).</summary>
-        public const double FactorFocoMirada = 3.0;
+        public const double FactorFocoMirada = 6.0;
 
         public static DesgloseSaliencia Calcular(EntidadObservada entidad, int desdeX, int desdeY, ContextoSaliencia contexto, double novedad)
         {

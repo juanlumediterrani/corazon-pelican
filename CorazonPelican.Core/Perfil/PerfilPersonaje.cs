@@ -27,12 +27,69 @@ namespace CorazonPelican.Core.Perfil
         [DataMember(Name = "rutina")] public Rutina Rutina { get; set; } = new();
         [DataMember(Name = "humor", EmitDefaultValue = false)] public ConfigHumor? Humor { get; set; }
         [DataMember(Name = "atencion", EmitDefaultValue = false)] public ConfigAtencion? Atencion { get; set; }
+        [DataMember(Name = "reflejos", EmitDefaultValue = false)] public List<ReglaReflejo>? Reflejos { get; set; }
 
         /// <summary>Devuelve los parámetros de humor del perfil o sus valores calibrados por defecto (CP-210).</summary>
         public ConfigHumor ObtenerConfigHumor() => this.Humor ?? new ConfigHumor();
 
         /// <summary>Devuelve los parámetros de consolidación del búfer y fuga de la huella del perfil o los valores por defecto del motor (P-10, CP-111).</summary>
         public ConfigAtencion ObtenerConfigAtencion() => this.Atencion ?? new ConfigAtencion();
+
+        /// <summary>
+        /// Devuelve las reglas de reflejos del perfil o las reglas por defecto derivadas de su tabla de
+        /// <see cref="Apertura"/> (GSS §2.1, §6.4; CP-304).
+        /// </summary>
+        public IReadOnlyList<ReglaReflejo> ObtenerReglasReflejo()
+        {
+            if (this.Reflejos is { Count: > 0 })
+            {
+                return this.Reflejos;
+            }
+
+            return new List<ReglaReflejo>
+            {
+                new()
+                {
+                    Id = "guardar_cuaderno_apertura",
+                    Si = new CondicionReflejo
+                    {
+                        BandaMinima = "foco",
+                        Categoria = "granjero",
+                        RequiereEnsenar = false,
+                        ActividadContinua = "dibujar",
+                    },
+                    Accion = "guardar_cuaderno",
+                    EnfriamientoS = 30.0,
+                },
+                new()
+                {
+                    Id = "levantar_vista_dibujando",
+                    Si = new CondicionReflejo
+                    {
+                        BandaMinima = "foco",
+                        Categoria = "granjero",
+                        RequiereEnsenar = true,
+                        ActividadContinua = "dibujar",
+                    },
+                    Accion = "levantar_la_vista",
+                    EnfriamientoS = 30.0,
+                },
+                new()
+                {
+                    Id = "saludar_amistad",
+                    Si = new CondicionReflejo
+                    {
+                        BandaMinima = "foco",
+                        Categoria = "granjero",
+                        DesdeCorazones = 3,
+                        ActividadContinua = "ninguna",
+                    },
+                    Accion = "gesto",
+                    Tipo = "saludo",
+                    EnfriamientoS = 60.0,
+                },
+            };
+        }
     }
 
     /// <summary>Parámetros por personaje de consolidación del búfer y fuga de la huella de atención (P-10, CP-111).</summary>
@@ -166,5 +223,31 @@ namespace CorazonPelican.Core.Perfil
     {
         [DataMember(Name = "max_por_semana")] public int? MaxPorSemana { get; set; }
         [DataMember(Name = "nunca")] public List<string>? Nunca { get; set; }
+    }
+
+    /// <summary>Regla declarativa de reflejo inmediato sin pasar por la mente (GSS §2.1, §6.4; CP-304).</summary>
+    [DataContract]
+    public sealed class ReglaReflejo
+    {
+        public const double EnfriamientoPorDefectoSegundos = 30.0;
+
+        [DataMember(Name = "id")] public string Id { get; set; } = "";
+        [DataMember(Name = "si")] public CondicionReflejo Si { get; set; } = new();
+        [DataMember(Name = "accion")] public string Accion { get; set; } = "";
+        [DataMember(Name = "tipo", EmitDefaultValue = false)] public string? Tipo { get; set; }
+        [DataMember(Name = "texto", EmitDefaultValue = false)] public string? Texto { get; set; }
+        [DataMember(Name = "enfriamiento_s")] public double EnfriamientoS { get; set; } = EnfriamientoPorDefectoSegundos;
+    }
+
+    /// <summary>Condición sobre bandas, relación, apertura y estado del cuerpo que dispara un reflejo.</summary>
+    [DataContract]
+    public sealed class CondicionReflejo
+    {
+        [DataMember(Name = "banda_minima", EmitDefaultValue = false)] public string? BandaMinima { get; set; } = "foco";
+        [DataMember(Name = "categoria", EmitDefaultValue = false)] public string? Categoria { get; set; }
+        [DataMember(Name = "desde_corazones", EmitDefaultValue = false)] public int? DesdeCorazones { get; set; }
+        [DataMember(Name = "hasta_corazones", EmitDefaultValue = false)] public int? HastaCorazones { get; set; }
+        [DataMember(Name = "requiere_ensenar", EmitDefaultValue = false)] public bool? RequiereEnsenar { get; set; }
+        [DataMember(Name = "actividad_continua", EmitDefaultValue = false)] public string? ActividadContinua { get; set; }
     }
 }

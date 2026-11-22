@@ -1,5 +1,6 @@
 using CorazonPelican.Core.Atencion;
 using CorazonPelican.Core.Contrato;
+using CorazonPelican.Core.Intencion;
 using CorazonPelican.Core.Perfil;
 using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Tiempo;
@@ -27,6 +28,7 @@ public sealed class BucleAtencion
     {
         this.Mundo = mundo;
         this.Disparadores = new Disparadores(perfil, mundo.Reloj.Modo, guardados);
+        this.Reflejos = new EvaluadorReflejos(perfil);
         this.bandas = new ClasificadorBandas(perfil.Umbrales);
         this.contexto = contexto ?? new ContextoSaliencia(perfil.Rasgos, EstadoAtencion.Abierta, perfil.Umbrales.Periferia);
     }
@@ -34,6 +36,8 @@ public sealed class BucleAtencion
     public FakeWorld Mundo { get; }
 
     public Disparadores Disparadores { get; }
+
+    public EvaluadorReflejos Reflejos { get; }
 
     public List<Disparo> Disparos { get; } = new();
 
@@ -66,6 +70,8 @@ public sealed class BucleAtencion
             var saliencias = Saliencia.Calcular(observacion, contextoPaso, this.novedad);
             this.novedad.Exponer(observacion.Entidades.Select(e => e.Ref), minutosPorPaso);
             var enBandas = this.bandas.Clasificar(saliencias);
+            this.Reflejos.EvaluarYEjecutar(observacion, enBandas, this.Mundo.Cuerpo.Ejecutor, ahora);
+            this.Mundo.Cuerpo.SincronizarSucesosPendientes();
             this.Disparos.AddRange(this.Disparadores.Observar(observacion, enBandas, this.Mundo.HorarioHoy, ahora, minutosPorPaso));
         }
     }

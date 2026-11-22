@@ -103,6 +103,9 @@ public sealed class FakeBody : IMediosCuerpo
         this.SincronizarSucesos();
     }
 
+    internal void SincronizarSucesosPendientes()
+        => this.SincronizarSucesos();
+
     private void SincronizarSucesos()
     {
         var origen = this.Ejecutor.Sucesos;

@@ -44,5 +44,26 @@
     ]
   },
   "humor": { "semivida_dias": 2.5, "max_intensidad": 0.85, "umbral_disipacion": 0.15, "umbral_sustitucion": 0.65 },
-  "atencion": { "bufer_max_entradas": 12, "bufer_ventana_reciente_min": 60, "bufer_semivida_antiguas_min": 60, "huella_semivida_min": 30 }
+  "atencion": { "bufer_max_entradas": 12, "bufer_ventana_reciente_min": 60, "bufer_semivida_antiguas_min": 60, "huella_semivida_min": 30 },
+  "reflejos": [
+    {
+      "id": "guardar_cuaderno_apertura",
+      "si": { "banda_minima": "foco", "categoria": "granjero", "requiere_ensenar": false, "actividad_continua": "dibujar" },
+      "accion": "guardar_cuaderno",
+      "enfriamiento_s": 30
+    },
+    {
+      "id": "levantar_vista_dibujando",
+      "si": { "banda_minima": "foco", "categoria": "granjero", "requiere_ensenar": true, "actividad_continua": "dibujar" },
+      "accion": "levantar_la_vista",
+      "enfriamiento_s": 30
+    },
+    {
+      "id": "saludar_amistad",
+      "si": { "banda_minima": "foco", "categoria": "granjero", "desde_corazones": 3, "actividad_continua": "ninguna" },
+      "accion": "gesto",
+      "tipo": "saludo",
+      "enfriamiento_s": 60
+    }
+  ]
 }

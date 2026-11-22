@@ -946,6 +946,46 @@ namespace CorazonPelican.Core.Intencion
             this.idPlanActual = null;
         }
 
+        /// <summary>
+        /// Ejecuta una acción breve de reflejo en el acto sin abrir un plan de intención ni emitir
+        /// <see cref="TipoSucesoCuerpo.PlanTerminado"/> (CP-304).
+        /// </summary>
+        public bool EjecutarReflejo(PasoPlan paso, long ahoraMs)
+        {
+            if (paso is null || this.Ocupado)
+            {
+                return false;
+            }
+
+            var accion = AccionCuerpo.Crear(paso);
+            var detalle = paso.Lugar ?? paso.Objetivo ?? paso.Obra ?? paso.Tipo ?? paso.Texto;
+            this.Sucesos.Add(new SucesoCuerpoEjecucion(ahoraMs, TipoSucesoCuerpo.AccionIniciada, accion.Nombre, detalle));
+
+            accion.Iniciar(this.Contexto, ahoraMs);
+            if (accion.Estado == EstadoEjecucionAccion.Bloqueada)
+            {
+                var motivo = accion.MotivoBloqueo ?? "bloqueada";
+                this.Sucesos.Add(new SucesoCuerpoEjecucion(ahoraMs, TipoSucesoCuerpo.AccionBloqueada, accion.Nombre, motivo));
+                this.AccionBloqueada?.Invoke(accion.Paso, motivo, ahoraMs);
+                return false;
+            }
+
+            this.AccionIniciada?.Invoke(accion.Paso, ahoraMs);
+
+            if (accion.Estado == EstadoEjecucionAccion.EnCurso)
+            {
+                this.actual = accion;
+                return true;
+            }
+
+            this.Sucesos.Add(new SucesoCuerpoEjecucion(
+                ahoraMs,
+                TipoSucesoCuerpo.AccionTerminada,
+                accion.Nombre,
+                accion.EsContinua ? "continua" : null));
+            return true;
+        }
+
         private void AvanzarCola(long ahoraMs)
         {
             while (this.actual is null && this.cola.Count > 0)

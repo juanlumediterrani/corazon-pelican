@@ -115,6 +115,35 @@
         "huella_semivida_min": { "type": "number", "exclusiveMinimum": 0 }
       },
       "additionalProperties": false
+    },
+    "reflejos": {
+      "description": "Reglas declarativas de reflejos inmediatos sin la mente (GSS §2.1, §6.4; CP-304).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "comun.schema.json#/$defs/idLexico" },
+          "si": {
+            "type": "object",
+            "properties": {
+              "banda_minima": { "enum": ["periferia", "mencion", "foco"] },
+              "categoria": { "enum": ["granjero", "npc", "persona"] },
+              "desde_corazones": { "type": "integer", "minimum": 0 },
+              "hasta_corazones": { "type": "integer", "minimum": 0 },
+              "requiere_ensenar": { "type": "boolean" },
+              "actividad_continua": { "type": "string", "minLength": 1 }
+            },
+            "minProperties": 1,
+            "additionalProperties": false
+          },
+          "accion": { "enum": ["guardar_cuaderno", "levantar_la_vista", "mirar", "gesto", "murmurar"] },
+          "tipo": { "type": "string", "minLength": 1 },
+          "texto": { "type": "string", "minLength": 1 },
+          "enfriamiento_s": { "type": "number", "minimum": 0 }
+        },
+        "required": ["id", "si", "accion"],
+        "additionalProperties": false
+      }
     }
   },
   "required": ["id", "npc", "rasgos", "umbrales", "refractario", "presupuesto", "lexico", "plantillas", "apertura", "voz", "acciones", "formatos_obra", "rutina"],

@@ -65,6 +65,11 @@ public class CuerpoNoBloqueaTests
         _ = motorCalentamiento.ProcesarRespuestaEnHiloPrincipal(
             new Respuesta { Pensamiento = "ok", Epoca = "calentamiento", BasadaEn = pulsoCalentamiento.Id },
             "huella-calentamiento");
+        var tareaCalentamiento = motorCalentamiento.ProcesarRespuestaAsync(
+            new Respuesta { Pensamiento = "ok", Epoca = "calentamiento", BasadaEn = pulsoCalentamiento.Id },
+            "huella-calentamiento");
+        motorCalentamiento.DrenarCola();
+        await tareaCalentamiento;
         var mundoCalentamiento = Escenario.Pasarela().ConMente(FakeMind.Lenta(TimeSpan.FromSeconds(1))).Construir();
         mundoCalentamiento.Cuerpo.Ejecutar(new[]
         {

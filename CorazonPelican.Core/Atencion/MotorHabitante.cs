@@ -115,6 +115,7 @@ namespace CorazonPelican.Core.Atencion
             };
             this.LugaresOfrecidos = perfil.Lexico.OfrecerLugares(_ => true);
             this.ContextoRutina = new ContextoRutina(Math.Max(1, estado.Contadores?.Dia ?? 1));
+            this.Reflejos = new EvaluadorReflejos(perfil);
         }
 
         public PerfilPersonaje Perfil { get; }
@@ -140,6 +141,8 @@ namespace CorazonPelican.Core.Atencion
         public AgendaDia? AgendaActual { get; private set; }
 
         public ContextoRutina ContextoRutina { get; }
+
+        public EvaluadorReflejos Reflejos { get; }
 
         public RastreadorTasaMenciones RastreadorMenciones => this.rastreadorMenciones;
 
@@ -474,6 +477,19 @@ namespace CorazonPelican.Core.Atencion
             {
                 this.Huella.Observar(obs, bandas, minutosJuego);
                 this.AlimentarBufer(obs, bandas);
+            }
+
+            if (this.MenteHabilitada && this.EjecutorCuerpo is not null)
+            {
+                using (this.medidor?.Medir("reflejos"))
+                {
+                    if (this.Reflejos.EvaluarYEjecutar(obs, bandas, this.EjecutorCuerpo, ahoraMs) is not null)
+                    {
+                        this.SincronizarDesdeContextoCuerpo(this.EjecutorCuerpo.Contexto);
+                        estadoEfectivo = estadoAtencion ?? this.EstadoAtencionActual;
+                        obraEfectiva = obraEnCurso ?? this.ObraEnCursoActual;
+                    }
+                }
             }
 
             GestorCompromisos.Evaluar(this.Estado, obs, this.Disparadores, ahoraMs, this.compromisosAvisados);
