@@ -1,7 +1,7 @@
 ---
 id: CP-504
 titulo: Opciones del jugador desde affordances reales y texto libre
-estado: pendiente
+estado: en-curso
 prioridad: P2
 hito: F5
 depende_de: [CP-503, CP-014]
@@ -26,9 +26,9 @@ GSS §8.4, ADS §8.3. Pregunta nativa con respuestas (`responses`), operable por
 
 ## Criterios de aceptación
 
-- [ ] Tests: nunca se ofrece regalar algo que no está en el inventario ni pedir un encargo que la apertura no permite.
-- [ ] Las opciones tienen identificadores estables para un agente.
-- [ ] El texto libre llega a la mente tal cual, con su longitud máxima aplicada.
+- [x] Tests: nunca se ofrece regalar algo que no está en el inventario ni pedir un encargo que la apertura no permite. (`OpcionesJugadorTests.Nunca_ofrece_regalar_algo_que_no_esta_en_el_inventario`, `OpcionesJugadorTests.Nunca_ofrece_pedir_encargo_si_la_apertura_no_lo_permite`)
+- [x] Las opciones tienen identificadores estables para un agente. (`OpcionesJugadorTests.Las_opciones_tienen_identificadores_estables_e_incluyen_decir_otra_cosa`; `MenuTextoLibre` expone `myID = 104 / 101 / 102`)
+- [x] El texto libre llega a la mente tal cual, con su longitud máxima aplicada. (`OpcionesJugadorTests.El_texto_libre_llega_a_la_mente_tal_cual_con_longitud_maxima_aplicada`; falta prueba interactiva en vivo con teclado/mando/Voyager de «¿Me dibujarías el lago?»)
 
 ## Fuera de alcance
 

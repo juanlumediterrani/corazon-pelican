@@ -287,6 +287,55 @@ namespace CorazonPelican.Modules
                 LogLevel.Info);
         }
 
+        /// <summary>Construye las opciones de diálogo del jugador leyendo inventario real y amistad en Stardew (CP-504).</summary>
+        public IReadOnlyList<OpcionJugador> ConstruirOpcionesParaJugadorEnVivo(
+            MotorHabitante motor,
+            Farmer who,
+            IReadOnlyList<PropuestaEncargo>? encargosDisponibles = null)
+        {
+            var corazones = who.getFriendshipHeartLevelForNPC(motor.Perfil.Npc);
+            var inventario = new List<ObjetoInventarioJugador>();
+            foreach (var item in who.Items)
+            {
+                if (item is null || item.Stack <= 0 || string.IsNullOrWhiteSpace(item.QualifiedItemId))
+                {
+                    continue;
+                }
+
+                inventario.Add(new ObjetoInventarioJugador(
+                    item.QualifiedItemId,
+                    item.DisplayName,
+                    EsRegalable: item.canBeGivenAsGift(),
+                    Cantidad: item.Stack));
+            }
+
+            return motor.ConstruirOpcionesJugador(
+                corazones,
+                inventario,
+                encargosDisponibles ?? Array.Empty<PropuestaEncargo>());
+        }
+
+        /// <summary>Abre el menú nativo de texto libre para «Decir otra cosa…» y envía la frase tal cual al motor (CP-504).</summary>
+        public void AbrirMenuTextoLibre(
+            string personajeId,
+            string npcName,
+            Observacion observacion,
+            string interlocutorRef)
+        {
+            if (this.context is null || !this.context.MotoresHabitante.TryGetValue(personajeId, out var motor))
+            {
+                return;
+            }
+
+            Game1.activeClickableMenu = new MenuTextoLibre(
+                $"¿Qué quieres decirle a {npcName}?",
+                texto =>
+                {
+                    var ahoraMs = this.context.RelojMs?.Invoke() ?? 0;
+                    motor.EnviarTextoLibreJugador(observacion, interlocutorRef, texto, ahoraMs);
+                });
+        }
+
         private static bool EstaInterlocutorPresente(NPC? npc, Farmer? player)
         {
             if (npc?.currentLocation is null || player?.currentLocation is null)

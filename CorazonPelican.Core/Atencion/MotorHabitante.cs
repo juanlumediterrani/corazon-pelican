@@ -1138,6 +1138,73 @@ namespace CorazonPelican.Core.Atencion
             return res;
         }
 
+        /// <summary>Genera las opciones de diálogo del jugador desde affordances reales y apertura (CP-504).</summary>
+        public IReadOnlyList<OpcionJugador> ConstruirOpcionesJugador(
+            int corazones,
+            IReadOnlyList<ObjetoInventarioJugador> inventario,
+            IReadOnlyList<PropuestaEncargo> encargosDisponibles,
+            IReadOnlyList<Lugar>? lugaresCita = null,
+            int maxOpciones = 3)
+            => GeneradorOpcionesJugador.Generar(new ContextoOpcionesJugador(
+                this.Perfil,
+                corazones,
+                inventario,
+                encargosDisponibles,
+                lugaresCita,
+                maxOpciones));
+
+        /// <summary>
+        /// Envía el texto libre o la etiqueta de opción elegida por el jugador hacia la mente tal cual,
+        /// aplicando únicamente el recorte a <see cref="GeneradorOpcionesJugador.LongitudMaximaTextoLibre"/>.
+        /// </summary>
+        public Pulso? EnviarTextoLibreJugador(
+            Observacion observacion,
+            string interlocutorRef,
+            string? textoLibre,
+            long ahoraMs,
+            HorarioDia? horario = null,
+            AgendaDia? agendaDia = null)
+        {
+            if (observacion is null)
+            {
+                throw new ArgumentNullException(nameof(observacion));
+            }
+
+            var normalizado = GeneradorOpcionesJugador.NormalizarTextoLibre(textoLibre);
+            if (normalizado is null)
+            {
+                return null;
+            }
+
+            var obs = NormalizarObservacion(observacion);
+            this.UltimaObservacion = obs;
+            var disparoBase = this.Disparadores.Interlocucion(interlocutorRef, obs, ahoraMs);
+            var disparo = disparoBase with { Detalle = normalizado };
+            var (pulso, _) = this.EmitirPulsoDesdeDisparo(
+                obs,
+                disparo,
+                Array.Empty<EntidadEnBanda>(),
+                horario,
+                agendaDia,
+                this.EstadoAtencionActual,
+                this.IntencionActivaVigente?.PesosAtencionActivos,
+                this.IntencionActivaVigente?.Id,
+                this.ObraEnCursoActual,
+                origenTelemetria: Motivos.Interlocucion);
+
+            this.telemetria?.RegistrarDialogo(
+                this.Perfil.Id,
+                interlocutorRef,
+                Math.Max(1, obs.Dia),
+                Math.Clamp(obs.Hora, HoraJuego.InicioDia, HoraJuego.FinDia),
+                "jugador_dice",
+                pulsoId: pulso.Id,
+                detalle: normalizado,
+                epoca: this.Epoca);
+
+            return pulso;
+        }
+
         private bool ComprobarInterlocutorPresenteEnUltimaObs(string? interlocutorRef)
         {
             if (string.IsNullOrWhiteSpace(interlocutorRef) || this.UltimaObservacion is null)
