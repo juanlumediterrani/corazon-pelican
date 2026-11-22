@@ -148,7 +148,16 @@ namespace CorazonPelican.Core.Atencion
 
         public bool EstaMenteCaida => this.menteCaidaReportada;
 
+        public bool AnticipacionHabilitada
+        {
+            get => this.Disparadores.AnticipacionHabilitada;
+            set => this.Disparadores.AnticipacionHabilitada = value;
+        }
+
         public event Action<DesenlaceDialogoTurno>? ResultadoDialogoDisponible;
+
+        /// <summary>Se emite cuando un pulso anticipado se cancela antes de que haya encuentro (pulsoId, interlocutorRef, motivo).</summary>
+        public event Action<long, string, string>? AnticipacionCancelada;
 
         public RastreadorTasaMenciones RastreadorMenciones => this.rastreadorMenciones;
 
@@ -512,6 +521,29 @@ namespace CorazonPelican.Core.Atencion
 
             GestorCompromisos.Evaluar(this.Estado, obs, this.Disparadores, ahoraMs, this.compromisosAvisados);
 
+            var motivoCancelacionAnticipado = this.Dialogo.EvaluarCancelacionAnticipado(
+                obs,
+                bandas,
+                this.Perfil.Umbrales.Periferia,
+                ahoraMs,
+                this.tiempoMaxRespuestaMs);
+            if (motivoCancelacionAnticipado is not null)
+            {
+                var cancelado = this.Dialogo.CancelarAnticipado();
+                var refCancelado = cancelado?.Interlocutor?.Ref ?? string.Empty;
+                this.Disparadores.LimpiarAnticipado(refCancelado);
+                this.telemetria?.RegistrarDialogo(
+                    this.Perfil.Id,
+                    refCancelado,
+                    Math.Max(1, obs.Dia),
+                    Math.Clamp(obs.Hora, HoraJuego.InicioDia, HoraJuego.FinDia),
+                    "anticipacion_cancelada",
+                    pulsoId: cancelado?.Id,
+                    detalle: motivoCancelacionAnticipado,
+                    epoca: this.Epoca);
+                this.AnticipacionCancelada?.Invoke(cancelado?.Id ?? 0, refCancelado, motivoCancelacionAnticipado);
+            }
+
             IReadOnlyList<Disparo> disparos;
             using (this.medidor?.Medir("disparadores"))
             {
@@ -542,6 +574,11 @@ namespace CorazonPelican.Core.Atencion
                             origenTelemetria: disparo.Motivo);
                         pulsos.Add(pulso);
                         escenaEmitida = escena;
+                        if (disparo.Anticipado)
+                        {
+                            this.Dialogo.RegistrarPulsoAnticipado(pulso, obs.Ubicacion, obs.Clima, ahoraMs);
+                        }
+
                         if (this.MenteHabilitada && this.EstaReclamadoOActuando())
                         {
                             this.pulsoPendienteDesdeMs ??= ahoraMs;
@@ -1047,17 +1084,30 @@ namespace CorazonPelican.Core.Atencion
                         this.ObraEnCursoActual,
                         origenTelemetria: Motivos.Interlocucion);
                     return pulso;
-                });
+                },
+                ubicacion: obs.Ubicacion,
+                clima: obs.Clima);
+
+            this.Disparadores.LimpiarAnticipado(interlocutorRef);
+
+            if (reaccion.ReutilizoAnticipado)
+            {
+                var anticipada = this.Dialogo.ConsumirRespuestaAnticipadaSiLista(interlocutorPresente: true, this.Estado);
+                if (anticipada is { Desenlace: DesenlaceTurnoDialogo.MostrarFrasePensada } && !string.IsNullOrWhiteSpace(anticipada.Frase))
+                {
+                    reaccion = reaccion with { FraseAnticipada = anticipada.Frase };
+                }
+            }
 
             this.telemetria?.RegistrarDialogo(
                 this.Perfil.Id,
                 interlocutorRef,
                 Math.Max(1, obs.Dia),
                 Math.Clamp(obs.Hora, HoraJuego.InicioDia, HoraJuego.FinDia),
-                "reflejo",
+                reaccion.FraseAnticipada is null ? "reflejo" : "respuesta_pensada",
                 pulsoId: reaccion.Pulso?.Id,
                 reaccionMs: reaccionMs,
-                detalle: reaccion.LineaBreve,
+                detalle: reaccion.FraseAnticipada ?? reaccion.LineaBreve,
                 epoca: this.Epoca);
 
             return reaccion;
@@ -1215,6 +1265,7 @@ namespace CorazonPelican.Core.Atencion
             }
             else if (motivoPulso == Motivos.Interlocucion)
             {
+                pulso.Anticipado = disparo.Anticipado;
                 pulso.Interlocutor = new Interlocutor
                 {
                     Ref = string.IsNullOrWhiteSpace(disparo.Ref) ? "farmer:0" : disparo.Ref,

@@ -123,6 +123,21 @@ namespace CorazonPelican.Modules
                 {
                     Epoca = this.context.Api.EpocaVigente ?? "local",
                     MenteHabilitada = this.context.Config.MenteHabilitada,
+                    AnticipacionHabilitada = this.context.Config.AnticipacionHabilitada,
+                };
+
+                motor.AnticipacionCancelada += (pulsoId, interlocutorRef, motivo) =>
+                {
+                    this.context.Api.RegistrarEvento(
+                        "anticipacion_cancelada",
+                        id,
+                        $"Anticipación cancelada ({motivo}) para {interlocutorRef}",
+                        new System.Collections.Generic.Dictionary<string, object?>
+                        {
+                            ["pulso_id"] = pulsoId,
+                            ["interlocutor"] = interlocutorRef,
+                            ["motivo"] = motivo,
+                        });
                 };
 
                 var cuerpo = new CuerpoNpc(

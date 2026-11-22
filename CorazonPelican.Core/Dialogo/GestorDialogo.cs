@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CorazonPelican.Core.Contrato;
 using CorazonPelican.Core.Memoria;
+using CorazonPelican.Core.Sensorio;
 using CorazonPelican.Core.Sensorio.Prosa;
 
 namespace CorazonPelican.Core.Dialogo
@@ -29,7 +30,8 @@ namespace CorazonPelican.Core.Dialogo
         string LineaBreve,
         Pulso? Pulso,
         bool ReutilizoAnticipado,
-        int CaducaEnMs);
+        int CaducaEnMs,
+        string? FraseAnticipada = null);
 
     /// <summary>Tipo de desenlace de un turno de diálogo abierto.</summary>
     public enum DesenlaceTurnoDialogo
@@ -61,7 +63,14 @@ namespace CorazonPelican.Core.Dialogo
 
         private Pulso? pulsoAnticipado;
         private string? respuestaAnticipada;
+        private string? ubicacionAnticipada;
+        private string? climaAnticipado;
+        private long pulsoAnticipadoMs;
         private TurnoDialogoActivo? turnoActivo;
+
+        public Pulso? PulsoAnticipadoActual => this.pulsoAnticipado;
+
+        public bool TieneRespuestaAnticipada => !string.IsNullOrWhiteSpace(this.respuestaAnticipada);
 
         private sealed class TurnoDialogoActivo
         {
@@ -114,7 +123,7 @@ namespace CorazonPelican.Core.Dialogo
         }
 
         /// <summary>Registra un pulso anticipado cuando un granjero se aproxima al NPC.</summary>
-        public void RegistrarPulsoAnticipado(Pulso pulso)
+        public void RegistrarPulsoAnticipado(Pulso pulso, string? ubicacion = null, string? clima = null, long ahoraMs = 0)
         {
             if (pulso is null || pulso.Id <= 0)
             {
@@ -123,6 +132,67 @@ namespace CorazonPelican.Core.Dialogo
 
             this.pulsoAnticipado = pulso;
             this.respuestaAnticipada = null;
+            this.ubicacionAnticipada = ubicacion;
+            this.climaAnticipado = clima;
+            this.pulsoAnticipadoMs = ahoraMs;
+        }
+
+        /// <summary>Evalúa si un pulso anticipado pendiente debe cancelarse porque el granjero pasó de largo o cambió la escena.</summary>
+        public string? EvaluarCancelacionAnticipado(
+            Observacion obs,
+            IReadOnlyList<EntidadEnBanda> bandas,
+            double umbralPeriferia,
+            long ahoraMs,
+            int caducaEnMs)
+        {
+            if (this.pulsoAnticipado is null || this.turnoActivo is not null)
+            {
+                return null;
+            }
+
+            if (this.pulsoAnticipado.TiempoJuego?.Dia != obs.Dia
+                || (!string.IsNullOrWhiteSpace(this.ubicacionAnticipada)
+                    && !string.Equals(this.ubicacionAnticipada, obs.Ubicacion, StringComparison.Ordinal))
+                || (!string.IsNullOrWhiteSpace(this.climaAnticipado)
+                    && !string.Equals(this.climaAnticipado, obs.Clima, StringComparison.Ordinal)))
+            {
+                return "escena_cambiada";
+            }
+
+            if (this.pulsoAnticipadoMs > 0 && ahoraMs - this.pulsoAnticipadoMs >= Math.Max(100, caducaEnMs))
+            {
+                return "caducado";
+            }
+
+            var interlocutorRef = this.pulsoAnticipado.Interlocutor?.Ref;
+            if (!string.IsNullOrWhiteSpace(interlocutorRef))
+            {
+                var presente = obs.Entidades.Any(e => string.Equals(e.Ref, interlocutorRef, StringComparison.Ordinal));
+                if (!presente)
+                {
+                    return "interlocutor_alejado";
+                }
+
+                var banda = bandas.FirstOrDefault(b => string.Equals(b.Ref, interlocutorRef, StringComparison.Ordinal));
+                if (banda is null || banda.Saliencia < umbralPeriferia)
+                {
+                    return "interlocutor_alejado";
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>Cancela y descarta el pulso anticipado y cualquier respuesta anticipada pendiente.</summary>
+        public Pulso? CancelarAnticipado()
+        {
+            var cancelado = this.pulsoAnticipado;
+            this.pulsoAnticipado = null;
+            this.respuestaAnticipada = null;
+            this.ubicacionAnticipada = null;
+            this.climaAnticipado = null;
+            this.pulsoAnticipadoMs = 0;
+            return cancelado;
         }
 
         /// <summary>Abre un nuevo turno de conversación con reacción inmediata y reuso opcional del pulso anticipado.</summary>
@@ -133,26 +203,37 @@ namespace CorazonPelican.Core.Dialogo
             PlantillasProsa plantillas,
             long ahoraMs,
             int caducaEnMs,
-            Func<string, Pulso> emitirPulsoInterlocucion)
+            Func<string, Pulso> emitirPulsoInterlocucion,
+            string? ubicacion = null,
+            string? clima = null)
         {
             var lineaBreve = ElegirLineaBreve(plantillas, dia, interlocutorRef);
             var caducidadEfectiva = Math.Max(100, caducaEnMs);
 
-            // Si hay un pulso anticipado pendiente para la misma epoca/momento sin haber recibido respuesta todavía
-            // o ya con respuesta lista, podemos reutilizarlo.
+            // Si hay un pulso anticipado pendiente para la misma epoca/escena sin cambios relevantes, reutilizarlo.
             Pulso pulso;
             bool reutilizoAnticipado = false;
+            var mismaUbicacion = string.IsNullOrWhiteSpace(this.ubicacionAnticipada)
+                || string.IsNullOrWhiteSpace(ubicacion)
+                || string.Equals(this.ubicacionAnticipada, ubicacion, StringComparison.Ordinal);
+            var mismoClima = string.IsNullOrWhiteSpace(this.climaAnticipado)
+                || string.IsNullOrWhiteSpace(clima)
+                || string.Equals(this.climaAnticipado, clima, StringComparison.Ordinal);
+            var noCaducado = this.pulsoAnticipadoMs <= 0 || (ahoraMs - this.pulsoAnticipadoMs) < caducidadEfectiva;
+
             if (this.pulsoAnticipado is not null
                 && this.pulsoAnticipado.TiempoJuego?.Dia == dia
-                && this.pulsoAnticipado.Interlocutor?.Ref == interlocutorRef)
+                && this.pulsoAnticipado.Interlocutor?.Ref == interlocutorRef
+                && mismaUbicacion
+                && mismoClima
+                && noCaducado)
             {
                 pulso = this.pulsoAnticipado;
                 reutilizoAnticipado = true;
             }
             else
             {
-                this.pulsoAnticipado = null;
-                this.respuestaAnticipada = null;
+                this.CancelarAnticipado();
                 pulso = emitirPulsoInterlocucion(interlocutorRef);
             }
 

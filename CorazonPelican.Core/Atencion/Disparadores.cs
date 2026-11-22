@@ -35,7 +35,8 @@ namespace CorazonPelican.Core.Atencion
         string? Ref = null,
         HitoResuelto? Hito = null,
         IReadOnlyList<PendienteAgenda>? Agenda = null,
-        string? Detalle = null);
+        string? Detalle = null,
+        bool Anticipado = false);
 
     /// <summary>
     /// Decide cuándo algo merece pensamiento (GSS §4.1–4.2). Dos familias:
@@ -58,7 +59,9 @@ namespace CorazonPelican.Core.Atencion
         private readonly Queue<Disparo> transicionesPendientes = new();
         private readonly Dictionary<string, long> planesIntencion = new();
         private readonly List<Disparo> rutinaPendiente = new();
+        private readonly Dictionary<string, double> salienciaAnterior = new(StringComparer.Ordinal);
         private HashSet<string> sobrePico = new();
+        private string? anticipadoActivoRef;
         private int? dia;
         private int siguienteEntrada;
         private long inicioPlanRutinaMs;
@@ -76,6 +79,18 @@ namespace CorazonPelican.Core.Atencion
         public ContadoresPulsos? Contadores => this.presupuesto.Estado;
 
         public bool TieneCupoOrdinarioDisponible => this.presupuesto.TieneCupoOrdinarioDisponible;
+
+        /// <summary>Habilita o deshabilita el pensamiento anticipado cuando un granjero se aproxima (CP-507).</summary>
+        public bool AnticipacionHabilitada { get; set; } = true;
+
+        /// <summary>Limpia el estado de anticipación activa tras consumirse o cancelarse.</summary>
+        public void LimpiarAnticipado(string? interlocutorRef = null)
+        {
+            if (interlocutorRef is null || string.Equals(this.anticipadoActivoRef, interlocutorRef, StringComparison.Ordinal))
+            {
+                this.anticipadoActivoRef = null;
+            }
+        }
 
         /// <summary>CP-502 recibe el identificador del compromiso que necesita una prórroga.</summary>
         public event Action<Disparo>? CompromisoSinCupo;
@@ -108,14 +123,84 @@ namespace CorazonPelican.Core.Atencion
                 bandas.Where(b => b.Banda is Banda.Periferia or Banda.Mencion).Sum(b => b.Saliencia),
                 minutosJuego);
             this.Estimulos(observacion, bandas, ahoraMs, salida);
+            this.DetectarAnticipacion(observacion, bandas, ahoraMs, salida);
 
             this.sobrePico = bandas.Where(b => b.Saliencia >= this.perfil.Umbrales.Pico).Select(b => b.Ref).ToHashSet();
+            this.ActualizarSalienciasGranjeros(observacion, bandas);
             if (salida.Count > 0)
             {
                 this.Registrar(ahoraMs);
             }
 
             return salida;
+        }
+
+        private void DetectarAnticipacion(Observacion observacion, IReadOnlyList<EntidadEnBanda> bandas, long ahoraMs, List<Disparo> salida)
+        {
+            if (!this.AnticipacionHabilitada
+                || this.anticipadoActivoRef is not null
+                || salida.Count > 0
+                || this.refractario.EnVentana(ahoraMs))
+            {
+                return;
+            }
+
+            foreach (var entidad in observacion.Entidades)
+            {
+                if (entidad.Categoria != CategoriaEntidad.Granjero)
+                {
+                    continue;
+                }
+
+                var banda = bandas.FirstOrDefault(b => string.Equals(b.Ref, entidad.Ref, StringComparison.Ordinal));
+                if (banda is null)
+                {
+                    continue;
+                }
+
+                if (this.salienciaAnterior.TryGetValue(entidad.Ref, out var previa)
+                    && banda.Saliencia > previa + this.perfil.Umbrales.Histeresis
+                    && banda.Saliencia >= this.perfil.Umbrales.Mencion
+                    && banda.Saliencia < this.perfil.Umbrales.Pico)
+                {
+                    var countAntes = salida.Count;
+                    var disparo = new Disparo(
+                        Motivos.Interlocucion,
+                        ahoraMs,
+                        observacion.Dia,
+                        observacion.Hora,
+                        Ref: entidad.Ref,
+                        Anticipado: true);
+                    this.AgregarSiHayCupo(salida, disparo);
+                    if (salida.Count > countAntes)
+                    {
+                        this.anticipadoActivoRef = entidad.Ref;
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        private void ActualizarSalienciasGranjeros(Observacion observacion, IReadOnlyList<EntidadEnBanda> bandas)
+        {
+            var presentes = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var entidad in observacion.Entidades)
+            {
+                if (entidad.Categoria != CategoriaEntidad.Granjero)
+                {
+                    continue;
+                }
+
+                presentes.Add(entidad.Ref);
+                var banda = bandas.FirstOrDefault(b => string.Equals(b.Ref, entidad.Ref, StringComparison.Ordinal));
+                this.salienciaAnterior[entidad.Ref] = banda?.Saliencia ?? 0.0;
+            }
+
+            foreach (var existente in this.salienciaAnterior.Keys.Where(k => !presentes.Contains(k)).ToList())
+            {
+                this.salienciaAnterior.Remove(existente);
+            }
         }
 
         /// <summary>Alguien le habla: pasa siempre, también en la ventana refractaria.</summary>
@@ -216,6 +301,8 @@ namespace CorazonPelican.Core.Atencion
             var empiezaElDia = this.dia is not null || o.Hora == HoraJuego.InicioDia;
             this.dia = o.Dia;
             this.presupuesto.AbrirDia(o.Dia);
+            this.salienciaAnterior.Clear();
+            this.anticipadoActivoRef = null;
 
             // Amanecer con lluvia no es «empezar a llover»: luz y clima se toman de nuevo como referencia.
             this.deDia = null;

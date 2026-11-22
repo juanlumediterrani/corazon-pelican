@@ -12,7 +12,8 @@ namespace CorazonPelican.Core.Atencion
         int ExtrasCompromisosGastados = 0,
         bool DespertarEmitido = false,
         bool AcostarseEmitido = false,
-        int Interlocuciones = 0);
+        int Interlocuciones = 0,
+        int Anticipaciones = 0);
 
     /// <summary>Contabilidad diaria de un personaje en el hilo del motor (R-04, P-12).</summary>
     internal sealed class PresupuestoPulsos
@@ -62,6 +63,21 @@ namespace CorazonPelican.Core.Atencion
         private bool Gastar(Disparo disparo, ref ContadoresPulsos? contadores)
         {
             var c = contadores!;
+            if (disparo.Anticipado)
+            {
+                if (c.OrdinariosLibresGastados < this.limites.PulsosPorDiaJuego - this.limites.ReservadosCadenas)
+                {
+                    contadores = c with
+                    {
+                        OrdinariosLibresGastados = c.OrdinariosLibresGastados + 1,
+                        Anticipaciones = c.Anticipaciones + 1,
+                    };
+                    return true;
+                }
+
+                return false;
+            }
+
             if (disparo.Motivo == Motivos.Interlocucion)
             {
                 contadores = c with { Interlocuciones = c.Interlocuciones + 1 };

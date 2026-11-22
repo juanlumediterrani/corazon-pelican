@@ -1,7 +1,7 @@
 ---
 id: CP-507
 titulo: Pensamiento anticipado y su cancelación
-estado: pendiente
+estado: en-curso
 prioridad: P2
 hito: F5
 depende_de: [CP-503, CP-201]
@@ -27,8 +27,8 @@ GSS §4.3 y §7. Imprescindible en vanilla (p50 < 3 s, p95 < 8 s). Cuesta presup
 
 ## Criterios de aceptación
 
-- [ ] FakeWorld: jugador que se acerca y habla → se usa la respuesta anticipada sin nuevo pulso.
-- [ ] Jugador que pasa de largo → cancelación registrada y la mente descarta el resultado.
+- [x] FakeWorld: jugador que se acerca y habla → se usa la respuesta anticipada sin nuevo pulso. (`PensamientoAnticipadoTests.Jugador_que_se_acerca_emite_pulso_anticipado_y_hablar_reutiliza_respuesta_sin_nuevo_pulso`)
+- [x] Jugador que pasa de largo → cancelación registrada y la mente descarta el resultado. (`PensamientoAnticipadoTests.Jugador_que_pasa_de_largo_cancela_anticipacion_y_descarta_respuesta`)
 - [ ] En vivo, vanilla: p50 de respuesta pensada < 3 s en 10 conversaciones.
 
 ## Fuera de alcance

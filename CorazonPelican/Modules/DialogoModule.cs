@@ -411,7 +411,6 @@ namespace CorazonPelican.Modules
                 }
 
                 __instance.grantConversationFriendship(who);
-                __instance.doEmote(GestorDialogo.EmotePensando);
 
                 var obs = instancia.context.ProveedorObservacion?.Invoke(personajeId)
                     ?? motor.UltimaObservacion
@@ -438,6 +437,23 @@ namespace CorazonPelican.Modules
                     enEvento: enEvento,
                     valleyTalkActivo: instancia.EstaValleyTalkActivo());
 
+                if (!string.IsNullOrWhiteSpace(reaccion.FraseAnticipada))
+                {
+                    __instance.CurrentDialogue.Clear();
+                    __instance.CurrentDialogue.Push(new Dialogue(__instance, null, reaccion.FraseAnticipada));
+                    Game1.drawDialogue(__instance);
+                    crono.Stop();
+
+                    instancia.context.Monitor.Log(
+                        $"[Dialogo:{personajeId}] Respuesta anticipada entregada en {crono.Elapsed.TotalMilliseconds:0.##} ms | " +
+                        $"pulso={reaccion.Pulso?.Id}",
+                        LogLevel.Info);
+
+                    __result = true;
+                    return false;
+                }
+
+                __instance.doEmote(GestorDialogo.EmotePensando);
                 __instance.CurrentDialogue.Clear();
                 __instance.CurrentDialogue.Push(new Dialogue(__instance, null, reaccion.LineaBreve));
                 Game1.drawDialogue(__instance);
