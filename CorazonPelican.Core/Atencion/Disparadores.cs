@@ -63,6 +63,7 @@ namespace CorazonPelican.Core.Atencion
         private HashSet<string> sobrePico = new();
         private string? anticipadoActivoRef;
         private int? dia;
+        private int? horaAnterior;
         private int siguienteEntrada;
         private long inicioPlanRutinaMs;
         private bool? deDia;
@@ -307,6 +308,7 @@ namespace CorazonPelican.Core.Atencion
             // Amanecer con lluvia no es «empezar a llover»: luz y clima se toman de nuevo como referencia.
             this.deDia = null;
             this.clima = null;
+            this.horaAnterior = o.Hora;
             this.inicioPlanRutinaMs = ahoraMs;
 
             // Si el motor arranca a media jornada, las entradas ya pasadas no son hitos.
@@ -322,8 +324,22 @@ namespace CorazonPelican.Core.Atencion
         {
             if (horario is null || this.Contadores!.AcostarseEmitido)
             {
+                this.horaAnterior = o.Hora;
                 return;
             }
+
+            // Salto horario brusco en el mismo día (p. ej. arranque en NightHold 600 -> 2550 o p4e_time):
+            // descartar hitos diurnos intermedios ya rebasados para no disparar ráfagas duplicadas (CP-608).
+            if (this.horaAnterior is int previa && o.Hora - previa >= 60)
+            {
+                while (this.siguienteEntrada < horario.Entradas.Count - 1
+                    && horario.Entradas[this.siguienteEntrada].Hora < o.Hora)
+                {
+                    this.siguienteEntrada++;
+                }
+            }
+
+            this.horaAnterior = o.Hora;
 
             while (this.siguienteEntrada < horario.Entradas.Count && !AntesDeDisponerse(o.Hora, horario.Entradas[this.siguienteEntrada].Hora))
             {

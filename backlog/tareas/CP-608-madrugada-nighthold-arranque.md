@@ -1,7 +1,8 @@
 ---
 id: CP-608
 titulo: Madrugada NightHold (2550) y arranque con desfase horario en HabitanteModule
-estado: pendiente
+estado: hecha
+fecha: 2026-11-22
 prioridad: P2
 hito: F6
 depende_de: [CP-201, CP-601]
@@ -31,8 +32,8 @@ Observado en código y en prueba en vivo (`05:13`, partida `CorazonDev_454975123
 
 ## Criterios de aceptación
 
-- [ ] Tests en `CorazonPelican.Tests`: mantener la observación estable en `hora = 2550` (`NightHold`) no desborda el integrador ni repite hitos diurnos pendientes tras el primer pulso de cierre del día.
-- [ ] Tests en `CorazonPelican.Tests`: un salto inicial de `600 -> 2550` justo tras `SaveLoaded` (caso de arranque con recuperación Pelican) no emite ráfagas duplicadas de pulsos en el mismo tick.
+- [x] Tests en `CorazonPelican.Tests`: mantener la observación estable en `hora = 2550` (`NightHold`) no desborda el integrador ni repite hitos diurnos pendientes tras el primer pulso de cierre del día. (`NightHoldArranqueTests.Salto_inicial_a_2550_no_dispara_hitos_diurnos_intermedios_y_mantiene_acostarse_unico_CP608`, `417/417` superados; `HabitanteModule` detiene el avance de `minutosJuego` cuando `IPelicanApi.IsNightHold()` es `true`)
+- [x] Tests en `CorazonPelican.Tests`: un salto inicial de `600 -> 2550` justo tras `SaveLoaded` (caso de arranque con recuperación Pelican) no emite ráfagas duplicadas de pulsos en el mismo tick. (`Disparadores.Rutina` descarta hitos diurnos intermedios cuando `o.Hora - horaAnterior >= 60`; cubierto en `NightHoldArranqueTests`)
 
 ## Fuera de alcance
 

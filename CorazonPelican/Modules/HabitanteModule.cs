@@ -31,6 +31,7 @@ namespace CorazonPelican.Modules
         private readonly Stopwatch cronometro = new();
 
         private ModContext? context;
+        private IPelicanApi? pelicanApi;
         private TelemetriaJsonl? telemetria;
         private long ultimoPasoMs;
         private long siguientePulsoLocalId = 1;
@@ -99,6 +100,7 @@ namespace CorazonPelican.Modules
             this.cronometro.Restart();
             this.ultimoPasoMs = 0;
             this.siguientePulsoLocalId = 1;
+            this.pelicanApi = this.IntentarObtenerPelicanApi();
 
             foreach (var (id, perfil) in this.context.PersonajesGobernados)
             {
@@ -200,7 +202,8 @@ namespace CorazonPelican.Modules
             var transcurridoMs = Math.Max(0, ahoraMs - this.ultimoPasoMs);
             this.ultimoPasoMs = ahoraMs;
 
-            var minutosJuego = Game1.shouldTimePass()
+            var enNightHold = this.EstaEnNightHoldPelican();
+            var minutosJuego = Game1.shouldTimePass() && !enNightHold
                 ? transcurridoMs * 10.0 / HoraJuego.MilisegundosPorDiezMinutos(this.context.ModoRelojEfectivo)
                 : 0.0;
 
@@ -291,8 +294,43 @@ namespace CorazonPelican.Modules
             }
 
             this.telemetria = null;
+            this.pelicanApi = null;
             this.cronometro.Reset();
             this.ultimoPasoMs = 0;
+        }
+
+        private IPelicanApi? IntentarObtenerPelicanApi()
+        {
+            if (this.context is null || !this.context.Helper.ModRegistry.IsLoaded(ModContext.Pelican4EverUniqueId))
+            {
+                return null;
+            }
+
+            try
+            {
+                return this.context.Helper.ModRegistry.GetApi<IPelicanApi>(ModContext.Pelican4EverUniqueId);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private bool EstaEnNightHoldPelican()
+        {
+            if (this.pelicanApi is null)
+            {
+                return false;
+            }
+
+            try
+            {
+                return this.pelicanApi.IsNightHold();
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private PlantillasProsa? CargarPlantillas(string personajeId, PerfilPersonaje perfil)

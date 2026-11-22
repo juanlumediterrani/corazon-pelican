@@ -11,5 +11,9 @@ namespace CorazonPelican.Framework
         void RegisterPreSaveHook(Action callback);
 
         void UnregisterPreSaveHook(Action callback);
+
+        bool IsNightHold();
+
+        bool IsRolloverBusy();
     }
 }
