@@ -410,6 +410,12 @@ namespace CorazonPelican.Adaptador
             return ReclamacionNpc.VolverARutina(this.ObtenerNpc(), this.monitor);
         }
 
+        public bool AplicarCambioHorario(EntradaAgendaDia entrada)
+            => ReclamacionNpc.AplicarCambioHorario(this.ObtenerNpc(), entrada, this.monitor);
+
+        public void RestaurarHorarioCanonico()
+            => ReclamacionNpc.RestaurarHorarioCanonico(this.ObtenerNpc(), this.monitor);
+
         public NPC? ObtenerNpc() => Game1.getCharacterFromName(this.perfil.Npc);
 
         private static string ObtenerClaveAnimacionDibujo(NPC npc)

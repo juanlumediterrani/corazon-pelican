@@ -193,6 +193,8 @@ namespace CorazonPelican.Core.Atencion
         private long? pulsoPendienteDesdeMs;
         private bool menteCaidaReportada;
         private string? errorModuloPendiente;
+        private bool hayCambiosRutinaActivos;
+        private readonly HashSet<string> hitosSustituidosLanzados = new(StringComparer.Ordinal);
 
         /// <summary>Registra actividad reciente del proceso de la mente (latido, consulta o respuesta).</summary>
         public void NotificarActividadMente(long ahoraMs)
@@ -265,7 +267,7 @@ namespace CorazonPelican.Core.Atencion
                 this.EjecutorCuerpo.Contexto.FocoObjetivoRef = null;
                 this.EjecutorCuerpo.Contexto.EstadoAtencion = EstadoAtencion.Abierta;
 
-                if (actuabaEnCuerpo)
+                if (actuabaEnCuerpo || this.hayCambiosRutinaActivos)
                 {
                     if (medios.EstaEnAnimacionActividad)
                     {
@@ -273,11 +275,19 @@ namespace CorazonPelican.Core.Atencion
                     }
 
                     medios.DetenerMovimiento();
+                    if (this.hayCambiosRutinaActivos)
+                    {
+                        medios.RestaurarHorarioCanonico();
+                    }
+
                     medios.VolverARutina();
                 }
             }
 
-            if (!teniaIntencion && !actuabaEnCuerpo)
+            var teniaCambios = this.hayCambiosRutinaActivos;
+            this.hayCambiosRutinaActivos = false;
+
+            if (!teniaIntencion && !actuabaEnCuerpo && !teniaCambios)
             {
                 return false;
             }
@@ -302,7 +312,8 @@ namespace CorazonPelican.Core.Atencion
             }
 
             var medios = this.EjecutorCuerpo.Contexto.Medios;
-            return this.EjecutorCuerpo.Ocupado
+            return this.hayCambiosRutinaActivos
+                || this.EjecutorCuerpo.Ocupado
                 || this.EjecutorCuerpo.Continua is not null
                 || medios.EstaReclamado;
         }
@@ -496,6 +507,8 @@ namespace CorazonPelican.Core.Atencion
                     }
                 }
             }
+
+            this.GestorRutinaSustituidosEnPaso(obs, ahoraMs);
 
             GestorCompromisos.Evaluar(this.Estado, obs, this.Disparadores, ahoraMs, this.compromisosAvisados);
 
@@ -886,6 +899,7 @@ namespace CorazonPelican.Core.Atencion
             if (this.AgendaActual is not null && cambios is { Count: > 0 })
             {
                 ValidadorCambiosRutina.ValidarYAplicar(cambios, this.AgendaActual, this.Perfil, this.ContextoRutina);
+                this.AplicarCambiosRutinaEnCuerpoYMemoria(cambios, obsVigente.Dia);
             }
 
             if (intencionValidada is not null)
@@ -1273,11 +1287,71 @@ namespace CorazonPelican.Core.Atencion
             }
         }
 
+        private void AplicarCambiosRutinaEnCuerpoYMemoria(IReadOnlyList<CambioRutina> cambios, int dia)
+        {
+            if (this.AgendaActual is null)
+            {
+                return;
+            }
+
+            foreach (var cambio in cambios)
+            {
+                if (string.IsNullOrWhiteSpace(cambio.Hito))
+                {
+                    continue;
+                }
+
+                var entrada = this.AgendaActual.Buscar(cambio.Hito);
+                if (entrada is null)
+                {
+                    continue;
+                }
+
+                this.hayCambiosRutinaActivos = true;
+                this.EjecutorCuerpo?.Contexto.Medios.AplicarCambioHorario(entrada);
+
+                var textoRecuerdo = $"Día {dia}: decidí {cambio.Cambio} «{entrada.Prosa}» ({entrada.Hito}).";
+                if (!this.Estado.Recuerdos.Any(r => string.Equals(r.Texto, textoRecuerdo, StringComparison.Ordinal)))
+                {
+                    this.Estado.Recuerdos.Add(new Recuerdo
+                    {
+                        Id = $"rec-rutina-{dia}-{entrada.Hito}",
+                        Texto = textoRecuerdo,
+                        Importancia = 0.5,
+                    });
+                }
+            }
+        }
+
+        private void GestorRutinaSustituidosEnPaso(Observacion obs, long ahoraMs)
+        {
+            if (!this.MenteHabilitada || this.AgendaActual is null || this.EjecutorCuerpo is null)
+            {
+                return;
+            }
+
+            foreach (var entrada in this.AgendaActual.Entradas)
+            {
+                if (entrada.Estado == EstadoHito.Sustituido
+                    && entrada.PlanSustituto is { Count: > 0 }
+                    && obs.Hora >= entrada.Hora
+                    && !this.EjecutorCuerpo.Ocupado
+                    && this.hitosSustituidosLanzados.Add(entrada.Hito))
+                {
+                    this.Disparadores.IniciarPlanIntencion(entrada.Hito, ahoraMs);
+                    this.EjecutorCuerpo.EjecutarPlan(entrada.PlanSustituto, ahoraMs, entrada.Hito);
+                    break;
+                }
+            }
+        }
+
         private void SincronizarAgenda(int dia, HorarioDia? horario, AgendaDia? agendaExplicita)
         {
             if (this.ultimoDiaAgenda is int diaAnterior && diaAnterior != dia)
             {
                 this.ContextoRutina.AvanzarDia(dia);
+                this.hayCambiosRutinaActivos = false;
+                this.hitosSustituidosLanzados.Clear();
                 if (agendaExplicita is null)
                 {
                     this.AgendaActual = null;

@@ -207,6 +207,10 @@ public sealed class FakeBody : IMediosCuerpo
         return true;
     }
 
+    public List<EntradaAgendaDia> CambiosHorarioAplicados { get; } = new();
+
+    public bool HorarioCanonicoRestaurado { get; private set; }
+
     public bool VolverARutina()
     {
         this.ControlReclamado = false;
@@ -214,7 +218,17 @@ public sealed class FakeBody : IMediosCuerpo
         if (horario is not null && horario.Entradas.Count > 0)
         {
             var hora = this.mundo.Reloj.Juego.Hora;
-            var vigente = horario.Entradas.Where(e => e.Hora <= hora).OrderBy(e => e.Hora).LastOrDefault()
+            var excluidas = this.HorarioCanonicoRestaurado
+                ? new HashSet<int>()
+                : this.CambiosHorarioAplicados
+                    .Where(c => c.Estado is EstadoHito.Saltado or EstadoHito.Sustituido)
+                    .Select(c => c.Hora)
+                    .ToHashSet();
+            var vigente = horario.Entradas
+                .Where(e => e.Hora <= hora && !excluidas.Contains(e.Hora))
+                .OrderBy(e => e.Hora)
+                .LastOrDefault()
+                ?? horario.Entradas.Where(e => !excluidas.Contains(e.Hora)).OrderBy(e => e.Hora).FirstOrDefault()
                 ?? horario.Entradas.OrderBy(e => e.Hora).First();
             this.mundo.Personaje.Ubicacion = vigente.Ubicacion;
             this.mundo.Personaje.X = vigente.X;
@@ -222,6 +236,17 @@ public sealed class FakeBody : IMediosCuerpo
         }
 
         return true;
+    }
+
+    public bool AplicarCambioHorario(EntradaAgendaDia entrada)
+    {
+        this.CambiosHorarioAplicados.Add(entrada);
+        return true;
+    }
+
+    public void RestaurarHorarioCanonico()
+    {
+        this.HorarioCanonicoRestaurado = true;
     }
 
     private void SincronizarMedios(long ahoraMs)

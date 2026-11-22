@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using CorazonPelican.Core.Intencion;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -197,6 +198,103 @@ namespace CorazonPelican.Adaptador
             monitor?.Log(
                 $"[ReclamacionNpc] ({evento}) Reclamación previa de {npc.Name} liberada (marca={valorAnterior ?? "ninguna"}) -> ignoreScheduleToday=False, ScheduleKey={npc.ScheduleKey ?? "(null)"}.",
                 LogLevel.Info);
+        }
+
+        /// <summary>
+        /// Aplica un cambio validado (saltar, mover o sustituir) sobre <c>npc.Schedule</c> recalculando
+        /// el tramo siguiente con <c>pathfindToNextScheduleLocation</c> sin alterar días posteriores (CP-011, CP-306).
+        /// </summary>
+        public static bool AplicarCambioHorario(NPC? npc, EntradaAgendaDia entrada, IMonitor? monitor = null)
+        {
+            if (npc is null || npc.Schedule is null || entrada is null)
+            {
+                return false;
+            }
+
+            if (entrada.Estado == EstadoHito.Saltado || entrada.Estado == EstadoHito.Sustituido)
+            {
+                if (npc.Schedule.Remove(entrada.HoraOriginal))
+                {
+                    RecalcularTramoPosterior(npc, entrada.HoraOriginal);
+                    monitor?.Log(
+                        $"[ReclamacionNpc] Cambio de rutina ({entrada.Estado}) aplicado a {npc.Name} en {entrada.Hito} (hora {entrada.HoraOriginal:D4}).",
+                        LogLevel.Info);
+                }
+
+                return true;
+            }
+
+            if (entrada.Estado == EstadoHito.Movido && entrada.Hora != entrada.HoraOriginal)
+            {
+                if (npc.Schedule.TryGetValue(entrada.HoraOriginal, out var desc))
+                {
+                    npc.Schedule.Remove(entrada.HoraOriginal);
+                    desc.time = entrada.Hora;
+                    npc.Schedule[entrada.Hora] = desc;
+                    monitor?.Log(
+                        $"[ReclamacionNpc] Hito {entrada.Hito} movido para {npc.Name}: {entrada.HoraOriginal:D4} -> {entrada.Hora:D4}.",
+                        LogLevel.Info);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>Recarga el horario vanilla del día cuando se degrada por caída de la mente tras cambios previos (CP-303, CP-306).</summary>
+        public static void RestaurarHorarioCanonico(NPC? npc, IMonitor? monitor = null)
+        {
+            if (npc is null || npc.isMarried())
+            {
+                return;
+            }
+
+            npc.TryLoadSchedule();
+            monitor?.Log(
+                $"[ReclamacionNpc] Horario canónico recargado para {npc.Name} (ScheduleKey={npc.ScheduleKey ?? "(null)"}).",
+                LogLevel.Info);
+        }
+
+        private static void RecalcularTramoPosterior(NPC npc, int horaModificada)
+        {
+            if (npc.Schedule is null || npc.currentLocation is null)
+            {
+                return;
+            }
+
+            var siguientes = npc.Schedule.Where(kv => kv.Key > horaModificada).OrderBy(kv => kv.Key).ToList();
+            if (siguientes.Count == 0)
+            {
+                return;
+            }
+
+            var previas = npc.Schedule.Where(kv => kv.Key < horaModificada).OrderBy(kv => kv.Key).ToList();
+            var origenLoc = previas.Count > 0 ? previas[^1].Value.targetLocationName : npc.currentLocation.NameOrUniqueName;
+            var origenTile = previas.Count > 0 ? previas[^1].Value.targetTile : npc.TilePoint;
+
+            var sigKey = siguientes[0].Key;
+            var sigVal = siguientes[0].Value;
+            try
+            {
+                var recalculada = npc.pathfindToNextScheduleLocation(
+                    npc.ScheduleKey ?? "corazon",
+                    origenLoc,
+                    origenTile.X,
+                    origenTile.Y,
+                    sigVal.targetLocationName,
+                    sigVal.targetTile.X,
+                    sigVal.targetTile.Y,
+                    sigVal.facingDirection,
+                    sigVal.endOfRouteBehavior,
+                    sigVal.endOfRouteMessage);
+                recalculada.time = sigKey;
+                npc.Schedule[sigKey] = recalculada;
+            }
+            catch
+            {
+                // Si el cálculo de tramo posterior falla, se deja intacta la entrada original para fallback vanilla.
+            }
         }
     }
 }

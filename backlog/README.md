@@ -37,7 +37,7 @@ Estas dos fichas están pendientes y tienen todas sus dependencias hechas.
 
 | Prioridad | Tareas por hito e identificador |
 |---|---|
-| P2 | CP-306 control de rutina · agenda del día, reequilibrio en cascada y cambios de hitos · CP-504 opciones del jugador |
+| P2 | CP-305 aceptación de fase 3 🎮 · CP-504 opciones del jugador · CP-507 recuerdos y voz en diálogo 🎮 |
 | P3 | CP-601 Pelican 4Ever · WorldLifeModule ignora NPCs reclamados |
 
 CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisiones.md`](../docs/decisiones.md) han quedado cerradas (`CP-902`).
@@ -90,7 +90,7 @@ CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisio
 | [CP-303](tareas/CP-303-reclamacion-y-degradacion.md) | Reclamación, volver_a_rutina y degradación a la Leah vanilla | F3 | P1 | CP-011, CP-302 | hecha |
 | [CP-304](tareas/CP-304-reflejos.md) | Reflejos del perfil en menos de 100 ms | F3 | P2 | CP-302 | hecha |
 | [CP-305](tareas/CP-305-aceptacion-cuerpo.md) | Aceptación de fase 3 · intenciones cumplidas y rechazadas en vivo 🎮 | F3 | P2 | CP-303, CP-304, CP-306, CP-208 | pendiente |
-| [CP-306](tareas/CP-306-control-rutina.md) | El personaje controla su rutina · agenda del día, reequilibrio en cascada y cambios de hitos | F3 | P2 | CP-011, CP-212, CP-301, CP-303 | pendiente |
+| [CP-306](tareas/CP-306-control-rutina.md) | El personaje controla su rutina · agenda del día, reequilibrio en cascada y cambios de hitos | F3 | P2 | CP-011, CP-212, CP-301, CP-303 | hecha |
 | [CP-401](tareas/CP-401-taller.md) | Taller · generador enchufable y script de asset de la prosa a la PNG | F4 | P2 | CP-013, CP-002 | dormida |
 | [CP-402](tareas/CP-402-decision-autocritica.md) | Decisión de obra y autocrítica de la mente | F4 | P2 | CP-401, CP-204 | dormida |
 | [CP-403](tareas/CP-403-obras-y-portafolio.md) | ObrasModule · portafolio persistido y obras colocables como muebles | F4 | P2 | CP-015, CP-107, CP-401 | dormida |

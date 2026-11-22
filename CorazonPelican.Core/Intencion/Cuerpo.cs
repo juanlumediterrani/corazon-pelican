@@ -93,6 +93,10 @@ namespace CorazonPelican.Core.Intencion
         bool Murmurar(string texto);
 
         bool VolverARutina();
+
+        bool AplicarCambioHorario(EntradaAgendaDia entrada) => true;
+
+        void RestaurarHorarioCanonico() { }
     }
 
     /// <summary>
