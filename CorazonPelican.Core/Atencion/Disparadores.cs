@@ -75,6 +75,8 @@ namespace CorazonPelican.Core.Atencion
 
         public ContadoresPulsos? Contadores => this.presupuesto.Estado;
 
+        public bool TieneCupoOrdinarioDisponible => this.presupuesto.TieneCupoOrdinarioDisponible;
+
         /// <summary>CP-502 recibe el identificador del compromiso que necesita una prórroga.</summary>
         public event Action<Disparo>? CompromisoSinCupo;
 

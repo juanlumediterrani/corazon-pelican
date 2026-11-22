@@ -78,6 +78,8 @@ public sealed class FakeBody : IMediosCuerpo
 
     public int CasillaY => this.mundo.Personaje.Y;
 
+    public bool EstaReclamado => this.ControlReclamado;
+
     public bool EstaEnAnimacionActividad => this.enAnimacionActividad;
 
     public EstadoRutaCuerpo EstadoRutaActual { get; private set; } = EstadoRutaCuerpo.Inactiva;

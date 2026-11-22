@@ -189,8 +189,13 @@ public class CuerpoVocabularioTests
         for (var i = 0; i < pasos; i++)
         {
             var obs = mundo.AvanzarObservando(TimeSpan.FromMilliseconds(FakeWorld.PasoMs)).Single();
+            motor.NotificarActividadMente(mundo.Reloj.MilisegundosReales);
             var res = motor.ProcesarPaso(obs, horario: null, mundo.Reloj.MilisegundosReales, 0.35);
             pulsosDurantePlan.AddRange(res.Pulsos);
+            if (!mundo.Cuerpo.Ocupado && pulsosDurantePlan.Any(p => p.Hito?.Id == "int-pasarela"))
+            {
+                break;
+            }
         }
 
         Assert.True(mundo.Cuerpo.Sentada);

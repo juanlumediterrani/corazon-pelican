@@ -262,10 +262,24 @@ namespace CorazonPelican.Modules
             {
                 case "on":
                     this.context.Config.MenteHabilitada = true;
+                    foreach (var motor in this.context.MotoresHabitante.Values)
+                    {
+                        motor.MenteHabilitada = true;
+                    }
+
                     log.Log("MenteHabilitada = true (activada en caliente).", LogLevel.Info);
                     break;
                 case "off":
                     this.context.Config.MenteHabilitada = false;
+                    var ahoraMs = this.context.RelojMs?.Invoke() ?? 0;
+                    foreach (var (id, motor) in this.context.MotoresHabitante)
+                    {
+                        var degradado = motor.DesactivarMente(ahoraMs);
+                        log.Log(
+                            $"MenteHabilitada = false para '{id}' (degradadoARutina={degradado}).",
+                            LogLevel.Info);
+                    }
+
                     log.Log("MenteHabilitada = false (desactivada en caliente).", LogLevel.Info);
                     break;
                 default:

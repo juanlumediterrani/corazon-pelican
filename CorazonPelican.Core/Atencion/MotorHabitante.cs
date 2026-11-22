@@ -164,7 +164,199 @@ namespace CorazonPelican.Core.Atencion
         /// <summary>Ejecutor del cuerpo conectado a este motor, si se vinculó (CP-302).</summary>
         public EjecutorCuerpo? EjecutorCuerpo { get; private set; }
 
+        /// <summary>Indica si la mente externa está habilitada para gobernar el cuerpo (R-11, CP-303).</summary>
+        public bool MenteHabilitada { get; set; } = true;
+
+        /// <summary>Último motivo por el que el motor degradó al personaje a su rutina canónica (CP-303).</summary>
+        public string? UltimoMotivoDegradacion { get; private set; }
+
+        /// <summary>Instante en milisegundos reales de la última degradación a rutina.</summary>
+        public long? UltimaDegradacionMs { get; private set; }
+
+        /// <summary>Número total de degradaciones automáticas a rutina ejecutadas en la sesión.</summary>
+        public int TotalDegradaciones { get; private set; }
+
+        /// <summary>Evento emitido cuando el motor devuelve automáticamente al personaje a su horario canónico (CP-303).</summary>
+        public event Action<string, long>? DegradadoARutina;
+
         private Func<long>? relojMotorMs;
+        private long? ultimoContactoMenteMs;
+        private long? pulsoPendienteDesdeMs;
+        private bool menteCaidaReportada;
+        private string? errorModuloPendiente;
+
+        /// <summary>Registra actividad reciente del proceso de la mente (latido, consulta o respuesta).</summary>
+        public void NotificarActividadMente(long ahoraMs)
+        {
+            this.ultimoContactoMenteMs = ahoraMs;
+            this.menteCaidaReportada = false;
+        }
+
+        /// <summary>Notifica que el proceso de la mente ha caído o cerrado conexión.</summary>
+        public void NotificarMenteCaida(long ahoraMs)
+        {
+            this.menteCaidaReportada = true;
+            if (this.EstaReclamadoOActuando())
+            {
+                this.DegradarARutina("mente_caida", ahoraMs);
+            }
+        }
+
+        /// <summary>Notifica un fallo de módulo para degradar inmediatamente el personaje a su horario vanilla (CP-303).</summary>
+        public void NotificarErrorModulo(string detalle, long ahoraMs)
+        {
+            this.errorModuloPendiente = string.IsNullOrWhiteSpace(detalle) ? "error_modulo" : detalle;
+            this.DegradarARutina("error_modulo", ahoraMs);
+        }
+
+        /// <summary>Desactiva la mente en caliente (<c>cp_mente off</c>) y devuelve inmediatamente el personaje a su rutina si estaba reclamado.</summary>
+        public bool DesactivarMente(long ahoraMs)
+        {
+            this.MenteHabilitada = false;
+            return this.DegradarARutina("mente_deshabilitada", ahoraMs);
+        }
+
+        /// <summary>
+        /// Cancela cualquier plan o intención activa, detiene animaciones de actividad y devuelve al personaje
+        /// a su tramo vigente del horario canónico si estaba reclamado o actuando (CP-303, R-11).
+        /// </summary>
+        public bool DegradarARutina(string motivo, long ahoraMs)
+        {
+            var motivoNormalizado = string.IsNullOrWhiteSpace(motivo) ? "degradacion" : motivo.Trim();
+            this.pulsoPendienteDesdeMs = null;
+            this.menteCaidaReportada = false;
+            this.errorModuloPendiente = null;
+
+            var teniaIntencion = this.IntencionActivaVigente is { EstaActiva: true } || this.Estado.IntencionActiva is not null;
+            if (this.IntencionActivaVigente is { EstaActiva: true } activa)
+            {
+                activa.Sustituir(this.UltimaObservacion, null, ahoraMs);
+            }
+
+            this.IntencionActivaVigente = null;
+            this.Estado.IntencionActiva = null;
+            this.EstadoAtencionActual = EstadoAtencion.Abierta;
+            this.FocoSensorioRef = null;
+            this.ObraEnCursoActual = null;
+
+            var actuabaEnCuerpo = false;
+            if (this.EjecutorCuerpo is not null)
+            {
+                var medios = this.EjecutorCuerpo.Contexto.Medios;
+                actuabaEnCuerpo = this.EjecutorCuerpo.Ocupado
+                    || this.EjecutorCuerpo.Continua is not null
+                    || this.EjecutorCuerpo.Sentada
+                    || medios.EstaReclamado
+                    || medios.EstaEnAnimacionActividad;
+
+                this.EjecutorCuerpo.CancelarPlan();
+                this.EjecutorCuerpo.Contexto.AccionContinua = null;
+                this.EjecutorCuerpo.Contexto.ObraEnCurso = null;
+                this.EjecutorCuerpo.Contexto.Sentada = false;
+                this.EjecutorCuerpo.Contexto.FocoObjetivoRef = null;
+                this.EjecutorCuerpo.Contexto.EstadoAtencion = EstadoAtencion.Abierta;
+
+                if (actuabaEnCuerpo)
+                {
+                    if (medios.EstaEnAnimacionActividad)
+                    {
+                        medios.DetenerAnimacionActividad();
+                    }
+
+                    medios.DetenerMovimiento();
+                    medios.VolverARutina();
+                }
+            }
+
+            if (!teniaIntencion && !actuabaEnCuerpo)
+            {
+                return false;
+            }
+
+            this.UltimoMotivoDegradacion = motivoNormalizado;
+            this.UltimaDegradacionMs = ahoraMs;
+            this.TotalDegradaciones++;
+            this.DegradadoARutina?.Invoke(motivoNormalizado, ahoraMs);
+            return true;
+        }
+
+        private bool EstaReclamadoOActuando()
+        {
+            if (this.IntencionActivaVigente is { EstaActiva: true } || this.Estado.IntencionActiva is not null)
+            {
+                return true;
+            }
+
+            if (this.EjecutorCuerpo is null)
+            {
+                return false;
+            }
+
+            var medios = this.EjecutorCuerpo.Contexto.Medios;
+            return this.EjecutorCuerpo.Ocupado
+                || this.EjecutorCuerpo.Continua is not null
+                || medios.EstaReclamado
+                || medios.EstaEnAnimacionActividad;
+        }
+
+        private void EvaluarDegradacionAutomatica(long ahoraMs)
+        {
+            if (!this.MenteHabilitada)
+            {
+                if (this.EstaReclamadoOActuando())
+                {
+                    this.DegradarARutina("mente_deshabilitada", ahoraMs);
+                }
+
+                return;
+            }
+
+            if (this.errorModuloPendiente is not null)
+            {
+                this.DegradarARutina("error_modulo", ahoraMs);
+                return;
+            }
+
+            if (this.menteCaidaReportada)
+            {
+                if (this.EstaReclamadoOActuando())
+                {
+                    this.DegradarARutina("mente_caida", ahoraMs);
+                }
+                else
+                {
+                    this.menteCaidaReportada = false;
+                }
+
+                return;
+            }
+
+            if (!this.EstaReclamadoOActuando())
+            {
+                return;
+            }
+
+            var tramoDiezMinMs = HoraJuego.MilisegundosPorDiezMinutos(this.ModoReloj);
+            var topeCaidaPulsoMs = Math.Min((long)this.tiempoMaxRespuestaMs, tramoDiezMinMs);
+
+            if (this.pulsoPendienteDesdeMs is long pendienteDesde && ahoraMs - pendienteDesde >= topeCaidaPulsoMs)
+            {
+                this.DegradarARutina("mente_caida", ahoraMs);
+                return;
+            }
+
+            if (this.ultimoContactoMenteMs is long ultimoContacto && ahoraMs - ultimoContacto >= tramoDiezMinMs)
+            {
+                this.DegradarARutina("mente_caida", ahoraMs);
+                return;
+            }
+
+            if (!this.Disparadores.TieneCupoOrdinarioDisponible
+                && (this.EjecutorCuerpo is null || !this.EjecutorCuerpo.Ocupado))
+            {
+                this.DegradarARutina("sin_presupuesto", ahoraMs);
+            }
+        }
 
         /// <summary>Vincula un <see cref="EjecutorCuerpo"/> para registrar prosa de acción en el búfer y disparar hitos al terminar planes.</summary>
         public void ConectarEjecutorCuerpo(EjecutorCuerpo ejecutor, Func<long>? relojMs = null)
@@ -235,6 +427,8 @@ namespace CorazonPelican.Core.Atencion
             {
                 throw new ArgumentNullException(nameof(observacion));
             }
+
+            this.EvaluarDegradacionAutomatica(ahoraMs);
 
             if (this.EjecutorCuerpo is not null)
             {
@@ -314,6 +508,10 @@ namespace CorazonPelican.Core.Atencion
                             origenTelemetria: disparo.Motivo);
                         pulsos.Add(pulso);
                         escenaEmitida = escena;
+                        if (this.MenteHabilitada && this.EstaReclamadoOActuando())
+                        {
+                            this.pulsoPendienteDesdeMs ??= ahoraMs;
+                        }
                     }
                 }
             }
@@ -535,6 +733,25 @@ namespace CorazonPelican.Core.Atencion
             {
                 throw new ArgumentNullException(nameof(respuesta));
             }
+
+            if (!this.MenteHabilitada)
+            {
+                var rechazoMenteOff = Resultado.Rechazar(new MotivoRechazo(
+                    "mente_deshabilitada",
+                    "respuesta",
+                    "la mente está deshabilitada y el personaje sigue su rutina canónica"));
+                this.telemetria?.RegistrarRechazo(this.Perfil.Id, respuesta.BasadaEn, rechazoMenteOff, pulso.Epoca);
+                return rechazoMenteOff;
+            }
+
+            var ahoraRespuestaMs = this.relojMotorMs?.Invoke();
+            if (ahoraRespuestaMs is long msActual)
+            {
+                this.ultimoContactoMenteMs = msActual;
+            }
+
+            this.pulsoPendienteDesdeMs = null;
+            this.menteCaidaReportada = false;
 
             var motivos = new List<MotivoRechazo>();
             var errorOrigen = ValidadorOrigenDiario.Comprobar(pulso, respuesta);

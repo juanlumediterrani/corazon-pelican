@@ -57,6 +57,9 @@ namespace CorazonPelican.Core.Intencion
 
         int CasillaY { get; }
 
+        /// <summary>Indica si el personaje está reclamado fuera de su horario nativo (<c>CorazonPelican.Control</c>, CP-303).</summary>
+        bool EstaReclamado { get; }
+
         /// <summary>Indica si el personaje está reproduciendo una animación de actividad (p. ej. dibujo).</summary>
         bool EstaEnAnimacionActividad { get; }
 

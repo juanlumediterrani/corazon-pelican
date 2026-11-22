@@ -35,6 +35,10 @@ namespace CorazonPelican.Core.Atencion
 
         public ContadoresPulsos? Estado => this.actual;
 
+        public bool TieneCupoOrdinarioDisponible
+            => this.actual is null
+               || this.actual.OrdinariosLibresGastados < Math.Max(0, this.limites.PulsosPorDiaJuego - this.limites.ReservadosCadenas);
+
         public void AbrirDia(int dia)
         {
             if (this.actual is null || this.actual.Dia < dia)

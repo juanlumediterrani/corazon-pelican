@@ -60,6 +60,8 @@ namespace CorazonPelican.Adaptador
 
         public int CasillaY => this.ObtenerNpc()?.TilePoint.Y ?? 0;
 
+        public bool EstaReclamado => ReclamacionNpc.EstaReclamado(this.ObtenerNpc());
+
         public bool EstaEnAnimacionActividad
         {
             get
@@ -149,18 +151,7 @@ namespace CorazonPelican.Adaptador
         }
 
         public void ReclamarControl(string motivo)
-        {
-            var npc = this.ObtenerNpc();
-            if (npc is null)
-            {
-                return;
-            }
-
-            npc.modData[ClaveControlModData] = $"{motivo}@{Game1.timeOfDay:D4}";
-            npc.ignoreScheduleToday = true;
-            npc.temporaryController = null;
-            npc.queuedSchedulePaths.Clear();
-        }
+            => ReclamacionNpc.Reclamar(this.ObtenerNpc(), motivo, this.monitor);
 
         public bool IniciarRutaHacia(Lugar destino, int orientacionFinal)
         {
@@ -413,66 +404,10 @@ namespace CorazonPelican.Adaptador
 
         public bool VolverARutina()
         {
-            var npc = this.ObtenerNpc();
-            if (npc is null || npc.currentLocation is null)
-            {
-                return false;
-            }
-
             this.rutaActiva = false;
             this.rutaCompletada = false;
             this.MotivoBloqueoRuta = null;
-
-            npc.modData.Remove(ClaveControlModData);
-            npc.ignoreScheduleToday = false;
-            npc.followSchedule = true;
-            npc.lastAttemptedSchedule = Game1.timeOfDay;
-            npc.queuedSchedulePaths.Clear();
-
-            if (npc.Schedule is null || npc.Schedule.Count == 0)
-            {
-                return true;
-            }
-
-            var vigentes = npc.Schedule.Where(kv => kv.Key <= Game1.timeOfDay).OrderBy(kv => kv.Key).ToList();
-            var tramo = vigentes.Count > 0 ? vigentes[^1].Value : npc.Schedule.OrderBy(kv => kv.Key).First().Value;
-
-            var origenLoc = npc.currentLocation.NameOrUniqueName;
-            var origenTile = npc.TilePoint;
-
-            if (string.Equals(origenLoc, tramo.targetLocationName, StringComparison.Ordinal) && origenTile == tramo.targetTile)
-            {
-                npc.faceDirection(tramo.facingDirection);
-                npc.previousEndPoint = tramo.targetTile;
-                if (!string.IsNullOrEmpty(tramo.endOfRouteBehavior) || !string.IsNullOrEmpty(tramo.endOfRouteMessage))
-                {
-                    npc.StartActivityRouteEndBehavior(tramo.endOfRouteBehavior, tramo.endOfRouteMessage);
-                }
-
-                return true;
-            }
-
-            var ruta = npc.pathfindToNextScheduleLocation(
-                npc.ScheduleKey ?? "corazon",
-                origenLoc,
-                origenTile.X,
-                origenTile.Y,
-                tramo.targetLocationName,
-                tramo.targetTile.X,
-                tramo.targetTile.Y,
-                tramo.facingDirection,
-                tramo.endOfRouteBehavior,
-                tramo.endOfRouteMessage);
-
-            var endBehavior = MetodoGetRouteEndBehavior?.Invoke(npc, new object?[] { tramo.endOfRouteBehavior, tramo.endOfRouteMessage }) as PathFindController.endBehavior;
-            npc.DirectionsToNewLocation = ruta;
-            npc.controller = new PathFindController(ruta.route, npc, npc.currentLocation)
-            {
-                finalFacingDirection = tramo.facingDirection,
-                endBehaviorFunction = endBehavior,
-            };
-            npc.previousEndPoint = tramo.targetTile;
-            return true;
+            return ReclamacionNpc.VolverARutina(this.ObtenerNpc(), this.monitor);
         }
 
         public NPC? ObtenerNpc() => Game1.getCharacterFromName(this.perfil.Npc);

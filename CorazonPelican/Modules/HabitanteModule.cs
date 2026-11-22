@@ -44,6 +44,7 @@ namespace CorazonPelican.Modules
             this.context = contexto;
 
             contexto.Helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
+            contexto.Helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             contexto.Helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
             contexto.Helper.Events.GameLoop.DayEnding += this.OnDayEnding;
             contexto.Helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
@@ -57,10 +58,25 @@ namespace CorazonPelican.Modules
             }
 
             this.context.Helper.Events.GameLoop.SaveLoaded -= this.OnSaveLoaded;
+            this.context.Helper.Events.GameLoop.DayStarted -= this.OnDayStarted;
             this.context.Helper.Events.GameLoop.UpdateTicked -= this.OnUpdateTicked;
             this.context.Helper.Events.GameLoop.DayEnding -= this.OnDayEnding;
             this.context.Helper.Events.GameLoop.ReturnedToTitle -= this.OnReturnedToTitle;
             this.LimpiarPartida();
+        }
+
+        private void OnDayStarted(object? sender, DayStartedEventArgs e)
+        {
+            if (this.context is null || !Context.IsMainPlayer)
+            {
+                return;
+            }
+
+            foreach (var perfil in this.context.PersonajesGobernados.Values)
+            {
+                var npc = Game1.getCharacterFromName(perfil.Npc);
+                ReclamacionNpc.LiberarAlIniciarJornada(npc, "DayStarted", this.context.Monitor);
+            }
         }
 
         private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
@@ -106,6 +122,7 @@ namespace CorazonPelican.Modules
                     modoValidacionMenciones: this.context.Config.ModoValidacionMenciones)
                 {
                     Epoca = this.context.Api.EpocaVigente ?? "local",
+                    MenteHabilitada = this.context.Config.MenteHabilitada,
                 };
 
                 var cuerpo = new CuerpoNpc(
@@ -115,6 +132,15 @@ namespace CorazonPelican.Modules
                     this.context.Monitor,
                     () => this.ObservarPersonaje(id));
                 motor.ConectarEjecutorCuerpo(cuerpo.Ejecutor, () => this.cronometro.ElapsedMilliseconds);
+                motor.DegradadoARutina += (motivo, _) =>
+                {
+                    this.context.Monitor.Log(
+                        $"[Habitante:{id}] Degradación automática a rutina canónica (motivo={motivo}).",
+                        LogLevel.Info);
+                };
+
+                var npc = Game1.getCharacterFromName(perfil.Npc);
+                ReclamacionNpc.LiberarAlIniciarJornada(npc, "SaveLoaded", this.context.Monitor);
 
                 this.context.MotoresHabitante[id] = motor;
                 this.context.CuerposHabitante[id] = cuerpo;
@@ -165,22 +191,41 @@ namespace CorazonPelican.Modules
 
             foreach (var (id, motor) in this.context.MotoresHabitante)
             {
-                var npc = Game1.getCharacterFromName(motor.Perfil.Npc);
-                if (npc is null)
+                try
                 {
-                    continue;
-                }
+                    if (!this.context.Config.MenteHabilitada && motor.MenteHabilitada)
+                    {
+                        motor.DesactivarMente(ahoraMs);
+                    }
+                    else
+                    {
+                        motor.MenteHabilitada = this.context.Config.MenteHabilitada;
+                    }
 
-                Observacion obs;
-                using (this.context.CostesBucle.Medir("observar"))
+                    var npc = Game1.getCharacterFromName(motor.Perfil.Npc);
+                    if (npc is null)
+                    {
+                        continue;
+                    }
+
+                    Observacion obs;
+                    using (this.context.CostesBucle.Medir("observar"))
+                    {
+                        obs = this.observador.Observar(npc, npc.currentLocation);
+                    }
+
+                    this.context.UltimasObservaciones[id] = obs;
+                    var horario = LeerHorario(npc);
+                    motor.Epoca = this.context.Api.EpocaVigente ?? motor.Epoca;
+                    motor.ProcesarPaso(obs, horario, ahoraMs, minutosJuego);
+                }
+                catch (Exception ex)
                 {
-                    obs = this.observador.Observar(npc, npc.currentLocation);
+                    this.context.Monitor.Log(
+                        $"[Habitante:{id}] Error en paso del motor ({ex.Message}); degradando a rutina vanilla.",
+                        LogLevel.Error);
+                    motor.NotificarErrorModulo(ex.Message, ahoraMs);
                 }
-
-                this.context.UltimasObservaciones[id] = obs;
-                var horario = LeerHorario(npc);
-                motor.Epoca = this.context.Api.EpocaVigente ?? motor.Epoca;
-                motor.ProcesarPaso(obs, horario, ahoraMs, minutosJuego);
             }
         }
 
@@ -286,7 +331,7 @@ namespace CorazonPelican.Modules
 
         private Pulso PublicarPulso(Pulso pulso)
         {
-            if (this.context is not null && this.context.Api.MundoCargado)
+            if (this.context is not null && this.context.Config.MenteHabilitada && this.context.Api.MundoCargado)
             {
                 pulso.Epoca = this.context.Api.EpocaVigente ?? pulso.Epoca;
                 return this.context.Api.EmitirPulso(pulso);
