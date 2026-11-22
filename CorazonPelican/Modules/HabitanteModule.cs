@@ -32,6 +32,7 @@ namespace CorazonPelican.Modules
 
         private ModContext? context;
         private IPelicanApi? pelicanApi;
+        private Action<int, int>? hookSaltoHorarioPelican;
         private TelemetriaJsonl? telemetria;
         private long ultimoPasoMs;
         private long siguientePulsoLocalId = 1;
@@ -44,6 +45,7 @@ namespace CorazonPelican.Modules
         {
             this.context = contexto;
 
+            contexto.Helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
             contexto.Helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
             contexto.Helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             contexto.Helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
@@ -53,17 +55,54 @@ namespace CorazonPelican.Modules
 
         public void Dispose()
         {
+            if (this.pelicanApi is not null && this.hookSaltoHorarioPelican is not null)
+            {
+                try
+                {
+                    this.pelicanApi.UnregisterTimeJumpHook(this.hookSaltoHorarioPelican);
+                }
+                catch
+                {
+                }
+            }
+
+            this.hookSaltoHorarioPelican = null;
+
             if (this.context is null)
             {
                 return;
             }
 
+            this.context.Helper.Events.GameLoop.GameLaunched -= this.OnGameLaunched;
             this.context.Helper.Events.GameLoop.SaveLoaded -= this.OnSaveLoaded;
             this.context.Helper.Events.GameLoop.DayStarted -= this.OnDayStarted;
             this.context.Helper.Events.GameLoop.UpdateTicked -= this.OnUpdateTicked;
             this.context.Helper.Events.GameLoop.DayEnding -= this.OnDayEnding;
             this.context.Helper.Events.GameLoop.ReturnedToTitle -= this.OnReturnedToTitle;
             this.LimpiarPartida();
+        }
+
+        private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
+        {
+            var api = this.IntentarObtenerPelicanApi();
+            if (api is null || this.context is null)
+            {
+                return;
+            }
+
+            try
+            {
+                this.hookSaltoHorarioPelican ??= this.EnSaltoHorarioPelican;
+                api.RegisterTimeJumpHook(this.hookSaltoHorarioPelican);
+                this.pelicanApi = api;
+                this.context.Monitor.Log("[Habitante] Suscrito al hook off-role de salto horario de Pelican 4Ever (CP-611).", LogLevel.Trace);
+            }
+            catch (Exception ex)
+            {
+                this.context.Monitor.Log(
+                    $"[Habitante] Pelican 4Ever no expone RegisterTimeJumpHook todavía ({ex.Message}).",
+                    LogLevel.Trace);
+            }
         }
 
         private void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -100,7 +139,7 @@ namespace CorazonPelican.Modules
             this.cronometro.Restart();
             this.ultimoPasoMs = 0;
             this.siguientePulsoLocalId = 1;
-            this.pelicanApi = this.IntentarObtenerPelicanApi();
+            this.pelicanApi ??= this.IntentarObtenerPelicanApi();
 
             foreach (var (id, perfil) in this.context.PersonajesGobernados)
             {
@@ -299,9 +338,52 @@ namespace CorazonPelican.Modules
             }
 
             this.telemetria = null;
-            this.pelicanApi = null;
             this.cronometro.Reset();
             this.ultimoPasoMs = 0;
+        }
+
+        private void EnSaltoHorarioPelican(int horaAnterior, int horaNueva)
+        {
+            if (this.context is null || !Context.IsWorldReady || !Context.IsMainPlayer || !this.context.MotorActivoEnPartida)
+            {
+                return;
+            }
+
+            var diaActual = Math.Max(1, Game1.Date?.TotalDays ?? 1);
+            var horaValida = Math.Clamp(horaNueva, HoraJuego.InicioDia, HoraJuego.FinDia);
+            var ahoraMs = this.cronometro.ElapsedMilliseconds;
+
+            var nuevaEpoca = ApiMotor.GenerarEpoca();
+            this.context.Api.IniciarEpoca(nuevaEpoca, this.context.PersonajesGobernados.Keys);
+            if (this.context.Api.MundoCargado && this.context.EstadoApi.StartsWith("activa", StringComparison.OrdinalIgnoreCase))
+            {
+                this.context.EstadoApi = $"activa en http://127.0.0.1:{this.context.Config.ApiPuerto}/api/v1/ (época {nuevaEpoca})";
+            }
+
+            DialogoModule.CancelarTurnosActivos();
+
+            var liberados = 0;
+            foreach (var (id, motor) in this.context.MotoresHabitante)
+            {
+                this.context.UltimasObservaciones.Remove(id);
+                motor.Epoca = nuevaEpoca;
+                var npc = Game1.getCharacterFromName(motor.Perfil.Npc);
+                if (motor.RestablecerOffRole(
+                    diaActual,
+                    horaValida,
+                    ahoraMs,
+                    horario: npc is null ? null : LeerHorario(npc),
+                    restaurarRutinaLocal: false))
+                {
+                    liberados++;
+                }
+            }
+
+            this.ultimoPasoMs = ahoraMs;
+            this.context.Monitor.Log(
+                $"[Habitante] Reinicio técnico off-role ejecutado tras salto horario ({horaAnterior:D4} -> {horaNueva:D4}, " +
+                $"personajes={this.context.MotoresHabitante.Count}, liberados={liberados}, época={nuevaEpoca}).",
+                LogLevel.Info);
         }
 
         private IPelicanApi? IntentarObtenerPelicanApi()

@@ -416,6 +416,14 @@ namespace CorazonPelican.Adaptador
         public void RestaurarHorarioCanonico()
             => ReclamacionNpc.RestaurarHorarioCanonico(this.ObtenerNpc(), this.monitor);
 
+        public void LiberarControlParaReubicacion()
+        {
+            this.rutaActiva = false;
+            this.rutaCompletada = false;
+            this.MotivoBloqueoRuta = null;
+            ReclamacionNpc.LiberarParaReubicacion(this.ObtenerNpc(), this.monitor);
+        }
+
         public NPC? ObtenerNpc() => Game1.getCharacterFromName(this.perfil.Npc);
 
         private static string ObtenerClaveAnimacionDibujo(NPC npc)

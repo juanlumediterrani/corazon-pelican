@@ -93,6 +93,35 @@ namespace CorazonPelican.Core.Atencion
             }
         }
 
+        /// <summary>
+        /// Reinicia los cursores, colas y presupuesto de disparadores para una instancia limpia tras un salto
+        /// horario administrativo «off-role» (<c>/time</c> / <c>p4e_time</c>), ubicando el cursor de rutina en
+        /// <paramref name="nuevaHora"/> para no emitir hitos ya pasados ni quedar bloqueado por un cupo previo (CP-611).
+        /// </summary>
+        public void ReiniciarOffRole(int dia, int nuevaHora, HorarioDia? horario, long ahoraMs)
+        {
+            var diaValido = Math.Max(1, dia);
+            var horaValida = Math.Clamp(nuevaHora, HoraJuego.InicioDia, HoraJuego.FinDia);
+
+            this.transicionesPendientes.Clear();
+            this.planesIntencion.Clear();
+            this.rutinaPendiente.Clear();
+            this.salienciaAnterior.Clear();
+            this.sobrePico.Clear();
+            this.Omitidos.Clear();
+            this.anticipadoActivoRef = null;
+            this.UltimoPulsoMs = null;
+            this.integrador.Reiniciar();
+            this.refractario.Reiniciar();
+            this.deDia = null;
+            this.clima = null;
+            this.dia = diaValido;
+            this.horaAnterior = horaValida;
+            this.inicioPlanRutinaMs = ahoraMs;
+            this.presupuesto.ReiniciarDia(diaValido);
+            this.siguienteEntrada = horario?.Entradas.Count(e => e.Hora <= horaValida) ?? 0;
+        }
+
         /// <summary>CP-502 recibe el identificador del compromiso que necesita una prórroga.</summary>
         public event Action<Disparo>? CompromisoSinCupo;
 

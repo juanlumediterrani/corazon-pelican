@@ -49,6 +49,13 @@ namespace CorazonPelican.Core.Atencion
             }
         }
 
+        /// <summary>Restablece a cero los contadores del día indicado para un reinicio técnico off-role (CP-611).</summary>
+        public void ReiniciarDia(int dia)
+        {
+            this.anterior = null;
+            this.actual = new ContadoresPulsos(Math.Max(1, dia));
+        }
+
         public bool Admitir(Disparo disparo)
         {
             this.AbrirDia(disparo.Dia);

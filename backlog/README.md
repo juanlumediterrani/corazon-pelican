@@ -118,6 +118,7 @@ CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisio
 | [CP-608](tareas/CP-608-madrugada-nighthold-arranque.md) | Madrugada NightHold (2550) y arranque con desfase horario en HabitanteModule | F6 | P2 | CP-201, CP-601 | hecha |
 | [CP-609](tareas/CP-609-festivales-pelican.md) | Festivales reprogramados y ventana prime-time (FestivalAccessModule / WorldLifeModule) | F6 | P2 | CP-306, CP-601 | hecha |
 | [CP-610](tareas/CP-610-limpieza-control-ir-a-velocidad-time.md) | Limpieza de control tras bloqueo de AccionIrA, velocidad residual de micro-wandering y saltos de reloj de prueba | F6 | P3 | CP-303, CP-601 | hecha |
+| [CP-611](tareas/CP-611-reinicio-off-role-salto-reloj.md) | Tratamiento técnico off-role ante saltos de reloj (/time / p4e_time) en Pelican 4Ever | F6 | P1 | CP-606, CP-610 | hecha |
 | [CP-901](tareas/CP-901-adrs.md) | Redactar ADR-0001 a ADR-0006 | D | P2 | CP-001 | hecha |
 | [CP-902](tareas/CP-902-preguntas-abiertas.md) | Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros) | D | P2 | — | hecha |
 | [CP-903](tareas/CP-903-estado-y-ruta-del-proyecto.md) | Actualizar el estado del proyecto y la ruta de tareas listas | D | P2 | CP-901 | hecha |

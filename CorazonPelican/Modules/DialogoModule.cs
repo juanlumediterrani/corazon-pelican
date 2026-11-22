@@ -50,6 +50,24 @@ namespace CorazonPelican.Modules
 
         public LadoModulo Lado => LadoModulo.Ambos;
 
+        /// <summary>Cierra turnos de diálogo activos en el anfitrión durante un reinicio técnico off-role (CP-611).</summary>
+        public static void CancelarTurnosActivos()
+        {
+            var instancia = instanciaActiva;
+            if (instancia is null)
+            {
+                return;
+            }
+
+            foreach (var turno in instancia.turnosActivos.Values.ToList())
+            {
+                var npc = Game1.getCharacterFromName(turno.NpcName);
+                MarcarDialogoActivo(npc, false);
+            }
+
+            instancia.turnosActivos.Clear();
+        }
+
         public void Registrar(ModContext contexto)
         {
             this.context = contexto;

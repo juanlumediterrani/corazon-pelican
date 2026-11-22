@@ -97,6 +97,17 @@ namespace CorazonPelican.Core.Intencion
         bool AplicarCambioHorario(EntradaAgendaDia entrada) => true;
 
         void RestaurarHorarioCanonico() { }
+
+        /// <summary>
+        /// Libera cualquier reclamación y controlador residual para permitir una reubicación técnica inmediata
+        /// (p. ej. salto horario administrativo off-role de Pelican) sin iniciar una ruta hacia el tramo previo (CP-611).
+        /// </summary>
+        void LiberarControlParaReubicacion()
+        {
+            this.DetenerAnimacionActividad();
+            this.DetenerMovimiento();
+            this.RestaurarHorarioCanonico();
+        }
     }
 
     /// <summary>

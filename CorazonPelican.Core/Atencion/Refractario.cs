@@ -23,6 +23,9 @@ namespace CorazonPelican.Core.Atencion
 
         public void Registrar(long ahoraMs) => this.ultimoMs = ahoraMs;
 
+        /// <summary>Limpia la ventana refractaria en un reinicio técnico off-role (CP-611).</summary>
+        public void Reiniciar() => this.ultimoMs = null;
+
         /// <summary>Si estamos dentro de la ventana que sigue a la última pulsión.</summary>
         public bool EnVentana(long ahoraMs) => this.ultimoMs is long ultimo && ahoraMs - ultimo < this.semividaMs;
 

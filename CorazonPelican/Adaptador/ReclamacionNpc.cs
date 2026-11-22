@@ -67,6 +67,50 @@ namespace CorazonPelican.Adaptador
         }
 
         /// <summary>
+        /// Libera de forma síncrona toda reclamación, controlador de desplazamiento, animación de actividad
+        /// y modificaciones temporales del horario sin iniciar ruta hacia el tramo previo, dejando al NPC listo
+        /// para un reposicionamiento técnico inmediato (p. ej. <c>CatchUpVillagerSchedules</c> tras <c>/time</c>, CP-611).
+        /// </summary>
+        public static void LiberarParaReubicacion(NPC? npc, IMonitor? monitor = null)
+        {
+            if (npc is null)
+            {
+                return;
+            }
+
+            var teniaControl = npc.modData.TryGetValue(ClaveControlModData, out var controlPrevio);
+            npc.modData.Remove(ClaveControlModData);
+            npc.ignoreScheduleToday = false;
+            npc.followSchedule = true;
+            npc.speed = 2;
+            npc.isSleeping.Value = false;
+            npc.lastAttemptedSchedule = Game1.timeOfDay;
+            npc.temporaryController = null;
+            npc.queuedSchedulePaths.Clear();
+
+            if (npc.doingEndOfRouteAnimation.Value || npc.goingToDoEndOfRouteAnimation.Value)
+            {
+                npc.EndActivityRouteEndBehavior();
+                npc.endOfRouteMessage.Value = null;
+            }
+
+            npc.controller = null;
+            npc.Halt();
+
+            if (!npc.isMarried())
+            {
+                npc.TryLoadSchedule();
+            }
+
+            if (teniaControl)
+            {
+                monitor?.Log(
+                    $"[ReclamacionNpc] Control de {npc.Name} liberado por reinicio off-role (previo={controlPrevio ?? "-"}).",
+                    LogLevel.Info);
+            }
+        }
+
+        /// <summary>
         /// Libera la reclamación del NPC, cierra cualquier animación de actividad en curso y calcula
         /// una ruta nativa con <see cref="PathFindController"/> desde su posición actual hasta el destino
         /// del tramo vigente de su horario (<c>Key &lt;= Game1.timeOfDay</c>).

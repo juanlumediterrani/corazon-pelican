@@ -309,6 +309,82 @@ namespace CorazonPelican.Core.Atencion
             return true;
         }
 
+        /// <summary>
+        /// Ejecuta un reinicio técnico «off-role» completo (p. ej. salto manual del reloj con <c>/time</c> o
+        /// <c>p4e_time</c>): corta la intención y el plan en curso, cancela diálogos abiertos, limpia búfer/disparadores,
+        /// restablece el presupuesto del día y libera el control del NPC para dejarlo en una instancia limpia (CP-611).
+        /// </summary>
+        public bool RestablecerOffRole(
+            int dia,
+            int nuevaHora,
+            long ahoraMs,
+            HorarioDia? horario = null,
+            bool restaurarRutinaLocal = false)
+        {
+            this.pulsoPendienteDesdeMs = null;
+            this.bloqueoSinReemplazoDesdeMs = null;
+            this.menteCaidaReportada = false;
+            this.errorModuloPendiente = null;
+
+            var teniaEstado = this.EstaReclamadoOActuando()
+                || this.hayCambiosRutinaActivos
+                || this.Dialogo.HayTurnoActivo
+                || this.Dialogo.PulsoAnticipadoActual is not null;
+
+            if (this.IntencionActivaVigente is { EstaActiva: true } activa)
+            {
+                activa.Sustituir(this.UltimaObservacion, null, ahoraMs);
+            }
+
+            this.IntencionActivaVigente = null;
+            this.Estado.IntencionActiva = null;
+            this.EstadoAtencionActual = EstadoAtencion.Abierta;
+            this.FocoSensorioRef = null;
+            this.ObraEnCursoActual = null;
+            this.UltimaObservacion = null;
+            this.UltimaEscena = null;
+            this.AgendaActual = null;
+            this.ultimoDiaAgenda = null;
+            this.ultimoDiaBufer = null;
+            this.bandasRegistradasBufer.Clear();
+            this.compromisosAvisados.Clear();
+            this.hitosSustituidosLanzados.Clear();
+            this.Bufer.Limpiar();
+            this.pendientesDiario.Limpiar();
+            this.Dialogo.Cancelar();
+
+            if (this.EjecutorCuerpo is not null)
+            {
+                var medios = this.EjecutorCuerpo.Contexto.Medios;
+                this.EjecutorCuerpo.CancelarPlan();
+                this.EjecutorCuerpo.Contexto.AccionContinua = null;
+                this.EjecutorCuerpo.Contexto.ObraEnCurso = null;
+                this.EjecutorCuerpo.Contexto.Sentada = false;
+                this.EjecutorCuerpo.Contexto.FocoObjetivoRef = null;
+                this.EjecutorCuerpo.Contexto.EstadoAtencion = EstadoAtencion.Abierta;
+
+                medios.LiberarControlParaReubicacion();
+                if (restaurarRutinaLocal)
+                {
+                    medios.VolverARutina();
+                }
+            }
+
+            this.hayCambiosRutinaActivos = false;
+            this.Disparadores.ReiniciarOffRole(dia, nuevaHora, horario, ahoraMs);
+            this.Estado.Contadores = this.Disparadores.Contadores;
+
+            if (teniaEstado)
+            {
+                this.UltimoMotivoDegradacion = "reinicio_off_role";
+                this.UltimaDegradacionMs = ahoraMs;
+                this.TotalDegradaciones++;
+                this.DegradadoARutina?.Invoke("reinicio_off_role", ahoraMs);
+            }
+
+            return teniaEstado;
+        }
+
         private bool EstaReclamadoOActuando()
         {
             if (this.IntencionActivaVigente is { EstaActiva: true } || this.Estado.IntencionActiva is not null)
