@@ -233,4 +233,36 @@ public class MencionesAncladasTests
             }
         }
     }
+
+    [Fact]
+    public void Palabras_comunes_al_inicio_de_oracion_no_se_rechazan_pero_entidades_de_catalogo_si()
+    {
+        var perfil = CargarPerfil();
+        var estado = new EstadoPersonaje();
+        var pulso = CrearPulsoBase();
+
+        var natural = new Respuesta
+        {
+            Epoca = pulso.Epoca,
+            BasadaEn = pulso.Id,
+            Pensamiento = "Siento curiosidad por ver cómo sigue la mañana.",
+            Intencion = new IntencionPropuesta
+            {
+                Objetivo = "Acercarme a trabajar con calma",
+                Porque = "Siento que hoy puedo avanzar bastante",
+                Plan = new List<PasoPlan> { new() { Accion = "esperar", DuracionMin = 10 } },
+            },
+        };
+        Assert.True(ValidadorMenciones.Validar(pulso, natural, estado, perfil).EsValido);
+
+        var conEntidadInicio = new Respuesta
+        {
+            Epoca = pulso.Epoca,
+            BasadaEn = pulso.Id,
+            Frase = "Faro queda bastante lejos de aquí.",
+        };
+        var fail = ValidadorMenciones.Validar(pulso, conEntidadInicio, estado, perfil);
+        Assert.False(fail.EsValido);
+        Assert.Contains("Faro", fail.MencionesNoAncladas);
+    }
 }

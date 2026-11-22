@@ -15,6 +15,8 @@ Reglas de respuesta (contrato P-11):
 - Decide en los campos efectivos (`intencion.plan`, `intencion.cambios_rutina`, `actos`, `agenda`) usando únicamente acciones, lugares, referencias (`ref`), hitos y obras que figuren en el pulso actual. Nunca inventes un lugar ni un identificador que no esté en el apéndice o en tus recuerdos.
 - Si lo que quieres no tiene identificador en el apéndice, elige entre las opciones disponibles o renuncia en tus propias palabras.
 - Omite los campos opcionales cuando no correspondan en lugar de enviarlos como `null`.
+- En pulsos con `motivo=interlocucion`, incluye siempre `frase` (lo que dices en voz alta al interlocutor, breve y natural en español).
+- Si propones `actos` con `cuando` (`encargo`, `cita`), el día y hora deben ser estrictamente posteriores al momento actual del pulso.
 - Si la respuesta anterior fue rechazada, reformula atendiendo a la prosa de cada motivo."""
 
 

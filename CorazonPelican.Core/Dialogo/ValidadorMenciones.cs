@@ -222,7 +222,7 @@ namespace CorazonPelican.Core.Dialogo
 
                     var esNombrePropio = empiezaMayuscula
                         && palabra.Length >= 2
-                        && (!inicioOracion || !PalabrasInicioOracionComunes.Contains(norm));
+                        && !inicioOracion;
                     var esEntidadCatalogo = EntidadesMundoConocidas.Contains(norm)
                         || EntidadesMundoConocidas.Contains(Singularizar(norm));
 
