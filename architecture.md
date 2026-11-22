@@ -195,7 +195,7 @@ el NPC (`NPC.Schedule` y `dayScheduleName`; la clave sale de estación, día, cl
 corazones, matrimonio y avance de la partida), el motor convierte cada entrada en un hito con
 `id = <clave del horario>:<hora>` (GSS §4.1, §5.3). `rutina.anotaciones` los enriquece por
 patrón: `si` compara con la ubicación de destino, la animación final o la franja horaria de la
-entrada **[verificar campos de `SchedulePathDescription` en CP-011]**; la primera que coincide
+entrada (`targetLocationName`, `targetTile`, `facingDirection`, `endOfRouteBehavior`, `endOfRouteMessage`, `time` en `SchedulePathDescription`; [`docs/spikes/v02-horario.md`](docs/spikes/v02-horario.md), **[verificado en vivo: CP-011]**); la primera que coincide
 aplica, y si ninguna coincide se usa `por_defecto`. `contexto` lista las fuentes de hechos que
 acompañan al pulso (solo las que el motor sabe reunir); `forma` es `pensamiento` (por defecto) o
 `cadena`; `cambios` y `limites` dicen qué puede cambiar la mente de esa entrada. Sin `cambios`,
@@ -725,7 +725,7 @@ Detalle y fuentes en [`docs/notas-juego.md`](docs/notas-juego.md).
 | # | Qué confirmar | Estado (2026-11-04) | Tarea |
 |---|---|---|---|
 | V-01 | Punto de enganche para interceptar la conversación | **Resuelta**: Harmony Prefix en `NPC.checkAction` conservando guardas, `tryToReceiveActiveObject(who, probe: true)`, `NotifyQuests` y `grantConversationFriendship` ([`v01-conversacion.md`](docs/spikes/v01-conversacion.md)) | CP-010 |
-| V-02 | Suspender y reanudar el horario de un NPC sin romperlo | Mecanismo entendido (entradas a hora exacta, `lastAttemptedSchedule`); falta prototipo | CP-011 |
+| V-02 | Suspender y reanudar el horario de un NPC sin romperlo | **Resuelta**: `modData["CorazonPelican.Control"]` + `ignoreScheduleToday = true`, rutas nativas con `pathfindToNextScheduleLocation` + `PathFindController`, recálculo de origen en `checkSchedule` y liberación en `DayStarted`/`SaveLoaded` ([`v02-horario.md`](docs/spikes/v02-horario.md)) | CP-011 |
 | V-03 | Campo de textura en `Data/Furniture` | **Resuelta**: campo 9 (sprite en el 8) | CP-015 |
 | V-04 | Tamaños de los cuadros vanilla por formato | **Resuelta** ([taller-resolucion.md](docs/spikes/taller-resolucion.md)): `1×2` (`16×32`, `12×16` útil), `2×2` (`32×32`, `28×24` útil), `3×2` (`48×32`); pipeline `taller.asset` y paleta fija listos | CP-013 |
 | V-05 | `WriteSaveData` en multijugador | Casi resuelta: solo el jugador principal; confirmar en vivo | CP-015 |

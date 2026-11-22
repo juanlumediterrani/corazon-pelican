@@ -44,9 +44,16 @@ se invoca localmente en la máquina del jugador que interactúa (`who.IsLocalPla
 - `checkSchedule(timeOfDay)` encola la ruta **solo en la hora exacta** de cada entrada y avanza
   `lastAttemptedSchedule`. Si el NPC está reclamado cuando pasa una entrada, **esa ruta se
   pierde**: `volver_a_rutina` tiene que calcular por sí mismo la ruta al tramo vigente.
-- Campos y métodos útiles: `followSchedule`, `ignoreScheduleToday`, `controller`,
-  `temporaryController`, `ClearSchedule()`, `TryLoadSchedule()`, `DirectionsToNewLocation`,
-  `isMovingOnPathFindPath`.
+- Campos y métodos útiles (verificados en vivo en [`docs/spikes/v02-horario.md`](spikes/v02-horario.md)):
+  `followSchedule`, `ignoreScheduleToday` (también inhibe `Pelican4Ever.RealTimeClockModule.CatchUpSchedule`),
+  `controller`, `temporaryController`, `ClearSchedule()`, `TryLoadSchedule()`, `DirectionsToNewLocation`
+  (propiedad pública con `D` mayúscula que respalda el campo privado `directionsToNewLocation`),
+  `isMovingOnPathFindPath`, `EndActivityRouteEndBehavior()`, `StartActivityRouteEndBehavior()`,
+  `pathfindToNextScheduleLocation(...)`.
+- **Detalles críticos comprobados en `CP-011`:**
+  1. `NPC.dayUpdate(dayOfMonth)` (`NPC.cs:6092`) es quien reinicia `lastAttemptedSchedule = -1` (no `resetForNewDay`).
+  2. Cuando un tramo termina con animación de fin de ruta (`doingEndOfRouteAnimation.Value == true`), `npc.controller` permanece no nulo pero con `controller.pathToEndPoint.Count == 0` (`NPC.checkSchedule`, `l. 4123`, comprueba `pathToEndPoint?.Count > 0`).
+  3. `parseMasterScheduleImpl` (`NPC.cs:5703`) precalcula cada `SchedulePathDescription.route` a las `06:00` desde el destino de la entrada anterior: si se salta/sustituye una entrada o el NPC parte de otra casilla tras una reclamación, hay que recalcular `Schedule[hora]` con `pathfindToNextScheduleLocation` desde su posición real.
 - **Cómo elige el juego el horario de cada día** (`TryLoadSchedule()`, por prioridad; `hearts` =
   amistad/250):
   1. `GreenRain` (año 1) y festivales pasivos (`marriage_<fest>_<día>`, `<fest>_<día>`…).
