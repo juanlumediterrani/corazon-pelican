@@ -1,7 +1,8 @@
 ---
 id: CP-605
 titulo: Pelican 4Ever · HeadlessEventGuardModule respeta diálogos y cartas activos de Corazón Pelican
-estado: pendiente
+estado: hecha
+fecha: 2026-11-22
 prioridad: P1
 hito: F6
 depende_de: [CP-601]
@@ -27,8 +28,8 @@ Cuando Pelican 4Ever arranca con `AutoHostSaveName` y `AutoResolveHostEvents = t
 
 ## Criterios de aceptación
 
-- [ ] Test en `Pelican4Ever.Tests` (`HostEventGuardLogicTests`): un `DialogueBox` o `LetterViewerMenu` perteneciente a Corazón Pelican no emite `AdvanceDialogue` ni `ExitActiveMenu`.
-- [ ] Eventos y diálogos vanilla desatendidos en servidores con `AutoHostSaveName` siguen desbloqueándose igual que hasta ahora.
+- [x] Test en `Pelican4Ever.Tests` (`HostEventGuardLogicTests`): un `DialogueBox` o `LetterViewerMenu` perteneciente a Corazón Pelican no emite `AdvanceDialogue` ni `ExitActiveMenu`. (`HostEventGuardLogicTests.ExternalModDialogueAndProrrogaLetter_AreNeverDismissed_CP605`, `1828/1828` superados; `DialogoModule` marca `CorazonPelican.DialogoActivo` en el NPC mientras el diálogo está abierto)
+- [x] Eventos y diálogos vanilla desatendidos en servidores con `AutoHostSaveName` siguen desbloqueándose igual que hasta ahora. (`HostEventGuardLogicTests` completo en verde; `CorazonPelican.Tests` `413/413` superados)
 
 ## Fuera de alcance
 

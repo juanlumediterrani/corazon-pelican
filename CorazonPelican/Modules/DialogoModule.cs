@@ -23,6 +23,8 @@ namespace CorazonPelican.Modules
     /// </summary>
     internal sealed class DialogoModule : IModule, IDisposable
     {
+        private const string ClaveDialogoActivoModData = "CorazonPelican.DialogoActivo";
+
         private static DialogoModule? instanciaActiva;
 
         [ThreadStatic]
@@ -114,7 +116,17 @@ namespace CorazonPelican.Modules
 
         private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
         {
-            if (this.context is null || !Context.IsWorldReady || !Context.IsMainPlayer || this.turnosActivos.Count == 0)
+            if (this.context is null || !Context.IsWorldReady || !Context.IsMainPlayer)
+            {
+                return;
+            }
+
+            if (Game1.activeClickableMenu is not DialogueBox)
+            {
+                this.LimpiarMarcasDialogoActivo();
+            }
+
+            if (this.turnosActivos.Count == 0)
             {
                 return;
             }
@@ -293,6 +305,7 @@ namespace CorazonPelican.Modules
 
                     npc.CurrentDialogue.Clear();
                     npc.CurrentDialogue.Push(new Dialogue(npc, null, res.Frase));
+                    MarcarDialogoActivo(npc, true);
                     Game1.drawDialogue(npc);
                     this.context.Monitor.Log(
                         $"[Dialogo:{primerTurno.PersonajeId}] Frase pensada mostrada para {npc.Name}: \"{res.Frase}\"",
@@ -303,6 +316,40 @@ namespace CorazonPelican.Modules
             }
         }
 
+        private static void MarcarDialogoActivo(NPC? npc, bool activo)
+        {
+            if (npc is null)
+            {
+                return;
+            }
+
+            if (activo)
+            {
+                npc.modData[ClaveDialogoActivoModData] = "1";
+            }
+            else
+            {
+                npc.modData.Remove(ClaveDialogoActivoModData);
+            }
+        }
+
+        private void LimpiarMarcasDialogoActivo()
+        {
+            if (this.context is null)
+            {
+                return;
+            }
+
+            foreach (var perfil in this.context.PersonajesGobernados.Values)
+            {
+                var npc = Game1.getCharacterFromName(perfil.Npc);
+                if (npc is not null && npc.modData.ContainsKey(ClaveDialogoActivoModData))
+                {
+                    npc.modData.Remove(ClaveDialogoActivoModData);
+                }
+            }
+        }
+
         private void MostrarCaidaAVanilla(NPC? npc, TurnoEnVivo turno)
         {
             if (npc is null)
@@ -310,6 +357,7 @@ namespace CorazonPelican.Modules
                 return;
             }
 
+            MarcarDialogoActivo(npc, false);
             npc.doEmote(GestorDialogo.EmoteCaducado);
             if (Game1.activeClickableMenu is DialogueBox)
             {
@@ -540,6 +588,7 @@ namespace CorazonPelican.Modules
                 {
                     __instance.CurrentDialogue.Clear();
                     __instance.CurrentDialogue.Push(new Dialogue(__instance, null, reaccion.FraseAnticipada));
+                    MarcarDialogoActivo(__instance, true);
                     Game1.drawDialogue(__instance);
                     crono.Stop();
 
@@ -555,6 +604,7 @@ namespace CorazonPelican.Modules
                 __instance.doEmote(GestorDialogo.EmotePensando);
                 __instance.CurrentDialogue.Clear();
                 __instance.CurrentDialogue.Push(new Dialogue(__instance, null, reaccion.LineaBreve));
+                MarcarDialogoActivo(__instance, true);
                 Game1.drawDialogue(__instance);
                 crono.Stop();
 
