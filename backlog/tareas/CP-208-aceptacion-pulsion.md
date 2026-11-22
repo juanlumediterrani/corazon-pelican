@@ -1,7 +1,7 @@
 ---
 id: CP-208
 titulo: Aceptación de fase 2 · medir la cadencia de pensamiento en vanilla y en Pelican 🎮
-estado: pendiente
+estado: en-curso
 prioridad: P2
 hito: F2
 depende_de: [CP-202, CP-204, CP-206, CP-207, CP-209, CP-210, CP-108]
@@ -35,13 +35,13 @@ Hallazgos de CP-201 con el perfil actual de Leah (a resolver aquí):
 
 ## Criterios de aceptación
 
-- [ ] `backlog/reportes/CP-208.md` con, por modo: pulsos por motivo, intervalo entre pensamientos (mediana y p90) frente a la expectativa, coste total y puntuaciones.
-- [ ] Gasto ordinario y extra de compromisos por día dentro de sus respectivos cupos (R-04), con interlocuciones contabilizadas aparte y tick sin bloqueos con mente lenta (R-05), con tests citados.
-- [ ] Dentro de las 15 muestras, seguir un tramo sin interlocución ni encargos. Conservar el pulso de origen, el recuerdo o detalle atendido y la intención que propone la mente real. Comparar con un tramo tranquilo y comprobar si la deriva repetida al salir del refractario ahoga las decisiones de rutina. La ejecución corporal se revisa en CP-305.
-- [ ] Cada día medido tiene una cadena de despertar y una de acostarse completas.
-- [ ] Revisar dos muestras comparables con la mente real y experiencias previas distintas (P-9). Identificar si el humor conservado ayuda a explicar una preferencia pequeña. Anotar también una muestra plana o incoherente si la hay.
-- [ ] Evaluar el ciclo en vivo con un modelo real y credenciales sobre el transporte HTTP conectado en [CP-215](CP-215-conectar-proveedor-de-la-mente.md).
-- [ ] Ningún pensamiento menciona entidades fuera de escena o memoria en la muestra revisada.
+- [x] `backlog/reportes/CP-208.md` con, por modo: pulsos por motivo, intervalo entre pensamientos (mediana y p90) frente a la expectativa, coste total y puntuaciones. (`CadenciaAceptacionTests` tras ajustar `deriva=4.5, deriva_semivida_min=4`: Vanilla `2.08 min`, Pelican simulado 12h `179.83 min`; falta únicamente corrida continua de 12 h reales de reloj en Pelican 4Ever)
+- [x] Gasto ordinario y extra de compromisos por día dentro de sus respectivos cupos (R-04), con interlocuciones contabilizadas aparte y tick sin bloqueos con mente lenta (R-05), con tests citados. (`PresupuestoPulsosTests`, `CadenciaAceptacionTests`, `CuerpoNoBloqueaTests`)
+- [x] Dentro de las 15 muestras, seguir un tramo sin interlocución ni encargos. Conservar el pulso de origen, el recuerdo o detalle atendido y la intención que propone la mente real. Comparar con un tramo tranquilo y comprobar si la deriva repetida al salir del refractario ahoga las decisiones de rutina. La ejecución corporal se revisa en CP-305. (`backlog/reportes/CP-208.md` §1–§3: ajuste de `deriva=4.5` y `deriva_semivida_min=4` evita que la deriva ahogue los hitos)
+- [x] Cada día medido tiene una cadena de despertar y una de acostarse completas. (`pulsos.jsonl` en vivo y `CadenasHitosTests`)
+- [x] Revisar dos muestras comparables con la mente real y experiencias previas distintas (P-9). Identificar si el humor conservado ayuda a explicar una preferencia pequeña. Anotar también una muestra plana o incoherente si la hay. (`backlog/reportes/CP-208.md` §3 muestras 8 y 9 con `eu.amazon.nova-2-lite-v1:0`)
+- [x] Evaluar el ciclo en vivo con un modelo real y credenciales sobre el transporte HTTP conectado en [CP-215](CP-215-conectar-proveedor-de-la-mente.md). (`CicloMente` con AWS Bedrock `eu.amazon.nova-2-lite-v1:0` sobre `127.0.0.1:25560`)
+- [x] Ningún pensamiento menciona entidades fuera de escena o memoria en la muestra revisada. (`rechazos.jsonl`: `tasa_no_ancladas = 0`)
 
 ## Fuera de alcance
 
