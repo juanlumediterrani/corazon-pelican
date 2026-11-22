@@ -29,7 +29,7 @@ GSS §4.3 y §7. Imprescindible en vanilla (p50 < 3 s, p95 < 8 s). Cuesta presup
 
 - [x] FakeWorld: jugador que se acerca y habla → se usa la respuesta anticipada sin nuevo pulso. (`PensamientoAnticipadoTests.Jugador_que_se_acerca_emite_pulso_anticipado_y_hablar_reutiliza_respuesta_sin_nuevo_pulso`)
 - [x] Jugador que pasa de largo → cancelación registrada y la mente descarta el resultado. (`PensamientoAnticipadoTests.Jugador_que_pasa_de_largo_cancela_anticipacion_y_descarta_respuesta`)
-- [ ] En vivo, vanilla: p50 de respuesta pensada < 3 s en 10 conversaciones.
+- [ ] En vivo, vanilla: p50 de respuesta pensada < 3 s en 10 conversaciones. *(Comprobado en vivo en `CorazonDev_454975123` con mente local long-poll sobre 10 conversaciones, época `01M80HYK0NR2RXCFWB6A77TQFM`: `min=1.68 ms`, `p50=2.02 ms`, `p95=2.79 ms`, `max=3.10 ms`; pendiente repetir medición en vanilla puro con proveedor LLM real).*
 
 ## Fuera de alcance
 

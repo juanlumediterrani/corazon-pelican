@@ -193,7 +193,44 @@ namespace CorazonPelican.Modules
                 return;
             }
 
-            this.context.Monitor.Log("[Dialogo] Uso: cp_dialogo estado | cp_dialogo simular_respuesta <texto>", LogLevel.Warn);
+            if (sub == "texto_libre")
+            {
+                var primerPersonaje = this.context.MotoresHabitante.FirstOrDefault();
+                if (primerPersonaje.Value is null)
+                {
+                    this.context.Monitor.Log("[Dialogo] No hay personaje gobernado cargado.", LogLevel.Warn);
+                    return;
+                }
+
+                var obs = this.context.ProveedorObservacion?.Invoke(primerPersonaje.Key)
+                    ?? primerPersonaje.Value.UltimaObservacion;
+                if (obs is null)
+                {
+                    this.context.Monitor.Log("[Dialogo] No hay observación disponible.", LogLevel.Warn);
+                    return;
+                }
+
+                var interlocutorRef = $"farmer:{Game1.player.UniqueMultiplayerID}";
+                this.AbrirMenuTextoLibre(primerPersonaje.Key, primerPersonaje.Value.Perfil.Npc, obs, interlocutorRef);
+                this.context.Monitor.Log("[Dialogo] MenuTextoLibre abierto para prueba interactiva.", LogLevel.Info);
+                return;
+            }
+
+            if (sub == "hablar")
+            {
+                var objetivo = args.Length >= 2 ? args[1] : "Leah";
+                var npc = Game1.getCharacterFromName(objetivo);
+                if (npc is null || Game1.currentLocation is null)
+                {
+                    this.context.Monitor.Log($"[Dialogo] NPC '{objetivo}' no encontrado.", LogLevel.Warn);
+                    return;
+                }
+
+                npc.checkAction(Game1.player, Game1.currentLocation);
+                return;
+            }
+
+            this.context.Monitor.Log("[Dialogo] Uso: cp_dialogo estado | cp_dialogo simular_respuesta <texto> | cp_dialogo texto_libre | cp_dialogo hablar [npc]", LogLevel.Warn);
         }
 
         private bool EstaValleyTalkActivo(string personajeId, string npcName)
