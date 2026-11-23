@@ -55,6 +55,10 @@ namespace CorazonPelican.Core.Memoria
         [DataMember(Name = "humor")]
         public EstadoHumor? Humor { get; set; }
 
+        [JsonPropertyName("iniciativa_social")]
+        [DataMember(Name = "iniciativa_social")]
+        public IniciativaSocialEstado? IniciativaSocial { get; set; }
+
         /// <summary>
         /// Registra un nuevo episodio en el diario con identificador estable único para este personaje
         /// (referenciable en <c>episodios_diario</c> de CP-211 y persistido en CP-107).
@@ -374,5 +378,18 @@ namespace CorazonPelican.Core.Memoria
         [JsonPropertyName("basada_en_pulso")]
         [DataMember(Name = "basada_en_pulso")]
         public long? BasadaEnPulso { get; set; }
+    }
+
+    /// <summary>Registro persistido de enfriamientos de iniciativa social del personaje (CP-613).</summary>
+    [DataContract]
+    public sealed class IniciativaSocialEstado
+    {
+        [JsonPropertyName("ultimo_dia_global")]
+        [DataMember(Name = "ultimo_dia_global")]
+        public int UltimoDiaGlobal { get; set; }
+
+        [JsonPropertyName("ultimos_por_jugador")]
+        [DataMember(Name = "ultimos_por_jugador")]
+        public Dictionary<string, int> UltimosPorJugador { get; set; } = new();
     }
 }

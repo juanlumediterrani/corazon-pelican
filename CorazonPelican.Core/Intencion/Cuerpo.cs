@@ -28,6 +28,15 @@ namespace CorazonPelican.Core.Intencion
         Bloqueada,
     }
 
+    /// <summary>Estado del seguimiento espacial al acercarse al jugador para iniciar conversación (CP-613).</summary>
+    public enum EstadoAcercamientoJugador
+    {
+        Inactivo,
+        EnCurso,
+        EnRango,
+        CanceladoFueraDeAlcance,
+    }
+
     /// <summary>Tipo de suceso emitido por el ejecutor del cuerpo durante un plan.</summary>
     public enum TipoSucesoCuerpo
     {
@@ -108,6 +117,13 @@ namespace CorazonPelican.Core.Intencion
             this.DetenerMovimiento();
             this.RestaurarHorarioCanonico();
         }
+
+        /// <summary>Inicia el desplazamiento hacia un jugador objetivo en el mismo mapa para entregar diálogo (CP-613).</summary>
+        bool IniciarAcercamientoAJugador(string objetivoRef) => false;
+
+        /// <summary>Evalúa si el personaje alcanzó el rango de conversación o debe abortar el acercamiento (CP-613).</summary>
+        EstadoAcercamientoJugador EvaluarAcercamientoAJugador(string objetivoRef, int maxDistanciaCasillas)
+            => EstadoAcercamientoJugador.CanceladoFueraDeAlcance;
     }
 
     /// <summary>
@@ -227,6 +243,7 @@ namespace CorazonPelican.Core.Intencion
                 "murmurar" => new AccionMurmurar(paso),
                 "esperar" => new AccionEsperar(paso),
                 "volver_a_rutina" => new AccionVolverARutina(paso),
+                "acercarse_a" => new AccionAcercarseA(paso),
                 _ => new AccionDesconocida(paso),
             };
         }
@@ -905,6 +922,9 @@ namespace CorazonPelican.Core.Intencion
         /// <summary>Notificado cada vez que una acción inicia válidamente (para volcar su prosa al búfer).</summary>
         public event Action<PasoPlan, long>? AccionIniciada;
 
+        /// <summary>Notificado cuando una acción no continua termina correctamente (CP-613).</summary>
+        public event Action<PasoPlan, long>? AccionTerminada;
+
         /// <summary>Notificado cuando una acción se bloquea con un motivo.</summary>
         public event Action<PasoPlan, string, long>? AccionBloqueada;
 
@@ -1059,6 +1079,83 @@ namespace CorazonPelican.Core.Intencion
                     TipoSucesoCuerpo.AccionTerminada,
                     accion.Nombre,
                     accion.EsContinua ? "continua" : null));
+                this.AccionTerminada?.Invoke(accion.Paso, ahoraMs);
+            }
+        }
+    }
+
+    /// <summary>Acción <c>acercarse_a(objetivo)</c>: camina hacia el jugador objetivo para iniciar diálogo (CP-613).</summary>
+    public sealed class AccionAcercarseA : AccionCuerpo
+    {
+        public const long MaxDuracionMs = 20_000;
+        public const int MaxDistanciaCasillasPorDefecto = 20;
+
+        private string objetivo = "";
+
+        public AccionAcercarseA(PasoPlan paso)
+            : base(paso)
+        {
+        }
+
+        public override string Nombre => "acercarse_a";
+
+        public override long DuracionMaximaMs(ContextoEjecucionAccion contexto) => MaxDuracionMs;
+
+        protected override void AlIniciar(ContextoEjecucionAccion contexto, long ahoraMs)
+        {
+            if (string.IsNullOrWhiteSpace(this.Paso.Objetivo))
+            {
+                this.Bloquear("objetivo_vacio");
+                return;
+            }
+
+            this.objetivo = this.Paso.Objetivo.Trim();
+            contexto.Medios.ReclamarControl("acercarse_a");
+            if (contexto.Medios.EstaEnAnimacionActividad || contexto.AccionContinua is not null)
+            {
+                contexto.Medios.DetenerAnimacionActividad();
+                contexto.AccionContinua = null;
+                contexto.ObraEnCurso = null;
+            }
+
+            contexto.Sentada = false;
+            contexto.EstadoAtencion = EstadoAtencion.Abierta;
+            contexto.FocoObjetivoRef = this.objetivo;
+
+            if (!contexto.Medios.IniciarAcercamientoAJugador(this.objetivo))
+            {
+                contexto.Medios.DetenerMovimiento();
+                this.Bloquear("interlocutor_alejado");
+                return;
+            }
+
+            var estado = contexto.Medios.EvaluarAcercamientoAJugador(this.objetivo, MaxDistanciaCasillasPorDefecto);
+            if (estado == EstadoAcercamientoJugador.EnRango)
+            {
+                contexto.Medios.DetenerMovimiento();
+                this.Cumplir();
+            }
+            else if (estado == EstadoAcercamientoJugador.CanceladoFueraDeAlcance)
+            {
+                contexto.Medios.DetenerMovimiento();
+                this.Bloquear("interlocutor_alejado");
+            }
+        }
+
+        protected override void AlAvanzarTick(ContextoEjecucionAccion contexto, long ahoraMs)
+        {
+            var estado = contexto.Medios.EvaluarAcercamientoAJugador(this.objetivo, MaxDistanciaCasillasPorDefecto);
+            switch (estado)
+            {
+                case EstadoAcercamientoJugador.EnRango:
+                    contexto.Medios.DetenerMovimiento();
+                    this.Cumplir();
+                    break;
+
+                case EstadoAcercamientoJugador.CanceladoFueraDeAlcance:
+                    contexto.Medios.DetenerMovimiento();
+                    this.Bloquear("interlocutor_alejado");
+                    break;
             }
         }
     }

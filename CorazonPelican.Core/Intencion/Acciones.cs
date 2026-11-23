@@ -9,7 +9,7 @@ namespace CorazonPelican.Core.Intencion
         public static readonly IReadOnlyCollection<string> VocabularioV1 = new HashSet<string>
         {
             "ir_a", "sentarse", "mirar", "levantar_la_vista", "dibujar",
-            "guardar_cuaderno", "gesto", "murmurar", "esperar", "volver_a_rutina",
+            "guardar_cuaderno", "gesto", "murmurar", "esperar", "volver_a_rutina", "acercarse_a",
         };
 
         /// <summary>Tipos de gesto válidos en v1 (<c>schemas/comun.schema.json#/$defs/pasoPlan</c>).</summary>

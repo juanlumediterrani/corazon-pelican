@@ -18,6 +18,7 @@ namespace CorazonPelican.Core.Dialogo
         public const string MsgDialogoIniciar = "CorazonPelican.Dialogo.Iniciar";
         public const string MsgDialogoResultado = "CorazonPelican.Dialogo.Resultado";
         public const string MsgDialogoConsumido = "CorazonPelican.Dialogo.Consumido";
+        public const string MsgDialogoEntregarIniciativa = "CorazonPelican.Dialogo.EntregarIniciativa";
         public const string MsgProrrogaSincronizarMail = "CorazonPelican.Prorroga.SincronizarMail";
         public const string MsgProrrogaAbrirCarta = "CorazonPelican.Prorroga.AbrirCarta";
         public const string MsgProrrogaMostrarPregunta = "CorazonPelican.Prorroga.MostrarPregunta";
@@ -231,5 +232,12 @@ namespace CorazonPelican.Core.Dialogo
         public int Dia { get; set; }
         public string? OpcionId { get; set; }
         public string? UltimoMensaje { get; set; }
+    }
+
+    public sealed class DialogoIniciativaRemota
+    {
+        public string NpcName { get; set; } = string.Empty;
+        public int Dia { get; set; }
+        public string InstantaneaJson { get; set; } = string.Empty;
     }
 }

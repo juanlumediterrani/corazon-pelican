@@ -174,6 +174,13 @@ namespace CorazonPelican.Modules
                     DialogoModule.PublicarDialogoPreparadoEnNpc(perfil.Npc, diaPreparado, preparado);
                 };
 
+                motor.AcercamientoAlJugadorCompletado += objetivoRef =>
+                {
+                    var dia = Math.Max(1, Game1.Date?.TotalDays ?? 1);
+                    DialogoModule.EntregarIniciativaDesdeMotor(perfil.Npc, motor, dia, objetivoRef);
+                    motor.DegradarARutina("iniciativa_entregada", this.cronometro.ElapsedMilliseconds);
+                };
+
                 motor.AnticipacionCancelada += (pulsoId, interlocutorRef, motivo) =>
                 {
                     this.context.Api.RegistrarEvento(

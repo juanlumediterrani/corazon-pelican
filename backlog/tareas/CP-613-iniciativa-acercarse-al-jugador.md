@@ -1,7 +1,7 @@
 ---
 id: CP-613
 titulo: Iniciativa esporádica y afectiva del personaje para acercarse al jugador y entregarle el diálogo preparado
-estado: pendiente
+estado: hecha
 fecha: 2026-11-23
 prioridad: P2
 hito: F6
@@ -54,10 +54,10 @@ Cuando el personaje detecta a un jugador (`farmer:X`) sin diálogo consumido hoy
 
 ## Criterios de aceptación
 
-- [ ] `EvaluadorIniciativaSocial` en `CorazonPelican.Core`: pruebas unitarias verifican que la disponibilidad de `acercarse_a` responde a la combinación de `EstadoHumor`, relación (`corazones` + días desde `UltimaVez` + `Compromisos`/sucesos) y circunstancia, respetando siempre los enfriamientos globales y por jugador (nunca recurrente ni en el mismo día).
-- [ ] En `FakeWorld`, la mente puede rechazar acercarse (siguiendo en su rutina) o aceptarlo con `acercarse_a(ref)` + `dialogo`; si el jugador huye o cambia de mapa durante el trayecto, el cuerpo cancela el acercamiento, entra en enfriamiento y libera `CorazonPelican.Control`.
-- [ ] Al llegar a rango con diálogo preparado válido, entrega al instante la afirmación o pregunta con opciones y registra la *vuelta* igual que `CP-612` (incluyendo soporte *farmhand* en multijugador).
-- [ ] `dotnet build` (`0` advertencias), `dotnet test` y `pytest` en verde.
+- [x] `EvaluadorIniciativaSocial` en `CorazonPelican.Core`: pruebas unitarias verifican que la disponibilidad de `acercarse_a` responde a la combinación de `EstadoHumor`, relación (`corazones` + días desde `UltimaVez` + `Compromisos`/sucesos) y circunstancia, respetando siempre los enfriamientos globales y por jugador (nunca recurrente ni en el mismo día). (`IniciativaSocialCP613Tests.EvaluadorIniciativaSocial_RespondeAHumorRelacionYCircunstanciaYRespetaEnfriamientos_CP613`)
+- [x] En `FakeWorld` / núcleo, la mente puede rechazar acercarse (siguiendo en su rutina) o aceptarlo con `acercarse_a(ref)` + `dialogo`; si el jugador huye o cambia de mapa durante el trayecto, el cuerpo cancela el acercamiento, entra en enfriamiento y libera `CorazonPelican.Control`. (`IniciativaSocialCP613Tests.AcercarseA_OfreceImpulsoEnPulsoEntregaAlLlegarYYaBloqueaSiJugadorSeAleja_CP613`)
+- [x] Al llegar a rango con diálogo preparado válido, entrega al instante la afirmación o pregunta con opciones y registra la *vuelta* igual que `CP-612` (incluyendo soporte *farmhand* en multijugador). (`DialogoModule.EntregarIniciativaDesdeMotor` + `MsgDialogoEntregarIniciativa`)
+- [x] `dotnet build` (`0` advertencias), `dotnet test` y `pytest` en verde.
 
 ## Fuera de alcance
 

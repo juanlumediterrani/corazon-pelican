@@ -144,6 +144,21 @@
         "required": ["id", "si", "accion"],
         "additionalProperties": false
       }
+    },
+    "iniciativa_social": {
+      "description": "Parámetros de iniciativa esporádica del personaje para acercarse a hablar con el jugador (CP-613).",
+      "type": "object",
+      "properties": {
+        "habilitada": { "type": "boolean" },
+        "enfriamiento_global_dias": { "type": "integer", "minimum": 1 },
+        "enfriamiento_por_jugador_dias": { "type": "integer", "minimum": 1 },
+        "corazones_minimos": { "type": "integer", "minimum": 0, "maximum": 14 },
+        "dias_sin_hablar_para_impulso": { "type": "integer", "minimum": 1 },
+        "umbral_disposicion": { "type": "number", "minimum": 0, "maximum": 1 },
+        "distancia_min_casillas": { "type": "integer", "minimum": 1 },
+        "distancia_max_casillas": { "type": "integer", "minimum": 2 }
+      },
+      "additionalProperties": false
     }
   },
   "required": ["id", "npc", "rasgos", "umbrales", "refractario", "presupuesto", "lexico", "plantillas", "apertura", "voz", "acciones", "formatos_obra", "rutina"],

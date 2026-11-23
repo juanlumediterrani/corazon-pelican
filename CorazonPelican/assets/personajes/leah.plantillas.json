@@ -296,6 +296,11 @@
       "Retomas el ritmo habitual de tu jornada.",
       "Vuelves a tu horario de costumbre.",
       "Dejas atrás el desvío y sigues con tu rutina."
+    ],
+    "acercarse_a": [
+      "Cruzas hacia {objetivo} para decirle algo.",
+      "Te acercas a {objetivo} con ganas de hablarle.",
+      "Das unos pasos hasta {objetivo} para iniciar conversación."
     ]
   },
   "percepcion_bufer": {

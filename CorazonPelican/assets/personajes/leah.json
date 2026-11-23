@@ -65,5 +65,15 @@
       "tipo": "saludo",
       "enfriamiento_s": 60
     }
-  ]
+  ],
+  "iniciativa_social": {
+    "habilitada": true,
+    "enfriamiento_global_dias": 3,
+    "enfriamiento_por_jugador_dias": 5,
+    "corazones_minimos": 3,
+    "dias_sin_hablar_para_impulso": 3,
+    "umbral_disposicion": 0.55,
+    "distancia_min_casillas": 4,
+    "distancia_max_casillas": 16
+  }
 }

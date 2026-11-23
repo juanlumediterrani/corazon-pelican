@@ -68,7 +68,8 @@ namespace CorazonPelican.Core.Intencion
             AgendaDia? agenda = null,
             ContextoRutina? contextoRutina = null,
             IReadOnlyCollection<string>? obrasConocidas = null,
-            IReadOnlyCollection<string>? objetivosConocidos = null)
+            IReadOnlyCollection<string>? objetivosConocidos = null,
+            IReadOnlyCollection<string>? acercarsePermitidos = null)
         {
             if (observacion is null)
             {
@@ -95,7 +96,7 @@ namespace CorazonPelican.Core.Intencion
             ValidarPesosAtencion(propuesta.PesosAtencion, motivos);
 
             var ofrecidos = lugaresOfrecidos ?? perfil.Lexico.OfrecerLugares(_ => true);
-            ValidarPlan(propuesta.Plan, observacion, perfil, ofrecidos, obrasConocidas, objetivosConocidos, motivos);
+            ValidarPlan(propuesta.Plan, observacion, perfil, ofrecidos, obrasConocidas, objetivosConocidos, acercarsePermitidos, motivos);
 
             if (propuesta.CambiosRutina is { Count: > 0 } && agenda is not null)
             {
@@ -120,7 +121,8 @@ namespace CorazonPelican.Core.Intencion
             ContextoRutina? contextoRutina = null,
             IReadOnlyCollection<string>? obrasConocidas = null,
             IReadOnlyCollection<string>? objetivosConocidos = null,
-            long? basadaEn = null)
+            long? basadaEn = null,
+            IReadOnlyCollection<string>? acercarsePermitidos = null)
         {
             var resultado = Validar(
                 propuesta,
@@ -130,7 +132,8 @@ namespace CorazonPelican.Core.Intencion
                 agenda,
                 contextoRutina,
                 obrasConocidas,
-                objetivosConocidos);
+                objetivosConocidos,
+                acercarsePermitidos);
 
             if (propuesta is null)
             {
@@ -228,6 +231,7 @@ namespace CorazonPelican.Core.Intencion
             LugaresOfrecidos ofrecidos,
             IReadOnlyCollection<string>? obrasConocidas,
             IReadOnlyCollection<string>? objetivosConocidos,
+            IReadOnlyCollection<string>? acercarsePermitidos,
             List<MotivoRechazo> motivos)
         {
             if (plan is null || plan.Count == 0)
@@ -241,7 +245,7 @@ namespace CorazonPelican.Core.Intencion
 
             for (var i = 0; i < plan.Count; i++)
             {
-                ValidarPaso(plan[i], $"intencion.plan[{i}]", observacion, perfil, ofrecidos, obrasConocidas, objetivosConocidos, motivos);
+                ValidarPaso(plan[i], $"intencion.plan[{i}]", observacion, perfil, ofrecidos, obrasConocidas, objetivosConocidos, acercarsePermitidos, motivos);
             }
         }
 
@@ -253,6 +257,7 @@ namespace CorazonPelican.Core.Intencion
             LugaresOfrecidos ofrecidos,
             IReadOnlyCollection<string>? obrasConocidas,
             IReadOnlyCollection<string>? objetivosConocidos,
+            IReadOnlyCollection<string>? acercarsePermitidos,
             List<MotivoRechazo> motivos)
         {
             if (paso is null)
@@ -284,7 +289,11 @@ namespace CorazonPelican.Core.Intencion
                 return;
             }
 
-            if (!Acciones.VocabularioV1.Contains(paso.Accion) || !perfil.Acciones.Contains(paso.Accion))
+            var esAcercarse = string.Equals(paso.Accion, "acercarse_a", StringComparison.Ordinal);
+            var permitida = esAcercarse
+                ? (perfil.ObtenerConfigIniciativaSocial().Habilitada || perfil.Acciones.Contains(paso.Accion))
+                : perfil.Acciones.Contains(paso.Accion);
+            if (!Acciones.VocabularioV1.Contains(paso.Accion) || !permitida)
             {
                 motivos.Add(new MotivoRechazo(
                     "accion_no_permitida",
@@ -302,6 +311,10 @@ namespace CorazonPelican.Core.Intencion
 
                 case "mirar":
                     ValidarPasoMirar(paso, campoPaso, observacion, objetivosConocidos, motivos);
+                    break;
+
+                case "acercarse_a":
+                    ValidarPasoAcercarse(paso, campoPaso, observacion, objetivosConocidos, acercarsePermitidos, motivos);
                     break;
 
                 case "dibujar":
@@ -433,6 +446,50 @@ namespace CorazonPelican.Core.Intencion
                     "objetivo_ausente",
                     $"{campoPaso}.objetivo",
                     $"no ves «{paso.Objetivo}» en lo que te rodea ahora"));
+            }
+        }
+
+        private static void ValidarPasoAcercarse(
+            PasoPlan paso,
+            string campoPaso,
+            Observacion observacion,
+            IReadOnlyCollection<string>? objetivosConocidos,
+            IReadOnlyCollection<string>? acercarsePermitidos,
+            List<MotivoRechazo> motivos)
+        {
+            if (string.IsNullOrWhiteSpace(paso.Objetivo))
+            {
+                motivos.Add(new MotivoRechazo(
+                    "argumento_invalido",
+                    $"{campoPaso}.objetivo",
+                    "la acción «acercarse_a» requiere indicar a qué jugador quieres acercarte"));
+                return;
+            }
+
+            if (!Acciones.EsRefValida(paso.Objetivo))
+            {
+                motivos.Add(new MotivoRechazo(
+                    "argumento_invalido",
+                    $"{campoPaso}.objetivo",
+                    $"«{paso.Objetivo}» no es una referencia válida de objetivo"));
+                return;
+            }
+
+            if (acercarsePermitidos is not null && !acercarsePermitidos.Contains(paso.Objetivo))
+            {
+                motivos.Add(new MotivoRechazo(
+                    "accion_no_permitida",
+                    $"{campoPaso}.accion",
+                    $"ahora no procede acercarte por iniciativa propia a «{paso.Objetivo}»"));
+                return;
+            }
+
+            if (!ObjetivoPresenteEnEscena(paso.Objetivo, observacion, objetivosConocidos))
+            {
+                motivos.Add(new MotivoRechazo(
+                    "objetivo_ausente",
+                    $"{campoPaso}.objetivo",
+                    $"«{paso.Objetivo}» ya no está a la vista para acercarte"));
             }
         }
 

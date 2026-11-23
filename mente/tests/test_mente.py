@@ -678,3 +678,31 @@ class TestHumoLoopbackHttp:
         }
         assert validar_respuesta_estrechada(pulso, respuesta, esquema) == []
 
+    def test_acercarse_a_se_habilita_solo_cuando_acciones_disponibles_la_incluye(self):
+        pulso_con_impulso = {
+            **_cargar_ejemplo("pulso--hito.json"),
+            "id": 10,
+            "motivo": "interlocucion",
+            "anticipado": True,
+            "interlocutor": {"ref": "farmer:7", "texto": ""},
+            "caduca_en_ms": 8000,
+            "hechos": {
+                "energia": "media",
+                "cerca": [{"ref": "farmer:7", "nombre": "Alex", "corazones": 6, "distancia": 7}],
+                "impulso_social": "Llevas 4 días sin hablar con Alex.",
+            },
+            "acciones_disponibles": ["dibujar", "esperar", "acercarse_a(farmer:7)"],
+        }
+        pulso_con_impulso.pop("hito", None)
+
+        prompt = ensamblar_prompt(VOZ_LEAH, pulso_con_impulso)
+        assert "Impulso social" in prompt.usuario
+        assert "acercarse_a" in prompt.usuario
+
+        esquema = estrechar_esquema(pulso_con_impulso)
+        assert "acercarse_a" in esquema["$defs"]["accion"]["enum"]
+
+        pulso_sin_impulso = {**pulso_con_impulso, "acciones_disponibles": ["dibujar", "esperar"]}
+        esquema_sin = estrechar_esquema(pulso_sin_impulso)
+        assert "acercarse_a" not in esquema_sin["$defs"]["accion"]["enum"]
+

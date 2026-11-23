@@ -53,6 +53,7 @@ namespace CorazonPelican.Core.Atencion
         private readonly Bufer pendientesDiario;
         private readonly Dictionary<string, Banda> bandasRegistradasBufer = new(StringComparer.Ordinal);
         private readonly HashSet<string> compromisosAvisados = new(StringComparer.Ordinal);
+        private readonly Dictionary<long, HashSet<string>> iniciativasOfrecidasPorPulso = new();
         private readonly RastreadorTasaMenciones rastreadorMenciones = new();
         private int? ultimoDiaBufer;
         private int? ultimoDiaAgenda;
@@ -160,6 +161,9 @@ namespace CorazonPelican.Core.Atencion
 
         /// <summary>Se emite cuando queda listo un diálogo precalculado para ofrecer al instante al hablar (CP-612).</summary>
         public event Action<int, DialogoPreparado>? DialogoPreparadoDisponible;
+
+        /// <summary>Se emite cuando el cuerpo completa <c>acercarse_a</c> alcanzando al jugador objetivo (CP-613).</summary>
+        public event Action<string>? AcercamientoAlJugadorCompletado;
 
         /// <summary>Idioma activo de la UI del juego para los pulsos emitidos por el motor (CP-612).</summary>
         public string Idioma { get; set; } = "es";
@@ -356,6 +360,7 @@ namespace CorazonPelican.Core.Atencion
             this.bandasRegistradasBufer.Clear();
             this.compromisosAvisados.Clear();
             this.hitosSustituidosLanzados.Clear();
+            this.iniciativasOfrecidasPorPulso.Clear();
             this.Bufer.Limpiar();
             this.pendientesDiario.Limpiar();
             this.Dialogo.Cancelar();
@@ -502,7 +507,7 @@ namespace CorazonPelican.Core.Atencion
                 this.RegistrarAccion(paso, dia, hora, nombresEntidades: nombres);
             };
 
-            ejecutor.AccionBloqueada += (_, _, ahoraMs) =>
+            ejecutor.AccionBloqueada += (paso, _, ahoraMs) =>
             {
                 this.SincronizarDesdeContextoCuerpo(ejecutor.Contexto);
                 if (this.IntencionActivaVigente is { EstaActiva: true } activa)
@@ -511,7 +516,23 @@ namespace CorazonPelican.Core.Atencion
                     this.Estado.IntencionActiva = null;
                 }
 
+                if (string.Equals(paso.Accion, "acercarse_a", StringComparison.Ordinal))
+                {
+                    this.DegradarARutina("acercamiento_cancelado", ahoraMs);
+                    return;
+                }
+
                 this.bloqueoSinReemplazoDesdeMs = ahoraMs;
+            };
+
+            ejecutor.AccionTerminada += (paso, _) =>
+            {
+                this.SincronizarDesdeContextoCuerpo(ejecutor.Contexto);
+                if (string.Equals(paso.Accion, "acercarse_a", StringComparison.Ordinal)
+                    && !string.IsNullOrWhiteSpace(paso.Objetivo))
+                {
+                    this.AcercamientoAlJugadorCompletado?.Invoke(paso.Objetivo!);
+                }
             };
 
             ejecutor.PlanTerminado += (idPlan, ahoraMs) =>
@@ -972,7 +993,10 @@ namespace CorazonPelican.Core.Atencion
                     agendaValidacion,
                     this.ContextoRutina,
                     obrasConocidas: obrasConocidas,
-                    basadaEn: basadaEn);
+                    basadaEn: basadaEn,
+                    acercarsePermitidos: this.iniciativasOfrecidasPorPulso.TryGetValue(pulso.Id, out var permitidos)
+                        ? permitidos
+                        : Array.Empty<string>());
 
                 if (!resIntencion.EsValido)
                 {
@@ -1052,6 +1076,13 @@ namespace CorazonPelican.Core.Atencion
                 intencionValidada.Activar();
                 this.IntencionActivaVigente = intencionValidada;
                 this.Estado.IntencionActiva = intencionValidada.AIntencionActivaContrato();
+
+                foreach (var pasoAcercarse in intencionValidada.Plan.Where(p =>
+                    string.Equals(p.Accion, "acercarse_a", StringComparison.Ordinal)
+                    && !string.IsNullOrWhiteSpace(p.Objetivo)))
+                {
+                    EvaluadorIniciativaSocial.RegistrarIniciativa(this.Estado, diaMenciones, pasoAcercarse.Objetivo!);
+                }
 
                 if (this.EjecutorCuerpo is not null && intencionValidada.Plan.Count > 0)
                 {
@@ -1351,6 +1382,17 @@ namespace CorazonPelican.Core.Atencion
             var horaValida = Math.Clamp(hora, HoraJuego.InicioDia, HoraJuego.FinDia);
             var nombre = string.IsNullOrWhiteSpace(nombreInterlocutor) ? interlocutorRef : nombreInterlocutor.Trim();
 
+            if (!string.IsNullOrWhiteSpace(interlocutorRef))
+            {
+                if (!this.Estado.Relaciones.TryGetValue(interlocutorRef, out var rel))
+                {
+                    rel = new RelacionEstado();
+                    this.Estado.Relaciones[interlocutorRef] = rel;
+                }
+
+                rel.UltimaVez = new TiempoJuego { Dia = diaValido, Hora = horaValida };
+            }
+
             if (!string.IsNullOrWhiteSpace(opcionId))
             {
                 var eleccion = this.Dialogo.RegistrarEleccion(diaValido, interlocutorRef, opcionId);
@@ -1540,6 +1582,34 @@ namespace CorazonPelican.Core.Atencion
                 pulso.CaducaEnMs = this.tiempoMaxRespuestaMs;
             }
 
+            var ofrecidosAcercarse = new HashSet<string>(StringComparer.Ordinal);
+            if (motivoPulso is Motivos.Interlocucion or Motivos.Pico or Motivos.Deriva)
+            {
+                var candidatos = EvaluadorIniciativaSocial.Evaluar(
+                    obs,
+                    this.Estado,
+                    this.Perfil,
+                    estadoAtencion ?? this.EstadoAtencionActual,
+                    this.Dialogo.YaConsumioHoy);
+
+                if (candidatos.Count > 0)
+                {
+                    var principal = candidatos[0];
+                    foreach (var c in candidatos)
+                    {
+                        var etiqueta = $"acercarse_a({c.InterlocutorRef})";
+                        if (!pulso.AccionesDisponibles.Contains(etiqueta))
+                        {
+                            pulso.AccionesDisponibles.Add(etiqueta);
+                        }
+
+                        ofrecidosAcercarse.Add(c.InterlocutorRef);
+                    }
+
+                    pulso.Hechos["impulso_social"] = JsonSerializer.SerializeToElement(principal.MotivoProsa);
+                }
+            }
+
             if (this.publicarPulso is not null)
             {
                 pulso = this.publicarPulso(pulso);
@@ -1547,6 +1617,11 @@ namespace CorazonPelican.Core.Atencion
             else
             {
                 pulso.Id = this.siguientePulsoId++;
+            }
+
+            if (ofrecidosAcercarse.Count > 0 && pulso.Id > 0)
+            {
+                this.iniciativasOfrecidasPorPulso[pulso.Id] = ofrecidosAcercarse;
             }
 
             this.telemetria?.RegistrarEscena(
@@ -1887,7 +1962,9 @@ namespace CorazonPelican.Core.Atencion
             => new()
             {
                 Estado = estadoAtencion ?? EstadoAtencion.Abierta,
-                AccionesDisponibles = this.Perfil.Acciones,
+                AccionesDisponibles = this.Perfil.Acciones
+                    .Where(a => !string.Equals(a, "acercarse_a", StringComparison.Ordinal))
+                    .ToList(),
                 ObraEnCurso = obraEnCurso,
                 IntencionActiva = intencionActiva,
                 PesosIntencion = pesosIntencion,

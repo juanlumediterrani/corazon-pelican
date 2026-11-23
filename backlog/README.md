@@ -38,7 +38,7 @@ Estas dos fichas están pendientes y tienen todas sus dependencias hechas.
 | Prioridad | Tareas por hito e identificador |
 |---|---|
 | P1 | — (CP-606 en curso a falta de prueba en vivo 🎮) |
-| P2 | CP-305 aceptación de fase 3 🎮 · CP-504 opciones del jugador · CP-507 recuerdos y voz en diálogo 🎮 · CP-613 iniciativa de acercarse al jugador |
+| P2 | CP-305 aceptación de fase 3 🎮 · CP-504 opciones del jugador · CP-507 recuerdos y voz en diálogo 🎮 |
 | P3 | CP-603 sesión de encuentro · Pelican, humano y granjero de Voyager con Leah 🎮 |
 
 CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisiones.md`](../docs/decisiones.md) han quedado cerradas (`CP-902`).
@@ -120,7 +120,7 @@ CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisio
 | [CP-610](tareas/CP-610-limpieza-control-ir-a-velocidad-time.md) | Limpieza de control tras bloqueo de AccionIrA, velocidad residual de micro-wandering y saltos de reloj de prueba | F6 | P3 | CP-303, CP-601 | hecha |
 | [CP-611](tareas/CP-611-reinicio-off-role-salto-reloj.md) | Tratamiento técnico off-role ante saltos de reloj (/time / p4e_time) en Pelican 4Ever | F6 | P1 | CP-606, CP-610 | hecha |
 | [CP-612](tareas/CP-612-dialogo-precalculado-al-detectar-jugador.md) | Diálogo precalculado al detectar jugador (afirmación o pregunta con opciones y vuelta) sin esperas hardcoded | F6 | P1 | CP-503, CP-507, CP-606 | hecha |
-| [CP-613](tareas/CP-613-iniciativa-acercarse-al-jugador.md) | Iniciativa esporádica del personaje para acercarse al jugador y entregarle el diálogo preparado | F6 | P2 | CP-302, CP-303, CP-612 | pendiente |
+| [CP-613](tareas/CP-613-iniciativa-acercarse-al-jugador.md) | Iniciativa esporádica del personaje para acercarse al jugador y entregarle el diálogo preparado | F6 | P2 | CP-302, CP-303, CP-612 | hecha |
 | [CP-901](tareas/CP-901-adrs.md) | Redactar ADR-0001 a ADR-0006 | D | P2 | CP-001 | hecha |
 | [CP-902](tareas/CP-902-preguntas-abiertas.md) | Decidir los pendientes de docs/decisiones.md (P-5…P-7, GSS §14 y otros) | D | P2 | — | hecha |
 | [CP-903](tareas/CP-903-estado-y-ruta-del-proyecto.md) | Actualizar el estado del proyecto y la ruta de tareas listas | D | P2 | CP-901 | hecha |

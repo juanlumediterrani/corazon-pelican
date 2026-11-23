@@ -28,6 +28,10 @@ namespace CorazonPelican.Core.Perfil
         [DataMember(Name = "humor", EmitDefaultValue = false)] public ConfigHumor? Humor { get; set; }
         [DataMember(Name = "atencion", EmitDefaultValue = false)] public ConfigAtencion? Atencion { get; set; }
         [DataMember(Name = "reflejos", EmitDefaultValue = false)] public List<ReglaReflejo>? Reflejos { get; set; }
+        [DataMember(Name = "iniciativa_social", EmitDefaultValue = false)] public ConfigIniciativaSocial? IniciativaSocial { get; set; }
+
+        /// <summary>Devuelve los parámetros de iniciativa social del perfil o sus valores calibrados por defecto (CP-613).</summary>
+        public ConfigIniciativaSocial ObtenerConfigIniciativaSocial() => this.IniciativaSocial ?? new ConfigIniciativaSocial();
 
         /// <summary>Devuelve los parámetros de humor del perfil o sus valores calibrados por defecto (CP-210).</summary>
         public ConfigHumor ObtenerConfigHumor() => this.Humor ?? new ConfigHumor();
@@ -120,6 +124,20 @@ namespace CorazonPelican.Core.Perfil
         [DataMember(Name = "max_intensidad")] public double MaxIntensidad { get; set; } = MaxIntensidadPorDefecto;
         [DataMember(Name = "umbral_disipacion")] public double UmbralDisipacion { get; set; } = UmbralDisipacionPorDefecto;
         [DataMember(Name = "umbral_sustitucion")] public double UmbralSustitucion { get; set; } = UmbralSustitucionPorDefecto;
+    }
+
+    /// <summary>Parámetros que regulan la iniciativa esporádica del personaje para acercarse a hablar (CP-613).</summary>
+    [DataContract]
+    public sealed class ConfigIniciativaSocial
+    {
+        [DataMember(Name = "habilitada")] public bool Habilitada { get; set; } = true;
+        [DataMember(Name = "enfriamiento_global_dias")] public int EnfriamientoGlobalDias { get; set; } = 3;
+        [DataMember(Name = "enfriamiento_por_jugador_dias")] public int EnfriamientoPorJugadorDias { get; set; } = 5;
+        [DataMember(Name = "corazones_minimos")] public int CorazonesMinimos { get; set; } = 3;
+        [DataMember(Name = "dias_sin_hablar_para_impulso")] public int DiasSinHablarParaImpulso { get; set; } = 3;
+        [DataMember(Name = "umbral_disposicion")] public double UmbralDisposicion { get; set; } = 0.55;
+        [DataMember(Name = "distancia_min_casillas")] public int DistanciaMinCasillas { get; set; } = 4;
+        [DataMember(Name = "distancia_max_casillas")] public int DistanciaMaxCasillas { get; set; } = 16;
     }
 
     [DataContract]

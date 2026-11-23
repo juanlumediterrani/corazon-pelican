@@ -452,6 +452,16 @@ namespace CorazonPelican.Core.Dialogo
                 || this.preparadosPorDia.ContainsKey((diaValido, string.Empty));
         }
 
+        public bool YaConsumioHoy(int dia, string interlocutorRef)
+        {
+            if (string.IsNullOrWhiteSpace(interlocutorRef))
+            {
+                return false;
+            }
+
+            return this.ultimosMensajesPorDia.ContainsKey((Math.Max(1, dia), interlocutorRef.Trim()));
+        }
+
         public DialogoPreparado? ObtenerPreparadoVigente(int dia, string? interlocutorRef = null)
         {
             var diaValido = Math.Max(1, dia);

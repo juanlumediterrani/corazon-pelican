@@ -35,7 +35,7 @@
     "prosa": { "type": "string", "minLength": 1 },
     "accion": {
       "description": "Vocabulario de acciones v1 (GSS §5.2).",
-      "enum": ["ir_a", "sentarse", "mirar", "levantar_la_vista", "dibujar", "guardar_cuaderno", "gesto", "murmurar", "esperar", "volver_a_rutina"]
+      "enum": ["ir_a", "sentarse", "mirar", "levantar_la_vista", "dibujar", "guardar_cuaderno", "gesto", "murmurar", "esperar", "volver_a_rutina", "acercarse_a"]
     },
     "pasoPlan": {
       "description": "Una acción del vocabulario con argumentos del léxico. Sin coordenadas, casillas ni rutas (R-13).",
@@ -53,7 +53,7 @@
       "additionalProperties": false,
       "allOf": [
         { "if": { "properties": { "accion": { "enum": ["ir_a", "sentarse"] } } }, "then": { "required": ["lugar"] } },
-        { "if": { "properties": { "accion": { "const": "mirar" } } }, "then": { "required": ["objetivo"] } },
+        { "if": { "properties": { "accion": { "enum": ["mirar", "acercarse_a"] } } }, "then": { "required": ["objetivo"] } },
         { "if": { "properties": { "accion": { "const": "dibujar" } } }, "then": { "required": ["obra"] } },
         { "if": { "properties": { "accion": { "const": "gesto" } } }, "then": { "required": ["tipo"] } },
         { "if": { "properties": { "accion": { "const": "murmurar" } } }, "then": { "required": ["texto"] } },

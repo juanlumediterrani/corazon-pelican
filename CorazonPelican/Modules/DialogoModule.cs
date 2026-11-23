@@ -120,6 +120,72 @@ namespace CorazonPelican.Modules
             }
         }
 
+        /// <summary>
+        /// Entrega el diálogo precalculado tras completar una iniciativa <c>acercarse_a</c> (CP-613),
+        /// tanto si el objetivo es el jugador anfitrión como si es un farmhand remoto.
+        /// </summary>
+        public static void EntregarIniciativaDesdeMotor(string npcName, MotorHabitante motor, int dia, string objetivoRef)
+        {
+            var instancia = instanciaActiva;
+            if (instancia?.context is null || !Context.IsMainPlayer || string.IsNullOrWhiteSpace(npcName) || string.IsNullOrWhiteSpace(objetivoRef))
+            {
+                return;
+            }
+
+            if (Game1.CurrentEvent != null || Game1.isFestival() || instancia.EstaValleyTalkActivo(motor.Perfil.Id, npcName))
+            {
+                return;
+            }
+
+            var npc = Game1.getCharacterFromName(npcName);
+            if (npc is null || npc.IsInvisible || npc.isSleeping.Value)
+            {
+                return;
+            }
+
+            var instantaneo = motor.ConsultarDialogoInstantaneo(dia, objetivoRef, marcarSiEsAfirmacion: false);
+            if (instantaneo.Modo is not (ModoDialogoInstantaneo.Afirmacion or ModoDialogoInstantaneo.Pregunta))
+            {
+                return;
+            }
+
+            var hostRef = ProtocoloMultijugador.ConstruirReferenciaGranjero(Game1.player.UniqueMultiplayerID);
+            if (string.Equals(objetivoRef, hostRef, StringComparison.Ordinal))
+            {
+                if (Game1.dialogueUp || Game1.activeClickableMenu is not null || !Game1.player.CanMove || Game1.player.isRidingHorse())
+                {
+                    return;
+                }
+
+                instancia.AbrirDialogoInstantaneoEnPantalla(npc, npc.currentLocation, Game1.player, motor, dia, instantaneo);
+                instancia.context.Monitor.Log($"[Dialogo:{motor.Perfil.Id}] Iniciativa entregada a {Game1.player.Name} ({instantaneo.Modo}).", LogLevel.Info);
+                return;
+            }
+
+            if (!objetivoRef.StartsWith("farmer:", StringComparison.Ordinal)
+                || !long.TryParse(objetivoRef.Substring("farmer:".Length), out var targetPlayerId))
+            {
+                return;
+            }
+
+            var preparado = motor.Dialogo.ObtenerPreparadoVigente(dia, objetivoRef);
+            if (preparado is null)
+            {
+                return;
+            }
+
+            instancia.context.Helper.Multiplayer.SendMessage(
+                new DialogoIniciativaRemota
+                {
+                    NpcName = npcName,
+                    Dia = dia,
+                    InstantaneaJson = ProtocoloMultijugador.SerializarPreparado(dia, preparado),
+                },
+                ProtocoloMultijugador.MsgDialogoEntregarIniciativa,
+                new[] { instancia.context.Manifest.UniqueID },
+                new[] { targetPlayerId });
+        }
+
         public void Registrar(ModContext contexto)
         {
             this.context = contexto;
@@ -340,6 +406,40 @@ namespace CorazonPelican.Modules
                     PulsoId = reaccion.Pulso?.Id,
                     TargetPlayerId = e.FromPlayerID,
                 };
+                return;
+            }
+
+            if (!Context.IsMainPlayer && e.Type == ProtocoloMultijugador.MsgDialogoEntregarIniciativa)
+            {
+                var iniciativa = e.ReadAs<DialogoIniciativaRemota>();
+                if (iniciativa is null
+                    || string.IsNullOrWhiteSpace(iniciativa.NpcName)
+                    || Game1.dialogueUp
+                    || Game1.activeClickableMenu is not null
+                    || Game1.player is null
+                    || !Game1.player.CanMove
+                    || Game1.player.isRidingHorse())
+                {
+                    return;
+                }
+
+                var npc = Game1.getCharacterFromName(iniciativa.NpcName);
+                if (npc is null || npc.currentLocation != Game1.currentLocation)
+                {
+                    return;
+                }
+
+                var dia = Math.Max(1, iniciativa.Dia > 0 ? iniciativa.Dia : (Game1.Date?.TotalDays ?? 1));
+                var instantaneo = ProtocoloMultijugador.ResolverDialogoDesdeInstantaneas(
+                    dia,
+                    Game1.player.UniqueMultiplayerID,
+                    jsonUltimo: null,
+                    jsonPreparado: iniciativa.InstantaneaJson);
+                if (instantaneo.Modo is ModoDialogoInstantaneo.Afirmacion or ModoDialogoInstantaneo.Pregunta)
+                {
+                    this.AbrirDialogoInstantaneoEnPantalla(npc, npc.currentLocation, Game1.player, motor: null, dia, instantaneo);
+                }
+
                 return;
             }
 
@@ -945,68 +1045,8 @@ namespace CorazonPelican.Modules
                     return true;
                 }
 
-                var textura = __instance.Sprite.Texture;
-                if (textura != null && textura.Bounds.Height > 32)
+                if (instancia.AbrirDialogoInstantaneoEnPantalla(__instance, l, who, motor, diaActual, instantaneo))
                 {
-                    __instance.faceTowardFarmerForPeriod(5000, 4, faceAway: false, who);
-                }
-
-                __instance.grantConversationFriendship(who);
-
-                if (instantaneo.Modo is ModoDialogoInstantaneo.Afirmacion or ModoDialogoInstantaneo.RepetirUltimaVuelta)
-                {
-                    __instance.CurrentDialogue.Clear();
-                    __instance.CurrentDialogue.Push(new Dialogue(__instance, null, instantaneo.Texto));
-                    MarcarDialogoActivo(__instance, true);
-                    Game1.drawDialogue(__instance);
-
-                    if (instantaneo.Modo == ModoDialogoInstantaneo.Afirmacion)
-                    {
-                        instancia.RegistrarConsumoLocalYRemoto(__instance, motor, who, diaActual, opcionId: null, ultimoMensaje: instantaneo.Texto);
-                    }
-
-                    __result = true;
-                    return false;
-                }
-
-                if (instantaneo.Modo == ModoDialogoInstantaneo.Pregunta && instantaneo.Opciones is { Count: >= 2 } opciones)
-                {
-                    var respuestas = opciones
-                        .Select(o => new Response(o.Id, o.Texto))
-                        .ToArray();
-                    var location = l ?? __instance.currentLocation ?? Game1.currentLocation;
-                    if (location is null)
-                    {
-                        return true;
-                    }
-
-                    MarcarDialogoActivo(__instance, true);
-                    var npcRef = __instance;
-                    var opcionesCopia = opciones.ToList();
-                    location.createQuestionDialogue(
-                        instantaneo.Texto,
-                        respuestas,
-                        (whoPicker, answerKey) =>
-                        {
-                            var elegida = opcionesCopia.FirstOrDefault(o =>
-                                string.Equals(o.Id, answerKey, StringComparison.OrdinalIgnoreCase))
-                                ?? opcionesCopia[0];
-
-                            instancia.RegistrarConsumoLocalYRemoto(
-                                npcRef,
-                                motor,
-                                whoPicker ?? who,
-                                diaActual,
-                                opcionId: elegida.Id,
-                                ultimoMensaje: elegida.Respuesta);
-
-                            npcRef.CurrentDialogue.Clear();
-                            npcRef.CurrentDialogue.Push(new Dialogue(npcRef, null, elegida.Respuesta));
-                            MarcarDialogoActivo(npcRef, true);
-                            Game1.drawDialogue(npcRef);
-                        },
-                        speaker: __instance);
-
                     __result = true;
                     return false;
                 }
@@ -1017,6 +1057,80 @@ namespace CorazonPelican.Modules
             {
                 enPrefixCheckAction = false;
             }
+        }
+
+        private bool AbrirDialogoInstantaneoEnPantalla(
+            NPC npc,
+            GameLocation? location,
+            Farmer who,
+            MotorHabitante? motor,
+            int diaActual,
+            DialogoInstantaneo instantaneo)
+        {
+            var textura = npc.Sprite.Texture;
+            if (textura != null && textura.Bounds.Height > 32)
+            {
+                npc.faceTowardFarmerForPeriod(5000, 4, faceAway: false, who);
+            }
+
+            npc.grantConversationFriendship(who);
+
+            if (instantaneo.Modo is ModoDialogoInstantaneo.Afirmacion or ModoDialogoInstantaneo.RepetirUltimaVuelta)
+            {
+                npc.CurrentDialogue.Clear();
+                npc.CurrentDialogue.Push(new Dialogue(npc, null, instantaneo.Texto));
+                MarcarDialogoActivo(npc, true);
+                Game1.drawDialogue(npc);
+
+                if (instantaneo.Modo == ModoDialogoInstantaneo.Afirmacion)
+                {
+                    this.RegistrarConsumoLocalYRemoto(npc, motor, who, diaActual, opcionId: null, ultimoMensaje: instantaneo.Texto);
+                }
+
+                return true;
+            }
+
+            if (instantaneo.Modo == ModoDialogoInstantaneo.Pregunta && instantaneo.Opciones is { Count: >= 2 } opciones)
+            {
+                var respuestas = opciones
+                    .Select(o => new Response(o.Id, o.Texto))
+                    .ToArray();
+                var loc = location ?? npc.currentLocation ?? Game1.currentLocation;
+                if (loc is null)
+                {
+                    return false;
+                }
+
+                MarcarDialogoActivo(npc, true);
+                var opcionesCopia = opciones.ToList();
+                loc.createQuestionDialogue(
+                    instantaneo.Texto,
+                    respuestas,
+                    (whoPicker, answerKey) =>
+                    {
+                        var elegida = opcionesCopia.FirstOrDefault(o =>
+                            string.Equals(o.Id, answerKey, StringComparison.OrdinalIgnoreCase))
+                            ?? opcionesCopia[0];
+
+                        this.RegistrarConsumoLocalYRemoto(
+                            npc,
+                            motor,
+                            whoPicker ?? who,
+                            diaActual,
+                            opcionId: elegida.Id,
+                            ultimoMensaje: elegida.Respuesta);
+
+                        npc.CurrentDialogue.Clear();
+                        npc.CurrentDialogue.Push(new Dialogue(npc, null, elegida.Respuesta));
+                        MarcarDialogoActivo(npc, true);
+                        Game1.drawDialogue(npc);
+                    },
+                    speaker: npc);
+
+                return true;
+            }
+
+            return false;
         }
 
         private void RegistrarConsumoLocalYRemoto(

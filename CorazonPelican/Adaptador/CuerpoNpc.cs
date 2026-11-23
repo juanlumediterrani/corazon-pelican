@@ -36,6 +36,7 @@ namespace CorazonPelican.Adaptador
         private bool rutaCompletada;
         private string? ubicacionDestinoRuta;
         private Point casillaDestinoRuta;
+        private Point? ultimaCasillaObjetivoAcercamiento;
 
         public CuerpoNpc(
             PerfilPersonaje perfil,
@@ -421,7 +422,177 @@ namespace CorazonPelican.Adaptador
             this.rutaActiva = false;
             this.rutaCompletada = false;
             this.MotivoBloqueoRuta = null;
+            this.ultimaCasillaObjetivoAcercamiento = null;
             ReclamacionNpc.LiberarParaReubicacion(this.ObtenerNpc(), this.monitor);
+        }
+
+        public bool IniciarAcercamientoAJugador(string objetivoRef)
+        {
+            this.ultimaCasillaObjetivoAcercamiento = null;
+            var npc = this.ObtenerNpc();
+            var farmer = BuscarGranjeroEnMapa(npc, objetivoRef);
+            if (npc is null || npc.currentLocation is null || farmer is null)
+            {
+                return false;
+            }
+
+            if (farmer.isRidingHorse() || !farmer.CanMove)
+            {
+                return false;
+            }
+
+            if (DistanciaCasillas(npc.TilePoint, farmer.TilePoint) <= 2)
+            {
+                this.DetenerMovimiento();
+                npc.faceTowardFarmerForPeriod(5000, 4, faceAway: false, farmer);
+                return true;
+            }
+
+            return this.PlanificarPasoAcercamiento(npc, farmer);
+        }
+
+        public EstadoAcercamientoJugador EvaluarAcercamientoAJugador(string objetivoRef, int maxDistanciaCasillas)
+        {
+            var npc = this.ObtenerNpc();
+            var farmer = BuscarGranjeroEnMapa(npc, objetivoRef);
+            if (npc is null || npc.currentLocation is null || farmer is null || farmer.isRidingHorse() || !farmer.CanMove)
+            {
+                return EstadoAcercamientoJugador.CanceladoFueraDeAlcance;
+            }
+
+            if (Game1.dialogueUp || Game1.isFestival() || Game1.CurrentEvent != null)
+            {
+                return EstadoAcercamientoJugador.CanceladoFueraDeAlcance;
+            }
+
+            var dist = DistanciaCasillas(npc.TilePoint, farmer.TilePoint);
+            if (dist <= 2)
+            {
+                this.DetenerMovimiento();
+                npc.faceTowardFarmerForPeriod(5000, 4, faceAway: false, farmer);
+                return EstadoAcercamientoJugador.EnRango;
+            }
+
+            if (dist > Math.Max(4, maxDistanciaCasillas))
+            {
+                return EstadoAcercamientoJugador.CanceladoFueraDeAlcance;
+            }
+
+            var movedMuch = this.ultimaCasillaObjetivoAcercamiento is not Point prev
+                || DistanciaCasillas(prev, farmer.TilePoint) > 2;
+            if (npc.controller is null && (movedMuch || !this.rutaActiva))
+            {
+                if (!this.PlanificarPasoAcercamiento(npc, farmer))
+                {
+                    return EstadoAcercamientoJugador.CanceladoFueraDeAlcance;
+                }
+            }
+
+            return EstadoAcercamientoJugador.EnCurso;
+        }
+
+        private bool PlanificarPasoAcercamiento(NPC npc, Farmer farmer)
+        {
+            var loc = npc.currentLocation;
+            if (loc is null)
+            {
+                return false;
+            }
+
+            var adyacente = ElegirCasillaAdyacente(loc, farmer.TilePoint, npc.TilePoint);
+            if (adyacente is null)
+            {
+                return false;
+            }
+
+            SchedulePathDescription ruta;
+            try
+            {
+                var locNombre = loc.NameOrUniqueName;
+                ruta = npc.pathfindToNextScheduleLocation(
+                    npc.ScheduleKey ?? "corazon",
+                    locNombre,
+                    npc.TilePoint.X,
+                    npc.TilePoint.Y,
+                    locNombre,
+                    adyacente.Value.X,
+                    adyacente.Value.Y,
+                    OrientacionHacia(adyacente.Value, farmer.TilePoint),
+                    null,
+                    null);
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (ruta?.route is null || ruta.route.Count == 0)
+            {
+                return false;
+            }
+
+            npc.DirectionsToNewLocation = ruta;
+            npc.controller = new PathFindController(ruta.route, npc, loc)
+            {
+                finalFacingDirection = OrientacionHacia(adyacente.Value, farmer.TilePoint),
+                endBehaviorFunction = (c, _) =>
+                {
+                    this.rutaActiva = false;
+                },
+            };
+            this.rutaActiva = true;
+            this.ultimaCasillaObjetivoAcercamiento = farmer.TilePoint;
+            return true;
+        }
+
+        private static Farmer? BuscarGranjeroEnMapa(NPC? npc, string objetivoRef)
+        {
+            if (npc?.currentLocation is null || string.IsNullOrWhiteSpace(objetivoRef))
+            {
+                return null;
+            }
+
+            if (!objetivoRef.StartsWith("farmer:", StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            var idCola = objetivoRef.Substring("farmer:".Length);
+            return npc.currentLocation.farmers.FirstOrDefault(f =>
+                string.Equals(f.UniqueMultiplayerID.ToString(), idCola, StringComparison.Ordinal)
+                || string.Equals(f.Name, idCola, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static int DistanciaCasillas(Point a, Point b)
+            => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
+
+        private static int OrientacionHacia(Point desde, Point hasta)
+        {
+            var dx = hasta.X - desde.X;
+            var dy = hasta.Y - desde.Y;
+            if (Math.Abs(dx) >= Math.Abs(dy))
+            {
+                return dx >= 0 ? 1 : 3;
+            }
+
+            return dy >= 0 ? 2 : 0;
+        }
+
+        private static Point? ElegirCasillaAdyacente(GameLocation loc, Point jugador, Point origenNpc)
+        {
+            var candidatas = new[]
+            {
+                new Point(jugador.X, jugador.Y + 1),
+                new Point(jugador.X - 1, jugador.Y),
+                new Point(jugador.X + 1, jugador.Y),
+                new Point(jugador.X, jugador.Y - 1),
+            };
+
+            return candidatas
+                .Where(p => EsCasillaTransitable(loc, p.X, p.Y))
+                .OrderBy(p => DistanciaCasillas(origenNpc, p))
+                .Cast<Point?>()
+                .FirstOrDefault();
         }
 
         public NPC? ObtenerNpc() => Game1.getCharacterFromName(this.perfil.Npc);

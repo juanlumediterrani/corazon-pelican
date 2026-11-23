@@ -148,6 +148,15 @@ def ensamblar_prompt(
     hechos = pulso.get("hechos") or {}
     secciones.append("## Hechos\n" + "\n".join(_formatear_hechos(hechos)))
 
+    if hechos.get("impulso_social"):
+        secciones.append(
+            "## Impulso social (opcional)\n"
+            f"{hechos['impulso_social']}\n"
+            "Si de verdad te nace acercarte ahora (y `acercarse_a(...)` figura en tus acciones disponibles), "
+            "puedes proponer `intencion.plan` con `acercarse_a` hacia ese jugador junto con tu `dialogo` precalculado. "
+            "Si prefieres seguir con lo tuyo, simplemente omite `acercarse_a`."
+        )
+
     lugares = pulso.get("lugares") or []
     if lugares:
         lineas_lug = [f"- `{l['id']}` — {l['prosa']}" for l in lugares]
