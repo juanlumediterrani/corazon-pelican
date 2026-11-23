@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 from pathlib import Path
 from typing import Any
@@ -50,7 +51,9 @@ def test_config_lee_entorno_y_token_file(tmp_path: Path) -> None:
     assert resolver_token(cfg) == "secreto-loopback-123"
 
 
-def test_construir_ciclo_y_ejecutar_una_vez_persiste_cursor_y_costes(tmp_path: Path) -> None:
+def test_construir_ciclo_y_ejecutar_una_vez_persiste_cursor_y_costes(
+    tmp_path: Path, caplog: Any
+) -> None:
     pulso = {
         "id": 1,
         "epoca": "ep-nova-1",
@@ -79,10 +82,12 @@ def test_construir_ciclo_y_ejecutar_una_vez_persiste_cursor_y_costes(tmp_path: P
         ["--una-vez", "--estado-dir", str(tmp_path), "--token", "tok-1"],
         env={},
     )
-    ciclo, _ = construir_ciclo(cfg, modelo=llm, cliente=cliente, raiz_repo=RAIZ)
-    rc = ejecutar_bucle(cfg, ciclo=ciclo, cliente=cliente)
+    with caplog.at_level(logging.INFO, logger="corazon-pelican.mente"):
+        ciclo, _ = construir_ciclo(cfg, modelo=llm, cliente=cliente, raiz_repo=RAIZ)
+        rc = ejecutar_bucle(cfg, ciclo=ciclo, cliente=cliente)
 
     assert rc == 0
+    assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
     assert len(motor.respuestas_recibidas) == 1
     assert (tmp_path / "cursor.json").is_file()
     assert (tmp_path / "costes-mente.jsonl").is_file()

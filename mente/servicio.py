@@ -343,7 +343,7 @@ def ejecutar_bucle(
                     LOG.info(
                         "Pulso #%s (%s) -> estado=%s intentos=%s",
                         res.pulso_id,
-                        res.motivo,
+                        res.epoca,
                         res.estado,
                         res.intentos_modelo,
                     )
