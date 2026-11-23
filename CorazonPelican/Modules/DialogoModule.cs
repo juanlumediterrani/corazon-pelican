@@ -24,6 +24,7 @@ namespace CorazonPelican.Modules
     internal sealed class DialogoModule : IModule, IDisposable
     {
         private const string ClaveDialogoActivoModData = "CorazonPelican.DialogoActivo";
+        private const string MsgClienteIdioma = "CorazonPelican.Dialogo.ClienteIdioma";
 
         private static DialogoModule? instanciaActiva;
 
@@ -31,7 +32,9 @@ namespace CorazonPelican.Modules
         private static bool enPrefixCheckAction;
 
         private readonly Dictionary<string, TurnoEnVivo> turnosActivos = new(StringComparer.Ordinal);
+        private readonly Dictionary<(int Dia, string NpcName), string> clienteUltimoPorNpc = new();
         private readonly HashSet<string> avisosValleyTalkEmitidos = new(StringComparer.Ordinal);
+        private string? idiomaClientePreferido;
         private ModContext? context;
         private Harmony? harmony;
         private bool parchesAplicados;
@@ -66,6 +69,55 @@ namespace CorazonPelican.Modules
             }
 
             instancia.turnosActivos.Clear();
+            instancia.clienteUltimoPorNpc.Clear();
+        }
+
+        public static string? ObtenerIdiomaClientePreferido()
+            => instanciaActiva?.idiomaClientePreferido;
+
+        public static void PublicarDialogoPreparadoEnNpc(string npcName, int dia, DialogoPreparado dialogo)
+        {
+            if (!Context.IsMainPlayer || string.IsNullOrWhiteSpace(npcName))
+            {
+                return;
+            }
+
+            var npc = Game1.getCharacterFromName(npcName);
+            if (npc is null)
+            {
+                return;
+            }
+
+            npc.modData[ProtocoloMultijugador.ClaveDialogoPreparadoModData] = ProtocoloMultijugador.SerializarPreparado(dia, dialogo);
+            foreach (var claveVieja in npc.modData.Keys
+                .Where(k => k.StartsWith(ProtocoloMultijugador.PrefijoDialogoUltimoModData, StringComparison.Ordinal))
+                .ToList())
+            {
+                var snap = ProtocoloMultijugador.DeserializarUltimoMensaje(npc.modData[claveVieja]);
+                if (snap is null || snap.Dia < Math.Max(1, dia))
+                {
+                    npc.modData.Remove(claveVieja);
+                }
+            }
+        }
+
+        public static void LimpiarEstadoDialogoNpc(NPC? npc)
+        {
+            if (npc is not null)
+            {
+                npc.modData.Remove(ProtocoloMultijugador.ClaveDialogoPreparadoModData);
+                foreach (var clave in npc.modData.Keys
+                    .Where(k => k.StartsWith(ProtocoloMultijugador.PrefijoDialogoUltimoModData, StringComparison.Ordinal))
+                    .ToList())
+                {
+                    npc.modData.Remove(clave);
+                }
+            }
+
+            if (instanciaActiva is not null)
+            {
+                instanciaActiva.clienteUltimoPorNpc.Clear();
+            }
         }
 
         public void Registrar(ModContext contexto)
@@ -74,6 +126,7 @@ namespace CorazonPelican.Modules
             instanciaActiva = this;
             this.AplicarParches();
 
+            contexto.Helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
             contexto.Helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
             contexto.Helper.Events.GameLoop.ReturnedToTitle += this.OnReturnedToTitle;
             contexto.Helper.Events.Multiplayer.ModMessageReceived += this.OnModMessageReceived;
@@ -87,6 +140,7 @@ namespace CorazonPelican.Modules
         {
             if (this.context is not null)
             {
+                this.context.Helper.Events.GameLoop.SaveLoaded -= this.OnSaveLoaded;
                 this.context.Helper.Events.GameLoop.UpdateTicked -= this.OnUpdateTicked;
                 this.context.Helper.Events.GameLoop.ReturnedToTitle -= this.OnReturnedToTitle;
                 this.context.Helper.Events.Multiplayer.ModMessageReceived -= this.OnModMessageReceived;
@@ -104,10 +158,36 @@ namespace CorazonPelican.Modules
             }
 
             this.turnosActivos.Clear();
+            this.clienteUltimoPorNpc.Clear();
+            this.idiomaClientePreferido = null;
+        }
+
+        private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+        {
+            if (this.context is null || Context.IsMainPlayer)
+            {
+                return;
+            }
+
+            var codigo = LocalizedContentManager.LanguageCodeString(LocalizedContentManager.CurrentLanguageCode);
+            if (string.IsNullOrWhiteSpace(codigo))
+            {
+                codigo = "en";
+            }
+
+            this.context.Helper.Multiplayer.SendMessage(
+                codigo.Trim().ToLowerInvariant(),
+                MsgClienteIdioma,
+                new[] { this.context.Manifest.UniqueID },
+                new[] { Game1.MasterPlayer.UniqueMultiplayerID });
         }
 
         private void OnReturnedToTitle(object? sender, ReturnedToTitleEventArgs e)
-            => this.turnosActivos.Clear();
+        {
+            this.turnosActivos.Clear();
+            this.clienteUltimoPorNpc.Clear();
+            this.idiomaClientePreferido = null;
+        }
 
         private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
         {
@@ -115,6 +195,73 @@ namespace CorazonPelican.Modules
                 || !Context.IsWorldReady
                 || !string.Equals(e.FromModID, this.context.Manifest.UniqueID, StringComparison.Ordinal))
             {
+                return;
+            }
+
+            if (Context.IsMainPlayer && e.Type == MsgClienteIdioma)
+            {
+                var idiomaRemoto = e.ReadAs<string>();
+                if (!string.IsNullOrWhiteSpace(idiomaRemoto))
+                {
+                    this.idiomaClientePreferido = idiomaRemoto.Trim().ToLowerInvariant();
+                    foreach (var motor in this.context.MotoresHabitante.Values)
+                    {
+                        motor.Idioma = this.idiomaClientePreferido;
+                    }
+
+                    this.context.Monitor.Log($"[Dialogo] Idioma preferido recibido del cliente: {this.idiomaClientePreferido}.", LogLevel.Trace);
+                }
+
+                return;
+            }
+
+            if (Context.IsMainPlayer && e.Type == ProtocoloMultijugador.MsgDialogoConsumido)
+            {
+                var consumo = e.ReadAs<DialogoConsumidoRemoto>();
+                if (consumo is null || string.IsNullOrWhiteSpace(consumo.NpcName) || !this.context.MotorActivoEnPartida)
+                {
+                    return;
+                }
+
+                string? personajeId = null;
+                foreach (var (id, perfil) in this.context.PersonajesGobernados)
+                {
+                    if (string.Equals(perfil.Npc, consumo.NpcName, StringComparison.Ordinal))
+                    {
+                        personajeId = id;
+                        break;
+                    }
+                }
+
+                if (personajeId is null || !this.context.MotoresHabitante.TryGetValue(personajeId, out var motor))
+                {
+                    return;
+                }
+
+                var dia = Math.Max(1, consumo.Dia > 0 ? consumo.Dia : (Game1.Date?.TotalDays ?? 1));
+                var farmerRef = ProtocoloMultijugador.ConstruirReferenciaGranjero(e.FromPlayerID);
+                var farmerName = string.IsNullOrWhiteSpace(consumo.FarmerName) ? farmerRef : consumo.FarmerName;
+                var ahoraMs = this.context.RelojMs?.Invoke() ?? 0;
+
+                var eleccion = motor.RegistrarConsumoDialogoInstantaneo(
+                    dia,
+                    Game1.timeOfDay,
+                    farmerRef,
+                    farmerName,
+                    consumo.OpcionId,
+                    consumo.UltimoMensaje,
+                    ahoraMs);
+
+                var mensajePersistir = !string.IsNullOrWhiteSpace(eleccion.Vuelta)
+                    ? eleccion.Vuelta
+                    : (consumo.UltimoMensaje?.Trim() ?? string.Empty);
+                var npc = Game1.getCharacterFromName(motor.Perfil.Npc);
+                if (npc is not null && !string.IsNullOrWhiteSpace(mensajePersistir))
+                {
+                    npc.modData[ProtocoloMultijugador.ClaveUltimoDialogoJugador(e.FromPlayerID)] =
+                        ProtocoloMultijugador.SerializarUltimoMensaje(dia, mensajePersistir);
+                }
+
                 return;
             }
 
@@ -762,8 +909,41 @@ namespace CorazonPelican.Modules
                     return true;
                 }
 
-                // 7. Reflejo inmediato (< 300 ms) + pulso de interlocución con caducidad.
-                var crono = Stopwatch.StartNew();
+                // 7. Diálogo precalculado al detectar jugador (afirmación o pregunta con opciones y vuelta)
+                // o repetición de la última vuelta del día; sin espera artificial ni fallback en bucle (CP-612).
+                var diaActual = Math.Max(1, Game1.Date?.TotalDays ?? 1);
+                var farmerRef = ProtocoloMultijugador.ConstruirReferenciaGranjero(who.UniqueMultiplayerID);
+                DialogoInstantaneo instantaneo;
+
+                if (Context.IsMainPlayer)
+                {
+                    instantaneo = motor!.ConsultarDialogoInstantaneo(diaActual, farmerRef, marcarSiEsAfirmacion: false);
+                }
+                else
+                {
+                    string? jsonUltimo = null;
+                    if (instancia.clienteUltimoPorNpc.TryGetValue((diaActual, __instance.Name), out var ultimoLocal)
+                        && !string.IsNullOrWhiteSpace(ultimoLocal))
+                    {
+                        jsonUltimo = ProtocoloMultijugador.SerializarUltimoMensaje(diaActual, ultimoLocal);
+                    }
+                    else
+                    {
+                        __instance.modData.TryGetValue(ProtocoloMultijugador.ClaveUltimoDialogoJugador(who.UniqueMultiplayerID), out jsonUltimo);
+                    }
+
+                    __instance.modData.TryGetValue(ProtocoloMultijugador.ClaveDialogoPreparadoModData, out var jsonPreparado);
+                    instantaneo = ProtocoloMultijugador.ResolverDialogoDesdeInstantaneas(
+                        diaActual,
+                        who.UniqueMultiplayerID,
+                        jsonUltimo,
+                        jsonPreparado);
+                }
+
+                if (instantaneo.Modo == ModoDialogoInstantaneo.Ninguno)
+                {
+                    return true;
+                }
 
                 var textura = __instance.Sprite.Texture;
                 if (textura != null && textura.Bounds.Height > 32)
@@ -773,98 +953,125 @@ namespace CorazonPelican.Modules
 
                 __instance.grantConversationFriendship(who);
 
-                if (!Context.IsMainPlayer)
-                {
-                    __instance.doEmote(GestorDialogo.EmotePensando);
-                    __instance.CurrentDialogue.Clear();
-                    __instance.CurrentDialogue.Push(new Dialogue(__instance, null, GestorDialogo.ReflejoPorDefecto));
-                    Game1.drawDialogue(__instance);
-
-                    instancia.context.Helper.Multiplayer.SendMessage(
-                        new DialogoSolicitudRemota
-                        {
-                            NpcName = __instance.Name,
-                            FarmerName = who.Name,
-                        },
-                        ProtocoloMultijugador.MsgDialogoIniciar,
-                        new[] { instancia.context.Manifest.UniqueID },
-                        new[] { Game1.MasterPlayer.UniqueMultiplayerID });
-
-                    __result = true;
-                    return false;
-                }
-
-                var obs = instancia.context.ProveedorObservacion?.Invoke(personajeId)
-                    ?? motor!.UltimaObservacion
-                    ?? new Observacion(
-                        Math.Max(1, Game1.Date?.TotalDays ?? 1),
-                        Game1.timeOfDay,
-                        __instance.currentLocation?.NameOrUniqueName ?? string.Empty,
-                        __instance.TilePoint.X,
-                        __instance.TilePoint.Y,
-                        1.0,
-                        "soleado",
-                        Array.Empty<EntidadObservada>());
-
-                var ahoraMs = instancia.context.RelojMs?.Invoke() ?? 0;
-                var interlocutorRef = ProtocoloMultijugador.ConstruirReferenciaGranjero(who.UniqueMultiplayerID);
-                instancia.SuscribirResultadoDialogoSiFalta(personajeId, motor!);
-
-                var reaccion = motor!.IniciarTurnoDialogo(
-                    obs,
-                    interlocutorRef,
-                    who.Name,
-                    ahoraMs,
-                    reaccionMs: crono.Elapsed.TotalMilliseconds,
-                    enEvento: enEvento,
-                    valleyTalkActivo: instancia.EstaValleyTalkActivo(personajeId, __instance.Name));
-
-                if (!string.IsNullOrWhiteSpace(reaccion.FraseAnticipada))
+                if (instantaneo.Modo is ModoDialogoInstantaneo.Afirmacion or ModoDialogoInstantaneo.RepetirUltimaVuelta)
                 {
                     __instance.CurrentDialogue.Clear();
-                    __instance.CurrentDialogue.Push(new Dialogue(__instance, null, reaccion.FraseAnticipada));
+                    __instance.CurrentDialogue.Push(new Dialogue(__instance, null, instantaneo.Texto));
                     MarcarDialogoActivo(__instance, true);
                     Game1.drawDialogue(__instance);
-                    crono.Stop();
 
-                    instancia.context.Monitor.Log(
-                        $"[Dialogo:{personajeId}] Respuesta anticipada entregada en {crono.Elapsed.TotalMilliseconds:0.##} ms | " +
-                        $"pulso={reaccion.Pulso?.Id}",
-                        LogLevel.Info);
+                    if (instantaneo.Modo == ModoDialogoInstantaneo.Afirmacion)
+                    {
+                        instancia.RegistrarConsumoLocalYRemoto(__instance, motor, who, diaActual, opcionId: null, ultimoMensaje: instantaneo.Texto);
+                    }
 
                     __result = true;
                     return false;
                 }
 
-                __instance.doEmote(GestorDialogo.EmotePensando);
-                __instance.CurrentDialogue.Clear();
-                __instance.CurrentDialogue.Push(new Dialogue(__instance, null, reaccion.LineaBreve));
-                MarcarDialogoActivo(__instance, true);
-                Game1.drawDialogue(__instance);
-                crono.Stop();
-
-                instancia.turnosActivos[personajeId] = new TurnoEnVivo
+                if (instantaneo.Modo == ModoDialogoInstantaneo.Pregunta && instantaneo.Opciones is { Count: >= 2 } opciones)
                 {
-                    PersonajeId = personajeId,
-                    NpcName = __instance.Name,
-                    InterlocutorRef = interlocutorRef,
-                    Ubicacion = __instance.currentLocation?.NameOrUniqueName ?? string.Empty,
-                    PulsoId = reaccion.Pulso?.Id,
-                    TargetPlayerId = who.UniqueMultiplayerID,
-                };
+                    var respuestas = opciones
+                        .Select(o => new Response(o.Id, o.Texto))
+                        .ToArray();
+                    var location = l ?? __instance.currentLocation ?? Game1.currentLocation;
+                    if (location is null)
+                    {
+                        return true;
+                    }
 
-                instancia.context.Monitor.Log(
-                    $"[Dialogo:{personajeId}] Reflejo visible en {crono.Elapsed.TotalMilliseconds:0.##} ms | " +
-                    $"pulso={reaccion.Pulso?.Id} anticipado={reaccion.ReutilizoAnticipado} caduca={reaccion.CaducaEnMs} ms",
-                    LogLevel.Info);
+                    MarcarDialogoActivo(__instance, true);
+                    var npcRef = __instance;
+                    var opcionesCopia = opciones.ToList();
+                    location.createQuestionDialogue(
+                        instantaneo.Texto,
+                        respuestas,
+                        (whoPicker, answerKey) =>
+                        {
+                            var elegida = opcionesCopia.FirstOrDefault(o =>
+                                string.Equals(o.Id, answerKey, StringComparison.OrdinalIgnoreCase))
+                                ?? opcionesCopia[0];
 
-                __result = true;
-                return false;
+                            instancia.RegistrarConsumoLocalYRemoto(
+                                npcRef,
+                                motor,
+                                whoPicker ?? who,
+                                diaActual,
+                                opcionId: elegida.Id,
+                                ultimoMensaje: elegida.Respuesta);
+
+                            npcRef.CurrentDialogue.Clear();
+                            npcRef.CurrentDialogue.Push(new Dialogue(npcRef, null, elegida.Respuesta));
+                            MarcarDialogoActivo(npcRef, true);
+                            Game1.drawDialogue(npcRef);
+                        },
+                        speaker: __instance);
+
+                    __result = true;
+                    return false;
+                }
+
+                return true;
             }
             finally
             {
                 enPrefixCheckAction = false;
             }
+        }
+
+        private void RegistrarConsumoLocalYRemoto(
+            NPC npc,
+            MotorHabitante? motor,
+            Farmer who,
+            int diaActual,
+            string? opcionId,
+            string ultimoMensaje)
+        {
+            if (this.context is null)
+            {
+                return;
+            }
+
+            var mensajeLimpio = ultimoMensaje?.Trim() ?? string.Empty;
+            if (!string.IsNullOrEmpty(mensajeLimpio))
+            {
+                this.clienteUltimoPorNpc[(diaActual, npc.Name)] = mensajeLimpio;
+            }
+
+            if (Context.IsMainPlayer && motor is not null)
+            {
+                var farmerRef = ProtocoloMultijugador.ConstruirReferenciaGranjero(who.UniqueMultiplayerID);
+                var ahoraMs = this.context.RelojMs?.Invoke() ?? 0;
+                var res = motor.RegistrarConsumoDialogoInstantaneo(
+                    diaActual,
+                    Game1.timeOfDay,
+                    farmerRef,
+                    who.Name,
+                    opcionId,
+                    mensajeLimpio,
+                    ahoraMs);
+                var vuelta = !string.IsNullOrWhiteSpace(res.Vuelta) ? res.Vuelta : mensajeLimpio;
+                if (!string.IsNullOrWhiteSpace(vuelta))
+                {
+                    npc.modData[ProtocoloMultijugador.ClaveUltimoDialogoJugador(who.UniqueMultiplayerID)] =
+                        ProtocoloMultijugador.SerializarUltimoMensaje(diaActual, vuelta);
+                }
+
+                return;
+            }
+
+            this.context.Helper.Multiplayer.SendMessage(
+                new DialogoConsumidoRemoto
+                {
+                    NpcName = npc.Name,
+                    FarmerName = who.Name,
+                    Dia = diaActual,
+                    OpcionId = opcionId,
+                    UltimoMensaje = mensajeLimpio,
+                },
+                ProtocoloMultijugador.MsgDialogoConsumido,
+                new[] { this.context.Manifest.UniqueID },
+                new[] { Game1.MasterPlayer.UniqueMultiplayerID });
         }
     }
 }

@@ -135,7 +135,8 @@
       "properties": { "ref": { "$ref": "comun.schema.json#/$defs/ref" }, "texto": { "type": "string" } },
       "required": ["ref", "texto"], "additionalProperties": false
     },
-    "caduca_en_ms": { "type": "integer", "minimum": 1 }
+    "caduca_en_ms": { "type": "integer", "minimum": 1 },
+    "idioma": { "type": "string", "minLength": 2, "maxLength": 16 }
   },
   "required": ["id", "epoca", "personaje", "motivo", "tiempo_juego", "escena", "hechos", "acciones_disponibles", "lugares", "bufer", "huella", "agenda"],
   "additionalProperties": false,

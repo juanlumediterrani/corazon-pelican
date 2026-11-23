@@ -39,6 +39,32 @@
       "additionalProperties": false
     },
     "frase": { "$ref": "comun.schema.json#/$defs/prosa" },
+    "dialogo": {
+      "description": "Diálogo precalculado para ofrecer al instante cuando el jugador hable con el personaje (afirmación o pregunta con opciones y su vuelta).",
+      "type": "object",
+      "properties": {
+        "para": { "$ref": "comun.schema.json#/$defs/ref" },
+        "tipo": { "enum": ["afirmacion", "pregunta"] },
+        "texto": { "$ref": "comun.schema.json#/$defs/prosa" },
+        "opciones": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9_]{1,24}$" },
+              "texto": { "$ref": "comun.schema.json#/$defs/prosa" },
+              "respuesta": { "$ref": "comun.schema.json#/$defs/prosa" }
+            },
+            "required": ["id", "texto", "respuesta"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["tipo", "texto"],
+      "additionalProperties": false
+    },
     "actos": {
       "type": "array",
       "items": {

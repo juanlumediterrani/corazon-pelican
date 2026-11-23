@@ -117,6 +117,7 @@ namespace CorazonPelican.Core.Atencion
             this.LugaresOfrecidos = perfil.Lexico.OfrecerLugares(_ => true);
             this.ContextoRutina = new ContextoRutina(Math.Max(1, estado.Contadores?.Dia ?? 1));
             this.Reflejos = new EvaluadorReflejos(perfil);
+            this.Disparadores.DebeOmitirAnticipacion = (dia, refJugador) => this.Dialogo.TieneDialogoListoOConsumido(dia, refJugador);
         }
 
         public PerfilPersonaje Perfil { get; }
@@ -156,6 +157,12 @@ namespace CorazonPelican.Core.Atencion
         }
 
         public event Action<DesenlaceDialogoTurno>? ResultadoDialogoDisponible;
+
+        /// <summary>Se emite cuando queda listo un diálogo precalculado para ofrecer al instante al hablar (CP-612).</summary>
+        public event Action<int, DialogoPreparado>? DialogoPreparadoDisponible;
+
+        /// <summary>Idioma activo de la UI del juego para los pulsos emitidos por el motor (CP-612).</summary>
+        public string Idioma { get; set; } = "es";
 
         /// <summary>Se emite cuando un pulso anticipado se cancela antes de que haya encuentro (pulsoId, interlocutorRef, motivo).</summary>
         public event Action<long, string, string>? AnticipacionCancelada;
@@ -1089,6 +1096,31 @@ namespace CorazonPelican.Core.Atencion
 
             this.telemetria?.RegistrarRespuesta(respuesta, this.Perfil.Id);
 
+            if (respuesta.Dialogo is not null)
+            {
+                var preparado = this.Dialogo.AlmacenarPreparado(diaMenciones, respuesta.Dialogo, pulso.Interlocutor?.Ref);
+                if (preparado is not null)
+                {
+                    this.DialogoPreparadoDisponible?.Invoke(diaMenciones, preparado);
+                }
+            }
+            else if (pulso.Anticipado == true && !string.IsNullOrWhiteSpace(respuesta.Frase))
+            {
+                var preparadoFrase = this.Dialogo.AlmacenarPreparado(
+                    diaMenciones,
+                    new DialogoPreparado
+                    {
+                        Para = pulso.Interlocutor?.Ref,
+                        Tipo = "afirmacion",
+                        Texto = respuesta.Frase.Trim(),
+                    },
+                    pulso.Interlocutor?.Ref);
+                if (preparadoFrase is not null)
+                {
+                    this.DialogoPreparadoDisponible?.Invoke(diaMenciones, preparadoFrase);
+                }
+            }
+
             if (!string.IsNullOrWhiteSpace(respuesta.Frase))
             {
                 var ahoraDlgMs = ahoraRespuestaMs ?? 0;
@@ -1301,6 +1333,76 @@ namespace CorazonPelican.Core.Atencion
             return pulso;
         }
 
+        /// <summary>Consulta sin bloqueo el diálogo precalculado o la última vuelta del día para el jugador (CP-612).</summary>
+        public DialogoInstantaneo ConsultarDialogoInstantaneo(int dia, string interlocutorRef, bool marcarSiEsAfirmacion = true)
+            => this.Dialogo.ConsultarParaInterlocutor(dia, interlocutorRef, marcarSiEsAfirmacion);
+
+        /// <summary>Registra en diálogo, búfer y diario una interacción precalculada o elección de opción (CP-612).</summary>
+        public RegistroEleccionDialogo RegistrarConsumoDialogoInstantaneo(
+            int dia,
+            int hora,
+            string interlocutorRef,
+            string nombreInterlocutor,
+            string? opcionId,
+            string? textoMostrado,
+            long ahoraMs)
+        {
+            var diaValido = Math.Max(1, dia);
+            var horaValida = Math.Clamp(hora, HoraJuego.InicioDia, HoraJuego.FinDia);
+            var nombre = string.IsNullOrWhiteSpace(nombreInterlocutor) ? interlocutorRef : nombreInterlocutor.Trim();
+
+            if (!string.IsNullOrWhiteSpace(opcionId))
+            {
+                var eleccion = this.Dialogo.RegistrarEleccion(diaValido, interlocutorRef, opcionId);
+                var respuestaEfectiva = eleccion.Aceptada
+                    ? eleccion.Vuelta
+                    : (textoMostrado?.Trim() ?? string.Empty);
+                if (!eleccion.Aceptada && !string.IsNullOrWhiteSpace(respuestaEfectiva))
+                {
+                    this.Dialogo.RegistrarUltimoMensaje(diaValido, interlocutorRef, respuestaEfectiva);
+                }
+
+                var prosa = eleccion.Aceptada
+                    ? $"Hablé con {nombre}: «{eleccion.PreguntaTexto}» — eligió «{eleccion.OpcionTexto}» y respondí «{eleccion.Vuelta}»."
+                    : $"Hablé con {nombre}: «{respuestaEfectiva}».";
+
+                this.Bufer.RegistrarPercepcion(diaValido, horaValida, Banda.Foco, 0.9, prosa, interlocutorRef);
+                this.pendientesDiario.RegistrarPercepcion(diaValido, horaValida, Banda.Foco, 0.9, prosa, interlocutorRef);
+                this.telemetria?.RegistrarDialogo(
+                    this.Perfil.Id,
+                    interlocutorRef,
+                    diaValido,
+                    horaValida,
+                    "dialogo_opcion",
+                    detalle: $"{opcionId} -> {respuestaEfectiva}",
+                    epoca: this.Epoca);
+                _ = ahoraMs;
+                return eleccion.Aceptada
+                    ? eleccion
+                    : new RegistroEleccionDialogo(!string.IsNullOrWhiteSpace(respuestaEfectiva), string.Empty, opcionId.Trim(), respuestaEfectiva);
+            }
+
+            var mensaje = textoMostrado?.Trim() ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(mensaje))
+            {
+                this.Dialogo.RegistrarUltimoMensaje(diaValido, interlocutorRef, mensaje);
+                var prosa = $"Hablé con {nombre}: «{mensaje}».";
+                this.Bufer.RegistrarPercepcion(diaValido, horaValida, Banda.Foco, 0.85, prosa, interlocutorRef);
+                this.pendientesDiario.RegistrarPercepcion(diaValido, horaValida, Banda.Foco, 0.85, prosa, interlocutorRef);
+                this.telemetria?.RegistrarDialogo(
+                    this.Perfil.Id,
+                    interlocutorRef,
+                    diaValido,
+                    horaValida,
+                    "dialogo_afirmacion",
+                    detalle: mensaje,
+                    epoca: this.Epoca);
+            }
+
+            _ = ahoraMs;
+            return new RegistroEleccionDialogo(false, string.Empty, string.Empty, mensaje);
+        }
+
         private bool ComprobarInterlocutorPresenteEnUltimaObs(string? interlocutorRef)
         {
             if (string.IsNullOrWhiteSpace(interlocutorRef) || this.UltimaObservacion is null)
@@ -1369,6 +1471,7 @@ namespace CorazonPelican.Core.Atencion
 
             var motivoPulso = NormalizarMotivoPulso(disparo);
             var pulso = escena.CrearPulsoBase(id: 0, this.Epoca, this.Perfil.Id, motivoPulso);
+            pulso.Idioma = string.IsNullOrWhiteSpace(this.Idioma) ? null : this.Idioma.Trim();
             pulso.TiempoJuego = new TiempoJuego { Dia = diaPulso, Hora = horaPulso };
             pulso.TiempoRealUtc = DateTimeOffset.UtcNow.ToString("O");
             pulso.Bufer = this.Bufer.Consolidar(diaPulso, horaPulso).ToList();

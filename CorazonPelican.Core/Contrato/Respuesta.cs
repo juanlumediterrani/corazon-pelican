@@ -15,6 +15,7 @@ namespace CorazonPelican.Core.Contrato
         [JsonPropertyName("basada_en")] public long BasadaEn { get; set; }
         [JsonPropertyName("intencion")] public IntencionPropuesta? Intencion { get; set; }
         [JsonPropertyName("frase")] public string? Frase { get; set; }
+        [JsonPropertyName("dialogo")] public DialogoPreparado? Dialogo { get; set; }
         [JsonPropertyName("actos")] public List<Acto>? Actos { get; set; }
         [JsonPropertyName("memoria")] public MemoriaPropuesta? Memoria { get; set; }
         [JsonPropertyName("humor")] public HumorPropuesto? Humor { get; set; }
@@ -81,6 +82,21 @@ namespace CorazonPelican.Core.Contrato
     {
         [JsonPropertyName("formato")] public string Formato { get; set; } = "";
         [JsonPropertyName("decision")] public DecisionObra Decision { get; set; } = new();
+    }
+
+    public sealed class DialogoPreparado
+    {
+        [JsonPropertyName("para")] public string? Para { get; set; }
+        [JsonPropertyName("tipo")] public string Tipo { get; set; } = "afirmacion";
+        [JsonPropertyName("texto")] public string Texto { get; set; } = "";
+        [JsonPropertyName("opciones")] public List<OpcionDialogoPreparado>? Opciones { get; set; }
+    }
+
+    public sealed class OpcionDialogoPreparado
+    {
+        [JsonPropertyName("id")] public string Id { get; set; } = "";
+        [JsonPropertyName("texto")] public string Texto { get; set; } = "";
+        [JsonPropertyName("respuesta")] public string Respuesta { get; set; } = "";
     }
 
     public sealed class EstadoAgenda

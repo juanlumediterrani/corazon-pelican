@@ -49,6 +49,25 @@ namespace CorazonPelican.Core.Dialogo
         int EmoteCodigo = 0,
         string? RecuerdoGuardado = null);
 
+    public enum ModoDialogoInstantaneo
+    {
+        Ninguno = 0,
+        Afirmacion = 1,
+        Pregunta = 2,
+        RepetirUltimaVuelta = 3,
+    }
+
+    public sealed record DialogoInstantaneo(
+        ModoDialogoInstantaneo Modo,
+        string Texto,
+        IReadOnlyList<OpcionDialogoPreparado>? Opciones = null);
+
+    public sealed record RegistroEleccionDialogo(
+        bool Aceptada,
+        string PreguntaTexto,
+        string OpcionTexto,
+        string Vuelta);
+
     /// <summary>
     /// Máquina de estados pura para el ciclo de conversación interceptada (GSS §8.2, ADS §8.2, CP-503):
     /// reflejo inmediato (&lt; 300 ms) → pulso de interlocución (o reutilización de anticipado) →
@@ -67,6 +86,8 @@ namespace CorazonPelican.Core.Dialogo
         private string? climaAnticipado;
         private long pulsoAnticipadoMs;
         private TurnoDialogoActivo? turnoActivo;
+        private readonly Dictionary<(int Dia, string ParaRef), DialogoPreparado> preparadosPorDia = new();
+        private readonly Dictionary<(int Dia, string InterlocutorRef), string> ultimosMensajesPorDia = new();
 
         public Pulso? PulsoAnticipadoActual => this.pulsoAnticipado;
 
@@ -336,6 +357,182 @@ namespace CorazonPelican.Core.Dialogo
             this.turnoActivo = null;
             this.pulsoAnticipado = null;
             this.respuestaAnticipada = null;
+            this.preparadosPorDia.Clear();
+            this.ultimosMensajesPorDia.Clear();
+        }
+
+        /// <summary>Normaliza y almacena un diálogo precalculado (afirmación o pregunta con opciones y vuelta) para hoy (CP-612).</summary>
+        public DialogoPreparado? AlmacenarPreparado(int dia, DialogoPreparado? dialogo, string? paraRef = null)
+        {
+            var diaValido = Math.Max(1, dia);
+            var normalizado = NormalizarDialogoPreparado(dialogo);
+            if (normalizado is null)
+            {
+                return null;
+            }
+
+            foreach (var claveVieja in this.preparadosPorDia.Keys.Where(k => k.Dia < diaValido).ToList())
+            {
+                this.preparadosPorDia.Remove(claveVieja);
+            }
+
+            foreach (var claveVieja in this.ultimosMensajesPorDia.Keys.Where(k => k.Dia < diaValido).ToList())
+            {
+                this.ultimosMensajesPorDia.Remove(claveVieja);
+            }
+
+            var destino = !string.IsNullOrWhiteSpace(normalizado.Para)
+                ? normalizado.Para!.Trim()
+                : (paraRef?.Trim() ?? string.Empty);
+
+            normalizado.Para = string.IsNullOrWhiteSpace(destino) ? null : destino;
+            this.preparadosPorDia[(diaValido, destino)] = normalizado;
+            return normalizado;
+        }
+
+        public static DialogoPreparado? NormalizarDialogoPreparado(DialogoPreparado? dialogo)
+        {
+            if (dialogo is null || string.IsNullOrWhiteSpace(dialogo.Texto))
+            {
+                return null;
+            }
+
+            var tipo = string.Equals(dialogo.Tipo, "pregunta", StringComparison.OrdinalIgnoreCase)
+                ? "pregunta"
+                : "afirmacion";
+            var texto = dialogo.Texto.Trim();
+
+            if (tipo == "pregunta")
+            {
+                var opcionesValidas = (dialogo.Opciones ?? new List<OpcionDialogoPreparado>())
+                    .Where(o => o is not null
+                        && !string.IsNullOrWhiteSpace(o.Id)
+                        && !string.IsNullOrWhiteSpace(o.Texto)
+                        && !string.IsNullOrWhiteSpace(o.Respuesta))
+                    .Select(o => new OpcionDialogoPreparado
+                    {
+                        Id = o.Id.Trim(),
+                        Texto = o.Texto.Trim(),
+                        Respuesta = o.Respuesta.Trim(),
+                    })
+                    .Take(4)
+                    .ToList();
+
+                if (opcionesValidas.Count >= 2)
+                {
+                    return new DialogoPreparado
+                    {
+                        Para = string.IsNullOrWhiteSpace(dialogo.Para) ? null : dialogo.Para.Trim(),
+                        Tipo = "pregunta",
+                        Texto = texto,
+                        Opciones = opcionesValidas,
+                    };
+                }
+            }
+
+            return new DialogoPreparado
+            {
+                Para = string.IsNullOrWhiteSpace(dialogo.Para) ? null : dialogo.Para.Trim(),
+                Tipo = "afirmacion",
+                Texto = texto,
+            };
+        }
+
+        public bool TieneDialogoListoOConsumido(int dia, string interlocutorRef)
+        {
+            if (string.IsNullOrWhiteSpace(interlocutorRef))
+            {
+                return false;
+            }
+
+            var diaValido = Math.Max(1, dia);
+            var refLimpia = interlocutorRef.Trim();
+            return this.ultimosMensajesPorDia.ContainsKey((diaValido, refLimpia))
+                || this.preparadosPorDia.ContainsKey((diaValido, refLimpia))
+                || this.preparadosPorDia.ContainsKey((diaValido, string.Empty));
+        }
+
+        public DialogoPreparado? ObtenerPreparadoVigente(int dia, string? interlocutorRef = null)
+        {
+            var diaValido = Math.Max(1, dia);
+            if (!string.IsNullOrWhiteSpace(interlocutorRef)
+                && this.preparadosPorDia.TryGetValue((diaValido, interlocutorRef.Trim()), out var especifico))
+            {
+                return especifico;
+            }
+
+            return this.preparadosPorDia.TryGetValue((diaValido, string.Empty), out var general) ? general : null;
+        }
+
+        /// <summary>
+        /// Resuelve al instante (0 ms, sin pantalla de espera) qué mostrar al granjero en <paramref name="dia"/>:
+        /// la última vuelta ya entregada hoy si repite, el diálogo precalculado si está listo, o <see cref="ModoDialogoInstantaneo.Ninguno"/>.
+        /// </summary>
+        public DialogoInstantaneo ConsultarParaInterlocutor(int dia, string interlocutorRef, bool marcarSiEsAfirmacion = true)
+        {
+            var diaValido = Math.Max(1, dia);
+            var refLimpia = interlocutorRef?.Trim() ?? string.Empty;
+
+            if (!string.IsNullOrEmpty(refLimpia)
+                && this.ultimosMensajesPorDia.TryGetValue((diaValido, refLimpia), out var ultimo)
+                && !string.IsNullOrWhiteSpace(ultimo))
+            {
+                return new DialogoInstantaneo(ModoDialogoInstantaneo.RepetirUltimaVuelta, ultimo);
+            }
+
+            var preparado = this.ObtenerPreparadoVigente(diaValido, refLimpia);
+            if (preparado is null)
+            {
+                return new DialogoInstantaneo(ModoDialogoInstantaneo.Ninguno, string.Empty);
+            }
+
+            if (string.Equals(preparado.Tipo, "pregunta", StringComparison.Ordinal)
+                && preparado.Opciones is { Count: >= 2 })
+            {
+                return new DialogoInstantaneo(ModoDialogoInstantaneo.Pregunta, preparado.Texto, preparado.Opciones);
+            }
+
+            if (marcarSiEsAfirmacion && !string.IsNullOrEmpty(refLimpia))
+            {
+                this.ultimosMensajesPorDia[(diaValido, refLimpia)] = preparado.Texto;
+            }
+
+            return new DialogoInstantaneo(ModoDialogoInstantaneo.Afirmacion, preparado.Texto);
+        }
+
+        public RegistroEleccionDialogo RegistrarEleccion(int dia, string interlocutorRef, string opcionId)
+        {
+            var diaValido = Math.Max(1, dia);
+            var refLimpia = interlocutorRef?.Trim() ?? string.Empty;
+            var preparado = this.ObtenerPreparadoVigente(diaValido, refLimpia);
+            if (preparado?.Opciones is null || preparado.Opciones.Count == 0)
+            {
+                return new RegistroEleccionDialogo(false, string.Empty, string.Empty, string.Empty);
+            }
+
+            var opcion = preparado.Opciones.FirstOrDefault(o =>
+                string.Equals(o.Id, opcionId?.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (opcion is null)
+            {
+                return new RegistroEleccionDialogo(false, preparado.Texto, string.Empty, string.Empty);
+            }
+
+            if (!string.IsNullOrEmpty(refLimpia))
+            {
+                this.ultimosMensajesPorDia[(diaValido, refLimpia)] = opcion.Respuesta;
+            }
+
+            return new RegistroEleccionDialogo(true, preparado.Texto, opcion.Texto, opcion.Respuesta);
+        }
+
+        public void RegistrarUltimoMensaje(int dia, string interlocutorRef, string mensaje)
+        {
+            if (string.IsNullOrWhiteSpace(interlocutorRef) || string.IsNullOrWhiteSpace(mensaje))
+            {
+                return;
+            }
+
+            this.ultimosMensajesPorDia[(Math.Max(1, dia), interlocutorRef.Trim())] = mensaje.Trim();
         }
 
         private DesenlaceDialogoTurno EntregarFraseAlTurno(string frase, bool interlocutorPresente, EstadoPersonaje estado)

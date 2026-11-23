@@ -34,6 +34,7 @@ namespace CorazonPelican.Core.Contrato
         [JsonPropertyName("humor")] public HumorVigente? Humor { get; set; }
         [JsonPropertyName("interlocutor")] public Interlocutor? Interlocutor { get; set; }
         [JsonPropertyName("caduca_en_ms")] public int? CaducaEnMs { get; set; }
+        [JsonPropertyName("idioma")] public string? Idioma { get; set; }
     }
 
     public sealed class HitoPulso

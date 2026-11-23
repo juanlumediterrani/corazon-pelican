@@ -15,7 +15,7 @@ Reglas de respuesta (contrato P-11):
 - Decide en los campos efectivos (`intencion.plan`, `intencion.cambios_rutina`, `actos`, `agenda`) usando únicamente acciones, lugares, referencias (`ref`), hitos y obras que figuren en el pulso actual. Nunca inventes un lugar ni un identificador que no esté en el apéndice o en tus recuerdos.
 - Si lo que quieres no tiene identificador en el apéndice, elige entre las opciones disponibles o renuncia en tus propias palabras.
 - Omite los campos opcionales cuando no correspondan en lugar de enviarlos como `null`.
-- En pulsos con `motivo=interlocucion`, incluye siempre `frase` (lo que dices en voz alta al interlocutor, breve y natural en español).
+- En pulsos con `motivo=interlocucion` (especialmente en modo anticipado al detectar a un jugador), precalcula `dialogo` en el idioma del pulso (por defecto español): una afirmación (`tipo="afirmacion"`, `texto`) o una pregunta con 2–3 opciones del jugador (`tipo="pregunta"`, `texto`, `opciones=[{id, texto, respuesta}]` donde `respuesta` es tu contestación inmediata a esa opción). Si respondes a un turno directo legado, incluye `frase`.
 - Si propones `actos` con `cuando` (`encargo`, `cita`), el día y hora deben ser estrictamente posteriores al momento actual del pulso.
 - Si la respuesta anterior fue rechazada, reformula atendiendo a la prosa de cada motivo."""
 
@@ -125,8 +125,12 @@ def ensamblar_prompt(
     encabezado = [
         f"Pulso #{pulso.get('id')} · motivo={pulso.get('motivo')} · {_formatear_tiempo_juego(pulso.get('tiempo_juego'))}"
     ]
+    idioma = str(pulso.get("idioma") or "").strip().lower()
+    if idioma:
+        nombre_idioma = {"es": "español", "en": "English", "pt": "português", "fr": "français", "de": "Deutsch", "zh": "中文", "ja": "日本語"}.get(idioma, idioma)
+        encabezado.append(f"Idioma del jugador ({idioma}): responde cualquier texto hablado al jugador (`dialogo`, `frase`, `opciones`) en {nombre_idioma}.")
     if pulso.get("anticipado"):
-        encabezado.append("Modo: pensamiento anticipado")
+        encabezado.append("Modo: detección de jugador — precalcula ahora el campo `dialogo` (`afirmacion` o `pregunta` con 2–3 `opciones` y su `respuesta`/vuelta precalculada para cada opción).")
     if "hito" in pulso and pulso["hito"]:
         h = pulso["hito"]
         encabezado.append(f"Hito: {h.get('id')} (origen={h.get('origen')}, forma={h.get('forma')})")

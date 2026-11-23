@@ -265,6 +265,36 @@ namespace CorazonPelican.Core.Dialogo
                 lista.Add(("frase", respuesta.Frase!));
             }
 
+            if (respuesta.Dialogo is { } dialogo)
+            {
+                if (!string.IsNullOrWhiteSpace(dialogo.Texto))
+                {
+                    lista.Add(("dialogo.texto", dialogo.Texto));
+                }
+
+                if (dialogo.Opciones is { Count: > 0 } opciones)
+                {
+                    for (var i = 0; i < opciones.Count; i++)
+                    {
+                        var op = opciones[i];
+                        if (op is null)
+                        {
+                            continue;
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(op.Texto))
+                        {
+                            lista.Add(($"dialogo.opciones[{i}].texto", op.Texto));
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(op.Respuesta))
+                        {
+                            lista.Add(($"dialogo.opciones[{i}].respuesta", op.Respuesta));
+                        }
+                    }
+                }
+            }
+
             if (respuesta.Intencion is { } intencion)
             {
                 if (!string.IsNullOrWhiteSpace(intencion.Objetivo))

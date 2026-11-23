@@ -116,6 +116,7 @@ namespace CorazonPelican.Modules
             {
                 var npc = Game1.getCharacterFromName(perfil.Npc);
                 ReclamacionNpc.LiberarAlIniciarJornada(npc, "DayStarted", this.context.Monitor);
+                DialogoModule.LimpiarEstadoDialogoNpc(npc);
             }
         }
 
@@ -163,8 +164,14 @@ namespace CorazonPelican.Modules
                     modoValidacionMenciones: this.context.Config.ModoValidacionMenciones)
                 {
                     Epoca = this.context.Api.EpocaVigente ?? "local",
+                    Idioma = ObtenerCodigoIdiomaJuego(),
                     MenteHabilitada = this.context.Config.MenteHabilitada,
                     AnticipacionHabilitada = this.context.Config.AnticipacionHabilitada,
+                };
+
+                motor.DialogoPreparadoDisponible += (diaPreparado, preparado) =>
+                {
+                    DialogoModule.PublicarDialogoPreparadoEnNpc(perfil.Npc, diaPreparado, preparado);
                 };
 
                 motor.AnticipacionCancelada += (pulsoId, interlocutorRef, motivo) =>
@@ -280,6 +287,7 @@ namespace CorazonPelican.Modules
                         esDiaFestival,
                         esBoda: Game1.weddingToday);
                     motor.Epoca = this.context.Api.EpocaVigente ?? motor.Epoca;
+                    motor.Idioma = ObtenerCodigoIdiomaJuego();
                     motor.ProcesarPaso(obs, horario, ahoraMs, minutosJuego, condicionesDia: condicionesDia);
                 }
                 catch (Exception ex)
@@ -368,6 +376,7 @@ namespace CorazonPelican.Modules
                 this.context.UltimasObservaciones.Remove(id);
                 motor.Epoca = nuevaEpoca;
                 var npc = Game1.getCharacterFromName(motor.Perfil.Npc);
+                DialogoModule.LimpiarEstadoDialogoNpc(npc);
                 if (motor.RestablecerOffRole(
                     diaActual,
                     horaValida,
@@ -531,6 +540,18 @@ namespace CorazonPelican.Modules
             obs = this.context.SucesosPelican.AplicarAObservacion(obs, personajeId);
             this.context.UltimasObservaciones[personajeId] = obs;
             return obs;
+        }
+
+        private static string ObtenerCodigoIdiomaJuego()
+        {
+            var idiomaDialogo = DialogoModule.ObtenerIdiomaClientePreferido();
+            if (!string.IsNullOrWhiteSpace(idiomaDialogo))
+            {
+                return idiomaDialogo;
+            }
+
+            var codigo = LocalizedContentManager.LanguageCodeString(LocalizedContentManager.CurrentLanguageCode);
+            return string.IsNullOrWhiteSpace(codigo) ? "en" : codigo.Trim().ToLowerInvariant();
         }
 
         private static HorarioDia? LeerHorarioPorId(string nombreNpc)

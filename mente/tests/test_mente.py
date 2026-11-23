@@ -645,3 +645,36 @@ class TestHumoLoopbackHttp:
         lineas_log = [json.loads(l) for l in ruta_telemetria.read_text(encoding="utf-8").splitlines()]
         assert len(lineas_log) == 1
         assert lineas_log[0]["pensamiento"] == "Ana espera una respuesta sobre el lago."
+
+    def test_dialogo_precalculado_con_opciones_e_idioma_valida_y_ensambla(self):
+        pulso = {
+            **_cargar_ejemplo("pulso--hito.json"),
+            "id": 9,
+            "motivo": "interlocucion",
+            "anticipado": True,
+            "idioma": "en",
+            "interlocutor": {"ref": "farmer:7", "texto": ""},
+            "caduca_en_ms": 8000,
+        }
+        pulso.pop("hito", None)
+        prompt = ensamblar_prompt(VOZ_LEAH, pulso)
+        assert "English" in prompt.usuario
+        assert "dialogo" in prompt.usuario
+
+        esquema = estrechar_esquema(pulso)
+        respuesta = {
+            "pensamiento": "Alex is nearby.",
+            "epoca": pulso["epoca"],
+            "basada_en": pulso["id"],
+            "dialogo": {
+                "para": "farmer:7",
+                "tipo": "pregunta",
+                "texto": "Are you out gathering wood or just passing through?",
+                "opciones": [
+                    {"id": "wood", "texto": "Gathering some hardwood.", "respuesta": "Mind the damp logs near the river."},
+                    {"id": "walk", "texto": "Just taking a walk.", "respuesta": "Good morning for it."},
+                ],
+            },
+        }
+        assert validar_respuesta_estrechada(pulso, respuesta, esquema) == []
+

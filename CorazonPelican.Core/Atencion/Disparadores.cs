@@ -68,6 +68,7 @@ namespace CorazonPelican.Core.Atencion
         private long inicioPlanRutinaMs;
         private bool? deDia;
         private string? clima;
+        private bool haObservadoAlMenosUnPaso;
 
         public Disparadores(PerfilPersonaje perfil, ModoReloj modo = ModoReloj.Vanilla, ContadoresPulsos? guardados = null)
         {
@@ -83,6 +84,9 @@ namespace CorazonPelican.Core.Atencion
 
         /// <summary>Habilita o deshabilita el pensamiento anticipado cuando un granjero se aproxima (CP-507).</summary>
         public bool AnticipacionHabilitada { get; set; } = true;
+
+        /// <summary>Evita re-emitir anticipación cuando el personaje ya tiene diálogo precalculado o consumido hoy para ese interlocutor (CP-612).</summary>
+        public Func<int, string, bool>? DebeOmitirAnticipacion { get; set; }
 
         /// <summary>Limpia el estado de anticipación activa tras consumirse o cancelarse.</summary>
         public void LimpiarAnticipado(string? interlocutorRef = null)
@@ -118,6 +122,7 @@ namespace CorazonPelican.Core.Atencion
             this.dia = diaValido;
             this.horaAnterior = horaValida;
             this.inicioPlanRutinaMs = ahoraMs;
+            this.haObservadoAlMenosUnPaso = false;
             this.presupuesto.ReiniciarDia(diaValido);
             this.siguienteEntrada = horario?.Entradas.Count(e => e.Hora <= horaValida) ?? 0;
         }
@@ -157,6 +162,7 @@ namespace CorazonPelican.Core.Atencion
 
             this.sobrePico = bandas.Where(b => b.Saliencia >= this.perfil.Umbrales.Pico).Select(b => b.Ref).ToHashSet();
             this.ActualizarSalienciasGranjeros(observacion, bandas);
+            this.haObservadoAlMenosUnPaso = true;
             if (salida.Count > 0)
             {
                 this.Registrar(ahoraMs);
@@ -182,16 +188,24 @@ namespace CorazonPelican.Core.Atencion
                     continue;
                 }
 
-                var banda = bandas.FirstOrDefault(b => string.Equals(b.Ref, entidad.Ref, StringComparison.Ordinal));
-                if (banda is null)
+                if (this.DebeOmitirAnticipacion?.Invoke(observacion.Dia, entidad.Ref) == true)
                 {
                     continue;
                 }
 
-                if (this.salienciaAnterior.TryGetValue(entidad.Ref, out var previa)
+                var banda = bandas.FirstOrDefault(b => string.Equals(b.Ref, entidad.Ref, StringComparison.Ordinal));
+                if (banda is null || banda.Saliencia < this.perfil.Umbrales.Mencion)
+                {
+                    continue;
+                }
+
+                var previoEncontrado = this.salienciaAnterior.TryGetValue(entidad.Ref, out var previa);
+                var recienDetectado = this.haObservadoAlMenosUnPaso && !previoEncontrado;
+                var subioDeBanda = previoEncontrado
                     && banda.Saliencia > previa + this.perfil.Umbrales.Histeresis
-                    && banda.Saliencia >= this.perfil.Umbrales.Mencion
-                    && banda.Saliencia < this.perfil.Umbrales.Pico)
+                    && banda.Saliencia < this.perfil.Umbrales.Pico;
+
+                if (recienDetectado || subioDeBanda)
                 {
                     var countAntes = salida.Count;
                     var disparo = new Disparo(
