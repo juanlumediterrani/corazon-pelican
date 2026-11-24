@@ -1,5 +1,9 @@
 # ADR-0001 · El host gobierna el cuerpo y la mente trabaja fuera del juego
 
+* **Estado:** Aceptado
+* **Fecha:** 2026-11-19
+* **Ámbito:** `CorazonPelican/**`, `CorazonPelican.Core/Api/*`, `mente/*`, `taller/*`
+
 ## Contexto
 
 Una respuesta puede tardar varios segundos. Durante esa espera el horario del NPC, los jugadores y el resto del valle siguen cambiando.

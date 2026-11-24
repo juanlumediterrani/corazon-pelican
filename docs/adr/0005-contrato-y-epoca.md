@@ -1,5 +1,9 @@
 # ADR-0005 · Un solo contrato y una época por carga de mundo
 
+* **Estado:** Aceptado
+* **Fecha:** 2026-11-19
+* **Ámbito:** `schemas/*.schema.json`, `CorazonPelican.Core/Contrato/**`, `mente/contrato.py`
+
 ## Contexto
 
 Tras una recarga se puede volver a emitir el pulso 17 mientras la mente todavía prepara una respuesta al pulso 17 anterior.

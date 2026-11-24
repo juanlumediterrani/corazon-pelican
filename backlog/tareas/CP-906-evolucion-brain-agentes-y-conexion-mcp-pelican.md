@@ -13,7 +13,7 @@ sensibilidad: public
 
 ## Objetivo
 
-Evolucionar la documentación de *Corazón Pelican* hacia un **Project Brain operativo** conforme al estándar corporativo (`1- brain&mcp.md` v1.1) e indexar sus ADRs, esquemas y contrato de puente con *Pelican 4Ever* para consumo limpio desde **MCP Pelican** (`/home/mtx/Documentos/Projects/MCP Pelican`, `repo_id="corazon-pelican"`).
+Evolucionar la documentación de *Corazón Pelican* hacia un **Project Brain operativo** conforme al estándar corporativo (**`EST-001` v1.2** de `Niu D'Ocells`) e indexar sus ADRs, esquemas y contrato de puente con *Pelican 4Ever* para consumo limpio desde **MCP Pelican** (`/home/mtx/Escritorio/WIP Proyectos/Ecosistema Pelican/MCP Pelican`, `repo_id="corazon-pelican"`).
 
 ## Contexto
 

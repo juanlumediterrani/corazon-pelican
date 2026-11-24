@@ -49,5 +49,5 @@ juego vivo), mientras que `CP-014` y `CP-101` permanecen en curso. El índice re
 [tareas listas](backlog/README.md#tareas-listas) y [AGENTS.md](AGENTS.md) contiene los comandos
 para verificar la solución.
 
-Proyectos hermanos: Pelican 4Ever (`../Stardew Valley MORPG`) y Stardew Voyager
+Proyectos hermanos: Pelican 4Ever (`../Pelican4Ever`) y Stardew Voyager
 (`../stardew-voyager`).

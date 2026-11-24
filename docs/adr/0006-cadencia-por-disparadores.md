@@ -1,5 +1,9 @@
 # ADR-0006 · Los sucesos y la rutina determinan cuándo pensar
 
+* **Estado:** Aceptado
+* **Fecha:** 2026-11-19
+* **Ámbito:** `CorazonPelican.Core/Atencion/**`, `CorazonPelican/Modules/{HabitanteModule,IntegracionPelicanModule}.cs`
+
 ## Contexto
 
 El mismo tramo del horario ocupa segundos en vanilla y horas en Pelican. Una consulta periódica al modelo interrumpiría incluso una tarde tranquila sin nada nuevo que atender.

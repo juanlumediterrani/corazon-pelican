@@ -1,5 +1,9 @@
 # ADR-0002 · La escena se escribe con plantillas deterministas
 
+* **Estado:** Aceptado
+* **Fecha:** 2026-11-19
+* **Ámbito:** `CorazonPelican/Adaptador/ObservadorJuego.cs`, `CorazonPelican.Core/Sensorio/**`, `CorazonPelican/assets/personajes/*.plantillas.json`
+
 ## Contexto
 
 En la pasarela, Leah puede fijarse en la luz sobre el agua y apenas advertir a quien se acerca. Esa diferencia debe poder explicarse a partir de lo observado y de sus rasgos.

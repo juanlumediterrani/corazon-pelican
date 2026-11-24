@@ -1,5 +1,9 @@
 # ADR-0003 · El motor valida los actos antes de mostrar la frase
 
+* **Estado:** Aceptado
+* **Fecha:** 2026-11-19
+* **Ámbito:** `CorazonPelican.Core/Dialogo/**`, `CorazonPelican/Modules/{DialogoModule,CorreoProrrogaModule}.cs`, `schemas/respuesta.schema.json`
+
 ## Contexto
 
 Leah puede ofrecer un cuadro que estaba disponible al empezar a pensar y que ya entregó cuando llega la respuesta. Mostrar la oferta en ese instante crearía una promesa imposible.

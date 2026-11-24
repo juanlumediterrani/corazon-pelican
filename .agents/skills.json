@@ -1,0 +1,10 @@
+{
+  "entries": [
+    {
+      "path": "../MCP Pelican/skills",
+      "include_only": [
+        "smapi-harmony-pelican-bridge"
+      ]
+    }
+  ]
+}

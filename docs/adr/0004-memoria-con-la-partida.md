@@ -1,5 +1,9 @@
 # ADR-0004 · La memoria del personaje viaja con la partida
 
+* **Estado:** Aceptado
+* **Fecha:** 2026-11-19
+* **Ámbito:** `CorazonPelican.Core/Memoria/**`, `CorazonPelican/Modules/PersistenciaModule.cs`
+
 ## Contexto
 
 Si una sesión se cierra antes de guardar, el valle retrocede. Recordar en la siguiente sesión una promesa o un regalo de ese tramo rompería la continuidad.
