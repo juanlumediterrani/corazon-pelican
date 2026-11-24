@@ -38,7 +38,7 @@ Estas dos fichas están pendientes y tienen todas sus dependencias hechas.
 | Prioridad | Tareas por hito e identificador |
 |---|---|
 | P1 | — (CP-606 en curso a falta de prueba en vivo 🎮) |
-| P2 | CP-305 aceptación de fase 3 🎮 · CP-504 opciones del jugador · CP-507 recuerdos y voz en diálogo 🎮 |
+| P2 | CP-305 aceptación de fase 3 🎮 · CP-504 opciones del jugador · CP-507 recuerdos y voz en diálogo 🎮 · CP-906 Brain y conexión MCP Pelican |
 | P3 | CP-603 sesión de encuentro · Pelican, humano y granjero de Voyager con Leah 🎮 |
 
 CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisiones.md`](../docs/decisiones.md) han quedado cerradas (`CP-902`).
@@ -126,6 +126,7 @@ CP-014 y CP-101 están en curso. Todas las decisiones abiertas de [`docs/decisio
 | [CP-903](tareas/CP-903-estado-y-ruta-del-proyecto.md) | Actualizar el estado del proyecto y la ruta de tareas listas | D | P2 | CP-901 | hecha |
 | [CP-904](tareas/CP-904-vida-propia-del-habitante.md) | Revisar el diseño y las aceptaciones desde la vida propia del habitante | D | P1 | — | hecha |
 | [CP-905](tareas/CP-905-revision-argon.md) | Registrar la revisión de Argón y la prueba de continuidad entre días | D | P1 | — | hecha |
+| [CP-906](tareas/CP-906-evolucion-brain-agentes-y-conexion-mcp-pelican.md) | Evolucionar documentación a Project Brain (estándar Niu D'Ocells) y conectar contratos con MCP Pelican | D | P2 | CP-901 | pendiente |
 | [CP-910](tareas/CP-910-catalogo-hitos.md) | Catálogo de hitos elegibles y variaciones de los existentes | Futuro | profunda | CP-306, CP-208 | dormida |
 | [CP-911](tareas/CP-911-intenciones-arnes-voyager.md) | Intenciones propias potenciadas con un ejecutor al estilo del arnés de Stardew Voyager | Futuro | profunda | CP-302, CP-306 | dormida |
 
