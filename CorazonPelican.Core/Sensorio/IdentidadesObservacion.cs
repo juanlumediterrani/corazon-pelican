@@ -40,8 +40,14 @@ namespace CorazonPelican.Core.Sensorio
         public static string Agua(string ubicacion, int x, int y)
             => $"agua:{Limpiar(ubicacion)}:{x.ToString(CultureInfo.InvariantCulture)},{y.ToString(CultureInfo.InvariantCulture)}";
 
+        public static string AguaZona(string ubicacion, string zona = "orilla")
+            => $"agua:{Limpiar(ubicacion)}:{Limpiar(zona)}";
+
         public static string Terreno(string ubicacion, int x, int y, string tipo)
             => $"terreno:{Limpiar(ubicacion)}:{x.ToString(CultureInfo.InvariantCulture)},{y.ToString(CultureInfo.InvariantCulture)}:{Limpiar(tipo)}";
+
+        public static string TerrenoZona(string ubicacion, string tipo)
+            => $"terreno:{Limpiar(ubicacion)}:{Limpiar(tipo)}";
 
         public static string Suceso(string tipo, params string[] partes)
         {

@@ -71,6 +71,34 @@ TARIFAS_MODELOS: dict[str, TarifaModelo] = {
         salida_por_1m=10.00,
         proveedor="gemini",
     ),
+    "eu.amazon.nova-2-lite-v1:0": TarifaModelo(
+        modelo="eu.amazon.nova-2-lite-v1:0",
+        entrada_por_1m=0.374,
+        cache_entrada_por_1m=0.0935,
+        salida_por_1m=3.157,
+        proveedor="bedrock",
+    ),
+    "amazon.nova-2-lite-v1:0": TarifaModelo(
+        modelo="amazon.nova-2-lite-v1:0",
+        entrada_por_1m=0.33,
+        cache_entrada_por_1m=0.0825,
+        salida_por_1m=2.75,
+        proveedor="bedrock",
+    ),
+    "eu.amazon.nova-lite-v1:0": TarifaModelo(
+        modelo="eu.amazon.nova-lite-v1:0",
+        entrada_por_1m=0.078,
+        cache_entrada_por_1m=0.0195,
+        salida_por_1m=0.312,
+        proveedor="bedrock",
+    ),
+    "amazon.nova-lite-v1:0": TarifaModelo(
+        modelo="amazon.nova-lite-v1:0",
+        entrada_por_1m=0.06,
+        cache_entrada_por_1m=0.015,
+        salida_por_1m=0.24,
+        proveedor="bedrock",
+    ),
     "fake-mente": TarifaModelo(
         modelo="fake-mente",
         entrada_por_1m=0.0,
@@ -88,6 +116,16 @@ TARIFAS_MODELOS: dict[str, TarifaModelo] = {
 }
 
 MODELO_ESTIMACION_POR_DEFECTO = "claude-sonnet-4-5"
+_PREFIJOS_BEDROCK_REGION = ("eu.", "us.", "ap.", "global.")
+
+
+def _buscar_tarifa_por_clave(clave: str) -> TarifaModelo | None:
+    if clave in TARIFAS_MODELOS:
+        return TARIFAS_MODELOS[clave]
+    for nombre, t in TARIFAS_MODELOS.items():
+        if clave.startswith(nombre):
+            return t
+    return None
 
 
 def obtener_tarifa(
@@ -100,11 +138,16 @@ def obtener_tarifa(
     if tarifa is not None:
         return tarifa
     clave = (modelo or "").strip().lower()
-    if clave in TARIFAS_MODELOS:
-        return TARIFAS_MODELOS[clave]
-    for nombre, t in TARIFAS_MODELOS.items():
-        if clave.startswith(nombre):
-            return t
+    encontrada = _buscar_tarifa_por_clave(clave)
+    if encontrada is not None:
+        return encontrada
+    for prefijo in _PREFIJOS_BEDROCK_REGION:
+        if clave.startswith(prefijo):
+            sin_prefijo = clave[len(prefijo):]
+            encontrada = _buscar_tarifa_por_clave(sin_prefijo)
+            if encontrada is not None:
+                return encontrada
+            break
     if clave.startswith(("fake", "local")):
         return TarifaModelo(modelo=modelo or "local", entrada_por_1m=0.0, cache_entrada_por_1m=0.0, salida_por_1m=0.0)
     if estricto:

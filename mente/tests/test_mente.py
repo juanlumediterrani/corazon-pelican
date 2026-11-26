@@ -706,3 +706,96 @@ class TestHumoLoopbackHttp:
         esquema_sin = estrechar_esquema(pulso_sin_impulso)
         assert "acercarse_a" not in esquema_sin["$defs"]["accion"]["enum"]
 
+    @pytest.mark.parametrize("codigo", ["pulso_obsoleto", "epoca_obsoleta"])
+    def test_rechazos_no_reformulables_no_reintentan_llm(self, codigo: str):
+        pulso = {**_cargar_ejemplo("pulso--hito.json"), "id": 11, "epoca": "ep-obs"}
+        motor = MotorSimulado(epoca="ep-obs")
+        motor.pulsos = [pulso]
+        motor.al_recibir_respuesta = lambda _resp: {
+            "estado": "rechazada",
+            "motivos": [{"codigo": codigo, "campo": "basada_en", "detalle": "no vigente"}],
+        }
+
+        llamadas: list[dict[str, Any]] = []
+
+        class ModeloUnIntento:
+            modelo = "fake-un-intento"
+            ultimo_uso = None
+
+            def generar(self, prompt: Any, esquema: dict[str, Any]) -> dict[str, Any]:
+                llamadas.append({"prompt": prompt, "esquema": esquema})
+                return {
+                    "pensamiento": "Observo el estudio con calma.",
+                    "epoca": pulso["epoca"],
+                    "basada_en": pulso["id"],
+                }
+
+        with ClienteMotor(transport=httpx.MockTransport(motor.handler)) as cliente:
+            resultados = CicloMente(cliente, ModeloUnIntento(), VOZ_LEAH, max_reformulaciones=2).ejecutar_paso(espera_ms=0)
+
+        assert len(resultados) == 1
+        assert resultados[0].estado == "rechazada_motor"
+        assert resultados[0].intentos_modelo == 1
+        assert len(llamadas) == 1
+
+    def test_sin_episodios_diario_estrecha_memoria_y_limita_id_episodio_enum(self):
+        pulso = {**_cargar_ejemplo("pulso--hito.json"), "id": 12, "epoca": "ep-diario"}
+        pulso.pop("episodios_diario", None)
+
+        diario_200 = [
+            {
+                "id": f"ep-{i:03d}",
+                "dia": 1 + (i // 10),
+                "resumen": f"Nota de bosque número {i}.",
+                "tags": ["bosque"] if i < 20 else ["taller"],
+            }
+            for i in range(200)
+        ]
+
+        esquema = estrechar_esquema(pulso)
+        mem_schema = esquema["properties"]["memoria"]
+        assert "reflexiones" not in mem_schema["properties"]
+        assert "oneOf" not in mem_schema
+        assert mem_schema["required"] == ["recordar"]
+
+        motor = MotorSimulado(epoca="ep-diario")
+        motor.pulsos = [pulso]
+        motor.memoria_por_personaje["leah"] = {
+            "epoca": "ep-diario",
+            "personaje": "leah",
+            "diario": diario_200,
+            "recuerdos": [],
+            "relaciones": {},
+            "compromisos": [],
+            "portafolio": [],
+            "humor": None,
+        }
+
+        esquemas_vistos: list[dict[str, Any]] = []
+
+        class CapturaEsquemaModelo:
+            modelo = "fake-captura"
+            ultimo_uso = None
+
+            def generar(self, prompt: Any, esquema_pasado: dict[str, Any]) -> dict[str, Any]:
+                esquemas_vistos.append(esquema_pasado)
+                return {
+                    "pensamiento": "Todo despejado.",
+                    "epoca": pulso["epoca"],
+                    "basada_en": pulso["id"],
+                }
+
+        with ClienteMotor(transport=httpx.MockTransport(motor.handler)) as cliente:
+            ciclo = CicloMente(cliente, CapturaEsquemaModelo(), VOZ_LEAH, max_recuerdos_contexto=6)
+            recuerdos_sel, episodios_ctx = ciclo._resolver_recuerdos_y_episodios(pulso, None)
+            resultados = ciclo.ejecutar_paso(espera_ms=0)
+
+        assert resultados[0].estado == "aceptada"
+        assert len(esquemas_vistos) == 1
+        enum_episodios = esquemas_vistos[0]["$defs"]["idEpisodio"]["enum"]
+        assert len(enum_episodios) < 200
+        assert len(enum_episodios) <= 16
+        ids_recuerdos = {item["id"] for item in (recuerdos_sel or []) if item.get("fuente") == "diario"}
+        assert set(enum_episodios) == set(episodios_ctx or []) == ids_recuerdos
+
+

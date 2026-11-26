@@ -122,3 +122,26 @@ def test_bucle_sobrevive_a_caida_temporal_del_motor(tmp_path: Path) -> None:
     assert rc == 0
     assert intentos["n"] >= 2
     assert ciclo.cursor.epoca == "ep-recup"
+
+
+def test_limites_diarios_pueden_desactivarse_por_entorno_o_cli() -> None:
+    for valor_off in ("0", "none", "OFF", "sin_limite"):
+        cfg_env = cargar_config(
+            [],
+            env={
+                "CORAZON_LIMITE_TOKENS_DIA": valor_off,
+                "CORAZON_LIMITE_COSTE_USD_DIA": valor_off,
+            },
+        )
+        assert cfg_env.limite_tokens_dia is None
+        assert cfg_env.limite_coste_usd_dia is None
+
+    cfg_cli = cargar_config(
+        ["--limite-tokens-dia", "0", "--limite-coste-usd-dia", "0"],
+        env={
+            "CORAZON_LIMITE_TOKENS_DIA": "150000",
+            "CORAZON_LIMITE_COSTE_USD_DIA": "0.50",
+        },
+    )
+    assert cfg_cli.limite_tokens_dia is None
+    assert cfg_cli.limite_coste_usd_dia is None

@@ -1,7 +1,7 @@
 # Contrato de Interoperabilidad · `Corazón Pelican ↔ Pelican 4Ever`
 
 * **Estado:** Vigente (`EST-001` v1.2)
-* **Última actualización:** 2026-11-24
+* **Última actualización:** 2026-11-26
 * **Propietario:** Corazón Pelican (`repo_id="corazon-pelican"`) · Contraparte en `MCP Pelican`: `Pelican 4Ever` (`docs/host-api.md`, `ADR-0001`, `ADR-0002`, `ADR-0013`)
 
 ---
@@ -13,7 +13,7 @@
 Métodos consumidos sobre `Pelican4Ever.SVRTMP`:
 - `RegisterPreSaveHook(Action)` / `UnregisterPreSaveHook(Action)` (`PersistenciaModule.cs`): sincroniza el volcado del estado del habitante justo antes de un checkpoint/guardado gestionado por `Pelican 4Ever`.
 - `RegisterTimeJumpHook(Action<int, int>)` / `UnregisterTimeJumpHook(Action<int, int>)` (`HabitanteModule.cs`): notifica saltos de reloj autoritativos del host para coherencia de ventana y cadencia de pulsión.
-- `bool IsNightHold()` y `bool IsRolloverBusy()`: congelan o degradan de forma segura decisiones de movimiento/diálogo cuando el servidor se encuentra en retención nocturna o transición de día (*rollover*).
+- `bool IsNightHold()` y `bool IsRolloverBusy()`: congelan o degradan de forma segura decisiones de movimiento/diálogo cuando el servidor se encuentra en retención nocturna o transición de día (*rollover*). `HabitanteModule` aplica además `GuardaCicloPelican` (`CorazonPelican.Core/Tiempo/GuardaCicloPelican.cs`) sobre `IsNightHold()`, `IsRolloverBusy()` y una ventana de sincronización inicial de `2_000 ms` tras `SaveLoaded`, `DayStarted` o salida de *rollover* antes de emitir pulsos del sensorio a las `06:00`.
 
 Cuando `Pelican4Ever.SVRTMP` no está presente, `ModoRelojEfectivo` degrada limpiamente a modo autónomo vanilla sin errores en consola.
 
@@ -49,4 +49,4 @@ Definido en `CorazonPelican.Core/Dialogo/ProtocoloMultijugador.cs` para `Dialogo
 ## 5. Pruebas de Referencia y *Write-Back*
 
 - Cualquier cambio en `IPelicanApi`, `IntegracionPelicanModule`, `ConversorSucesosPelican` o `ProtocoloMultijugador` obliga a revisar compatibilidad con `Pelican4Ever` (`read_contract("pelican4ever", "host-api")` en `MCP Pelican`) y actualizar este documento en el mismo commit.
-- Suite de referencia: `dotnet test CorazonPelican.sln -p:EnableModDeploy=false -p:EnableModZip=false` (`SucesosPelicanTests`, `ProtocoloMultijugador`, `DegradacionVanillaTests`, `LimpiezaControlCP610Tests`).
+- Suite de referencia: `dotnet test CorazonPelican.sln -p:EnableModDeploy=false -p:EnableModZip=false` (`SucesosPelicanTests`, `ProtocoloMultijugador`, `DegradacionVanillaTests`, `LimpiezaControlCP610Tests`, `NightHoldArranqueTests`).

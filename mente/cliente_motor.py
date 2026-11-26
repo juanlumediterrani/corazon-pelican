@@ -298,6 +298,24 @@ def _tiene_contenido_memoria(memoria: dict[str, Any] | None) -> bool:
     return False
 
 
+MOTIVOS_RECHAZO_NO_REFORMULABLES: frozenset[str] = frozenset({
+    "pulso_obsoleto",
+    "epoca_obsoleta",
+    "pulso_desconocido",
+    "mente_deshabilitada",
+    "sin_aplicador",
+})
+
+_MAX_EPISODIOS_CONTEXTO = 16
+
+
+def _es_rechazo_no_reformulable(motivos: list[dict[str, Any]]) -> bool:
+    return any(
+        isinstance(m, dict) and str(m.get("codigo") or "") in MOTIVOS_RECHAZO_NO_REFORMULABLES
+        for m in motivos
+    )
+
+
 class CicloMente:
     """Bucle de la mente sin cuerpo propio (ADS §6): consulta pulsos, piensa, valida y responde."""
 
@@ -415,22 +433,20 @@ class CicloMente:
             return recuerdos_finales, None
 
         ids_ep: list[str] = []
-        if isinstance(memoria, dict):
-            for ep in memoria.get("diario") or []:
-                if isinstance(ep, dict) and isinstance(ep.get("id"), str) and ep["id"]:
-                    ids_ep.append(ep["id"])
-            for rec in memoria.get("recuerdos") or []:
-                if isinstance(rec, dict):
-                    for ep_id in rec.get("origen_diario") or []:
-                        if isinstance(ep_id, str) and ep_id:
-                            ids_ep.append(ep_id)
+        vistos: set[str] = set()
         for item in recuerdos_finales or []:
-            if isinstance(item, dict):
-                if item.get("fuente") == "diario" and isinstance(item.get("id"), str) and item["id"]:
-                    ids_ep.append(item["id"])
-                for ep_id in item.get("origen_diario") or []:
-                    if isinstance(ep_id, str) and ep_id:
-                        ids_ep.append(ep_id)
+            if not isinstance(item, dict):
+                continue
+            candidatos: list[Any] = []
+            if item.get("fuente") == "diario":
+                candidatos.append(item.get("id"))
+            candidatos.extend(item.get("origen_diario") or [])
+            for ep_id in candidatos:
+                if isinstance(ep_id, str) and ep_id and ep_id not in vistos:
+                    vistos.add(ep_id)
+                    ids_ep.append(ep_id)
+                    if len(ids_ep) >= _MAX_EPISODIOS_CONTEXTO:
+                        return recuerdos_finales, ids_ep
         return recuerdos_finales, ids_ep or None
 
     def _resolver_recuerdos_para_pulso(
@@ -753,6 +769,16 @@ class CicloMente:
                 "motivos": motivos,
             }
         )
+
+        if _es_rechazo_no_reformulable(motivos):
+            return ResultadoPulso(
+                pulso_id=pulso_id,
+                epoca=epoca,
+                estado="rechazada_motor",
+                respuesta=respuesta,
+                intentos_modelo=intentos,
+                motivos_rechazo=motivos,
+            )
 
         if self.max_reformulaciones <= 0 or not self._puede_llamar_modelo(motivo, cadena):
             if self.max_reformulaciones > 0:

@@ -10,7 +10,7 @@ import httpx
 from mente.cliente_motor import CicloMente, ClienteMotor, RegistroTelemetria
 from mente.costes import PresupuestoTokens
 from mente.ensamblador import PromptEnsamblado
-from mente.modelos import ConfigModelo, crear_modelo
+from mente.modelos import ConfigModelo, ErrorModeloError, crear_modelo
 from mente.tests.test_mente import EJEMPLOS_VALIDOS, MotorSimulado, VOZ_LEAH
 
 
@@ -245,3 +245,80 @@ def test_proveedor_bedrock_nova_2_lite_formato_putre() -> None:
     assert modelo.ultimo_uso.tokens_entrada == 120
     assert modelo.ultimo_uso.tokens_salida == 24
     assert modelo.ultimo_uso.tokens_cache == 40
+
+
+def test_bedrock_mantiene_system_invariante_con_cache_point_y_esquema_en_usuario() -> None:
+    capturas: list[dict[str, Any]] = []
+
+    def invoker(model_id: str, body: dict[str, Any]) -> dict[str, Any]:
+        capturas.append({"model_id": model_id, "body": body})
+        return {
+            "output": {
+                "message": {
+                    "role": "assistant",
+                    "content": [{"text": '{"pensamiento": "El valle respira despacio."}'}],
+                }
+            },
+            "usage": {
+                "inputTokens": 300,
+                "cacheWriteInputTokens": 1100,
+                "cacheReadInputTokens": 500,
+                "outputTokens": 45,
+            },
+        }
+
+    modelo = crear_modelo(
+        ConfigModelo(proveedor="bedrock", modelo="eu.amazon.nova-2-lite-v1:0"),
+        bedrock_invoker=invoker,
+    )
+    sistema_largo = ("Eres Leah, escultora del valle. " * 60).strip()
+    assert len(sistema_largo) >= 1500
+    esquema = {"type": "object", "properties": {"pensamiento": {"type": "string"}}, "required": ["pensamiento"]}
+    prompt = PromptEnsamblado(sistema=sistema_largo, usuario="Escena del estudio al amanecer.")
+
+    salida = modelo.generar(prompt, esquema)
+    assert isinstance(salida, str)
+    assert json.loads(salida)["pensamiento"] == "El valle respira despacio."
+
+    body = capturas[0]["body"]
+    assert body["system"] == [{"text": sistema_largo}, {"cachePoint": {"type": "default"}}]
+    user_texto = body["messages"][0]["content"][0]["text"]
+    assert "Escena del estudio al amanecer." in user_texto
+    assert json.dumps(esquema, ensure_ascii=False, separators=(",", ":")) in user_texto
+
+    assert modelo.ultimo_uso is not None
+    assert modelo.ultimo_uso.tokens_entrada == 1400
+    assert modelo.ultimo_uso.tokens_cache == 500
+    assert modelo.ultimo_uso.tokens_salida == 45
+
+
+def test_bedrock_reintenta_sin_cache_point_si_validation_exception_lo_rechaza() -> None:
+    intentos: list[dict[str, Any]] = []
+
+    def invoker(_model_id: str, body: dict[str, Any]) -> dict[str, Any]:
+        intentos.append(body)
+        if len(intentos) == 1:
+            raise ErrorModeloError("Fallo de AWS Bedrock: ValidationException: cachePoint is not supported")
+        return {
+            "output": {
+                "message": {
+                    "role": "assistant",
+                    "content": [{"text": '{"pensamiento": "Sigo sin caché."}'}],
+                }
+            },
+            "usage": {"inputTokens": 200, "outputTokens": 18},
+        }
+
+    modelo = crear_modelo(
+        ConfigModelo(proveedor="bedrock", modelo="eu.amazon.nova-2-lite-v1:0"),
+        bedrock_invoker=invoker,
+    )
+    sistema_largo = "Voz invariante del habitante. " * 70
+    prompt = PromptEnsamblado(sistema=sistema_largo, usuario="Escena actual.")
+    esquema = {"type": "object", "properties": {"pensamiento": {"type": "string"}}}
+
+    salida = modelo.generar(prompt, esquema)
+    assert json.loads(salida)["pensamiento"] == "Sigo sin caché."
+    assert len(intentos) == 2
+    assert any("cachePoint" in b for b in intentos[0]["system"])
+    assert intentos[1]["system"] == [{"text": sistema_largo}]

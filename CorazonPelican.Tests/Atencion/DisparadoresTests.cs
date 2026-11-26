@@ -283,4 +283,39 @@ public class DisparadoresTests
 
         Assert.DoesNotContain(ficheros, f => File.ReadAllText(f).Contains(hito, StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void Multiples_entidades_de_agua_en_terreno_se_deduplican_en_integrador_y_no_provocan_rafagas_de_deriva()
+    {
+        var perfil = Leah();
+        var disparadoresCuarenta = new Disparadores(perfil);
+        var disparadoresUno = new Disparadores(perfil);
+
+        var entidadesObs = new List<EntidadObservada>();
+        var bandas = new List<EntidadEnBanda>();
+        for (var i = 0; i < 40; i++)
+        {
+            var id = IdentidadesObservacion.Agua("Forest", 10 + i, 20);
+            entidadesObs.Add(new EntidadObservada(id, CategoriaEntidad.Terreno, "agua", "Forest", 10 + i, 20, new[] { "agua" }, Visible: true, Distancia: 4));
+            bandas.Add(new EntidadEnBanda(id, Banda.Mencion, 0.60));
+        }
+
+        var obsCuarenta = new Observacion(68, 1200, "Forest", 8, 20, 1.0, "soleado", entidadesObs);
+        var obsUno = new Observacion(68, 1200, "Forest", 8, 20, 1.0, "soleado", new[] { entidadesObs[0] });
+        var bandasUno = new[] { bandas[0] };
+
+        var disparos = new List<Disparo>();
+        long t = 0;
+        for (var paso = 0; paso < 48; paso++) // 12 s simulados (~12 min de juego)
+        {
+            t += 250;
+            disparos.AddRange(disparadoresCuarenta.Observar(obsCuarenta, bandas, null, t, minutosJuego: 0.25));
+            disparadoresUno.Observar(obsUno, bandasUno, null, t, minutosJuego: 0.25);
+        }
+
+        // 40 casillas de agua aportan al integrador exactamente lo mismo que 1 solo representante y quedan por debajo de deriva.
+        Assert.Equal(disparadoresUno.ValorIntegrador, disparadoresCuarenta.ValorIntegrador, precision: 6);
+        Assert.True(disparadoresCuarenta.ValorIntegrador < perfil.Umbrales.Deriva);
+        Assert.DoesNotContain(disparos, d => d.Motivo == Motivos.Deriva);
+    }
 }

@@ -79,6 +79,13 @@ namespace CorazonPelican.Core.Api
 
                 return motor.AplicarRespuesta(pulso, respuesta);
             });
+            api.RegistrarObservadorRespuestaRecibida(personaje =>
+            {
+                if (!string.IsNullOrWhiteSpace(personaje))
+                {
+                    obtenerMotor(personaje)?.NotificarRespuestaRecibida();
+                }
+            });
         }
 
         public static void Desconectar(ApiMotor api)
@@ -90,6 +97,7 @@ namespace CorazonPelican.Core.Api
 
             api.RegistrarProveedorEscena(null);
             api.RegistrarAplicadorPorDefecto(null);
+            api.RegistrarObservadorRespuestaRecibida(null);
         }
     }
 }

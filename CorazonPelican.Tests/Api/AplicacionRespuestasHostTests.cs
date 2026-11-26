@@ -298,4 +298,254 @@ public class AplicacionRespuestasHostTests
         Assert.Equal(EstadoHito.Pendiente, motor.AgendaActual!.Buscar("Fri:1600")!.Estado);
         Assert.Equal(episodiosAntes, estado.Diario.Count);
     }
+
+    [Fact]
+    public void Heartbeat_en_Pelican_evita_mente_caida_durante_esperar_largo_y_degrada_tras_silencio_real()
+    {
+        var perfil = CargarPerfil();
+        var plantillas = CargarPlantillas();
+        var partida = new EstadoPartida();
+        var estado = partida.ObtenerOIniciar(perfil.Id);
+        var api = new ApiMotor("0.1.0");
+        var epoca = ApiMotor.GenerarEpoca();
+        api.IniciarEpoca(epoca, new[] { perfil.Id });
+
+        var horario = new HorarioDia("Fri", new[]
+        {
+            new EntradaHorario(900, "LeahHouse", 3, 7, "leah_sculpt"),
+            new EntradaHorario(2400, "LeahHouse", 2, 4, "leah_sleep"),
+        });
+        var mundo = Escenario.Pasarela()
+            .EnModo(ModoReloj.Pelican)
+            .ConHorarios((_, _) => horario)
+            .ALas(dia: 68, hora: 600)
+            .Construir(perfil.Lexico);
+
+        long ahoraMs = 1_000;
+        var motor = new MotorHabitante(
+            perfil,
+            plantillas,
+            estado,
+            ModoReloj.Pelican,
+            publicarPulso: p => api.EmitirPulso(p),
+            tiempoMaxRespuestaMs: 10_000)
+        {
+            Epoca = epoca,
+            MenteHabilitada = true,
+        };
+        motor.ConectarEjecutorCuerpo(mundo.Cuerpo.Ejecutor, () => ahoraMs);
+        CoordinadorApiAnfitrion.Conectar(
+            api,
+            id => id == perfil.Id ? motor : null,
+            id => partida.ObtenerSiExiste(id),
+            enHiloPrincipal: false);
+
+        var pasoInicial = motor.ProcesarPaso(mundo.Observar(), mundo.HorarioHoy, ahoraMs, minutosJuego: 0);
+        var pulso = Assert.Single(pasoInicial.Pulsos);
+
+        var respuesta = new Respuesta
+        {
+            Pensamiento = "Espero tranquilo medio rato.",
+            Epoca = epoca,
+            BasadaEn = pulso.Id,
+            Intencion = new IntencionPropuesta
+            {
+                Objetivo = "descansar un rato",
+                Porque = "hay calma",
+                Plan = new List<PasoPlan> { new() { Accion = "esperar", DuracionMin = 30 } },
+            },
+        };
+        var resApi = api.ProcesarRespuestaEnHiloPrincipal(respuesta);
+        Assert.Equal(Resultado.Aceptada, resApi.Estado);
+        mundo.Cuerpo.Ejecutor.AvanzarTick(ahoraMs);
+        Assert.True(mundo.Cuerpo.Ocupado);
+        Assert.True(motor.IntencionActivaVigente?.EstaActiva);
+
+        var msPorDiezMin = HoraJuego.MilisegundosPorDiezMinutos(ModoReloj.Pelican);
+        var minutosPorPaso = 25_000.0 * 10.0 / msPorDiezMin;
+        var obsTranquila = mundo.Observar() with { Entidades = [] };
+        for (var i = 0; i < 40; i++) // 16,6 min reales con heartbeat cada 25 s (> 600 s), esperar(30) sigue activo.
+        {
+            ahoraMs += 25_000;
+            motor.NotificarActividadMente(ahoraMs);
+            mundo.Cuerpo.Ejecutor.AvanzarTick(ahoraMs);
+            var step = motor.ProcesarPaso(obsTranquila, mundo.HorarioHoy, ahoraMs, minutosPorPaso);
+            Assert.Empty(step.Pulsos);
+        }
+
+        Assert.False(motor.EstaMenteCaida);
+        Assert.Equal(0, motor.TotalDegradaciones);
+        Assert.Null(motor.UltimoMotivoDegradacion);
+
+        // Si deja de llegar actividad real durante 10 minutos completos (600_000 ms), degrada a mente_caida.
+        for (var i = 0; i < 24; i++)
+        {
+            ahoraMs += 25_000;
+            mundo.Cuerpo.Ejecutor.AvanzarTick(ahoraMs);
+            motor.ProcesarPaso(obsTranquila, mundo.HorarioHoy, ahoraMs, minutosPorPaso);
+        }
+
+        Assert.Equal("mente_caida", motor.UltimoMotivoDegradacion);
+        Assert.Equal(1, motor.TotalDegradaciones);
+    }
+
+    [Fact]
+    public async Task Rechazo_temprano_en_api_notifica_actividad_y_no_degrada_por_mente_caida()
+    {
+        var perfil = CargarPerfil();
+        var plantillas = CargarPlantillas();
+        var partida = new EstadoPartida();
+        var estado = partida.ObtenerOIniciar(perfil.Id);
+        var api = new ApiMotor("0.1.0");
+        var epoca = ApiMotor.GenerarEpoca();
+        api.IniciarEpoca(epoca, new[] { perfil.Id });
+
+        var horario = new HorarioDia("Fri", new[]
+        {
+            new EntradaHorario(900, "LeahHouse", 3, 7, "leah_sculpt"),
+            new EntradaHorario(1600, "Saloon", 2, 20),
+            new EntradaHorario(2400, "LeahHouse", 2, 4, "leah_sleep"),
+        });
+        var mundo = Escenario.Pasarela()
+            .EnModo(ModoReloj.Pelican)
+            .ConHorarios((_, _) => horario)
+            .ALas(dia: 68, hora: 600)
+            .Construir(perfil.Lexico);
+
+        long ahoraMs = 1_000;
+        var motor = new MotorHabitante(
+            perfil,
+            plantillas,
+            estado,
+            ModoReloj.Pelican,
+            publicarPulso: p => api.EmitirPulso(p),
+            tiempoMaxRespuestaMs: 10_000)
+        {
+            Epoca = epoca,
+            MenteHabilitada = true,
+        };
+        motor.ConectarEjecutorCuerpo(mundo.Cuerpo.Ejecutor, () => ahoraMs);
+        CoordinadorApiAnfitrion.Conectar(
+            api,
+            id => id == perfil.Id ? motor : null,
+            id => partida.ObtenerSiExiste(id),
+            enHiloPrincipal: false);
+
+        var p1 = Assert.Single(motor.ProcesarPaso(mundo.Observar(), mundo.HorarioHoy, ahoraMs, 0).Pulsos);
+        var ok1 = api.ProcesarRespuestaEnHiloPrincipal(new Respuesta
+        {
+            Pensamiento = "Espero unos minutos.",
+            Epoca = epoca,
+            BasadaEn = p1.Id,
+            Intencion = new IntencionPropuesta
+            {
+                Objetivo = "tomar aire",
+                Porque = "tranquilidad",
+                Plan = new List<PasoPlan> { new() { Accion = "esperar", DuracionMin = 30 } },
+            },
+        });
+        Assert.Equal(Resultado.Aceptada, ok1.Estado);
+        mundo.Cuerpo.Ejecutor.AvanzarTick(ahoraMs);
+
+        // Emitimos un segundo pulso pendiente a las 09:00 mientras el cuerpo sigue reclamado.
+        ahoraMs += 5_000;
+        var obs900 = mundo.Observar() with { Hora = 900 };
+        var p2 = Assert.Single(motor.ProcesarPaso(obs900, mundo.HorarioHoy, ahoraMs, 1).Pulsos);
+
+        // Respuesta que falla antes del aplicador (ValidadorOrigenDiario cuando episodios_diario es null).
+        var tareaRechazo = api.ProcesarRespuestaAsync(new Respuesta
+        {
+            Pensamiento = "Intento guardar reflexión en pulso sin diario.",
+            Epoca = epoca,
+            BasadaEn = p2.Id,
+            Memoria = new MemoriaPropuesta
+            {
+                Reflexiones = new List<ReflexionPropuesta>
+                {
+                    new() { Texto = "Origen ajeno.", OrigenDiario = new List<string> { "ep-ajeno-999" } },
+                },
+            },
+        });
+        api.DrenarCola();
+        var resRechazo = await tareaRechazo;
+        Assert.Equal(Resultado.Rechazada, resRechazo.Estado);
+        Assert.Contains(resRechazo.Motivos!, m => m.Codigo is "episodio_desconocido" or "origen_no_permitido");
+
+        // Superar topeCaidaPulsoMs (60_000 ms en Pelican) no debe degradar porque la API notificó recepción.
+        ahoraMs += 70_000;
+        motor.ProcesarPaso(obs900, mundo.HorarioHoy, ahoraMs, 1);
+        Assert.Equal(0, motor.TotalDegradaciones);
+        Assert.Null(motor.UltimoMotivoDegradacion);
+    }
+
+    [Fact]
+    public async Task Avance_de_since_en_long_poll_limpia_espera_de_pulso_pendiente()
+    {
+        var perfil = CargarPerfil();
+        var plantillas = CargarPlantillas();
+        var partida = new EstadoPartida();
+        var estado = partida.ObtenerOIniciar(perfil.Id);
+        var api = new ApiMotor("0.1.0");
+        var epoca = ApiMotor.GenerarEpoca();
+        api.IniciarEpoca(epoca, new[] { perfil.Id });
+
+        var horario = new HorarioDia("Fri", new[]
+        {
+            new EntradaHorario(900, "LeahHouse", 3, 7, "leah_sculpt"),
+            new EntradaHorario(1600, "Saloon", 2, 20),
+            new EntradaHorario(2400, "LeahHouse", 2, 4, "leah_sleep"),
+        });
+        var mundo = Escenario.Pasarela()
+            .EnModo(ModoReloj.Pelican)
+            .ConHorarios((_, _) => horario)
+            .ALas(dia: 68, hora: 600)
+            .Construir(perfil.Lexico);
+
+        long ahoraMs = 1_000;
+        var motor = new MotorHabitante(
+            perfil,
+            plantillas,
+            estado,
+            ModoReloj.Pelican,
+            publicarPulso: p => api.EmitirPulso(p),
+            tiempoMaxRespuestaMs: 10_000)
+        {
+            Epoca = epoca,
+            MenteHabilitada = true,
+        };
+        motor.ConectarEjecutorCuerpo(mundo.Cuerpo.Ejecutor, () => ahoraMs);
+        CoordinadorApiAnfitrion.Conectar(
+            api,
+            id => id == perfil.Id ? motor : null,
+            id => partida.ObtenerSiExiste(id),
+            enHiloPrincipal: false);
+
+        var p1 = Assert.Single(motor.ProcesarPaso(mundo.Observar(), mundo.HorarioHoy, ahoraMs, 0).Pulsos);
+        api.ProcesarRespuestaEnHiloPrincipal(new Respuesta
+        {
+            Pensamiento = "Espero.",
+            Epoca = epoca,
+            BasadaEn = p1.Id,
+            Intencion = new IntencionPropuesta
+            {
+                Objetivo = "esperar",
+                Porque = "calma",
+                Plan = new List<PasoPlan> { new() { Accion = "esperar", DuracionMin = 30 } },
+            },
+        });
+        mundo.Cuerpo.Ejecutor.AvanzarTick(ahoraMs);
+
+        ahoraMs += 5_000;
+        var obs900 = mundo.Observar() with { Hora = 900 };
+        var p2 = Assert.Single(motor.ProcesarPaso(obs900, mundo.HorarioHoy, ahoraMs, 1).Pulsos);
+
+        // El cliente hace long-poll avanzando since >= p2.Id aunque todavía no envíe POST /respuestas.
+        await api.EsperarPulsosAsync(epoca, since: p2.Id, esperaMs: 0);
+        motor.NotificarActividadMente(ahoraMs, api.UltimoSincePulsos);
+
+        ahoraMs += 70_000;
+        motor.ProcesarPaso(obs900, mundo.HorarioHoy, ahoraMs, 1);
+        Assert.Equal(0, motor.TotalDegradaciones);
+        Assert.Null(motor.UltimoMotivoDegradacion);
+    }
 }

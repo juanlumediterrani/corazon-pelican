@@ -73,4 +73,89 @@ public class NightHoldArranqueTests
         Assert.DoesNotContain(pulsos, p => p.Motivo == Motivos.Deriva);
         Assert.Single(pulsos, p => p.Hito?.Id == HitosRutina.Acostarse);
     }
+
+    [Fact]
+    public void GuardaCicloPelican_protege_arranque_nighthold_y_rollover_antes_de_las_0600()
+    {
+        var guarda = new GuardaCicloPelican();
+        guarda.MarcarInicioJornadaOCarga(0);
+
+        // En modo no-Pelican nunca pausa, aunque se indiquen flags externos.
+        Assert.False(guarda.DebePausarSensorio(esModoPelican: false, enNightHold: true, enRollover: true, horaJuego: 600, ahoraMs: 0));
+
+        // Ventana inicial de 2_000 ms a las 06:00 tras SaveLoaded/DayStarted.
+        guarda.MarcarInicioJornadaOCarga(1_000);
+        Assert.True(guarda.DebePausarSensorio(true, false, false, 600, 1_500));
+        Assert.True(guarda.DebePausarSensorio(true, false, false, 600, 2_999));
+
+        // Si el reloj salta a otra hora antes de agotar 2_000 ms, libera de inmediato.
+        Assert.False(guarda.DebePausarSensorio(true, false, false, 1430, 1_800));
+        Assert.False(guarda.DebePausarSensorio(true, false, false, 600, 1_900));
+
+        // Si realmente amanece a las 06:00, libera al completar los 2_000 ms.
+        guarda.MarcarInicioJornadaOCarga(10_000);
+        Assert.True(guarda.DebePausarSensorio(true, false, false, 600, 11_000));
+        Assert.False(guarda.DebePausarSensorio(true, false, false, 600, 12_000));
+
+        // Pausa en NightHold y Rollover; tras Rollover conserva ventana de 2_000 ms si sigue en 06:00.
+        Assert.True(guarda.DebePausarSensorio(true, enNightHold: true, enRollover: false, horaJuego: 2550, ahoraMs: 15_000));
+        Assert.True(guarda.DebePausarSensorio(true, enNightHold: false, enRollover: true, horaJuego: 600, ahoraMs: 20_000));
+        Assert.True(guarda.DebePausarSensorio(true, enNightHold: false, enRollover: false, horaJuego: 600, ahoraMs: 20_500));
+        Assert.False(guarda.DebePausarSensorio(true, enNightHold: false, enRollover: false, horaJuego: 600, ahoraMs: 22_000));
+    }
+
+    [Fact]
+    public void Ciclo_completo_NightHold_a_amanecer_con_GuardaCicloPelican_evita_despertar_fantasma_y_conserva_hitos()
+    {
+        var perfil = CargarPerfilLeah();
+        var estado = new EstadoPersonaje();
+        var pulsos = new List<Core.Contrato.Pulso>();
+        var motor = new MotorHabitante(
+            perfil,
+            CargarPlantillasLeah(),
+            estado,
+            ModoReloj.Pelican,
+            publicarPulso: p =>
+            {
+                p.Id = pulsos.Count + 1;
+                pulsos.Add(p);
+                return p;
+            })
+        {
+            Epoca = "ep-ciclo",
+            MenteHabilitada = true,
+        };
+
+        var horario = new HorarioDia(
+            "Mon",
+            new List<EntradaHorario>
+            {
+                new(900, "LeahHouse", 3, 7, "leah_sculpt"),
+                new(2400, "LeahHouse", 2, 4, "leah_sleep"),
+            });
+
+        var guarda = new GuardaCicloPelican();
+        guarda.MarcarInicioJornadaOCarga(0);
+
+        // SaveLoaded con hora inicial 600 y paso posterior a NightHold 2550: ambos pausados antes de emitir despertar.
+        Assert.True(guarda.DebePausarSensorio(true, false, false, 600, 500));
+        Assert.True(guarda.DebePausarSensorio(true, true, false, 2550, 1_500));
+        // Rollover del cambio de día aún marcando 600.
+        Assert.True(guarda.DebePausarSensorio(true, false, true, 600, 5_000));
+        Assert.Empty(pulsos);
+
+        // DayStarted del nuevo día (día 2) a las 06:00: espera 2_000 ms antes de liberar el sensorio.
+        guarda.MarcarInicioJornadaOCarga(6_000);
+        Assert.True(guarda.DebePausarSensorio(true, false, false, 600, 7_500));
+        Assert.False(guarda.DebePausarSensorio(true, false, false, 600, 8_000));
+
+        var obs600 = new Observacion(2, 600, "LeahHouse", 3, 7, 1.0, "soleado", Array.Empty<EntidadObservada>());
+        motor.ProcesarPaso(obs600, horario, ahoraMs: 8_000, minutosJuego: 0);
+
+        var obs900 = new Observacion(2, 900, "LeahHouse", 3, 7, 1.0, "soleado", Array.Empty<EntidadObservada>());
+        motor.ProcesarPaso(obs900, horario, ahoraMs: 12_000, minutosJuego: 10);
+
+        Assert.Single(pulsos, p => p.Hito?.Id == HitosRutina.Despertar);
+        Assert.Single(pulsos, p => p.Hito?.Id == "Mon:900");
+    }
 }

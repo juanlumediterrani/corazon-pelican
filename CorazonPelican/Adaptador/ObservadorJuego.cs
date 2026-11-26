@@ -325,6 +325,12 @@ namespace CorazonPelican.Adaptador
             var minY = Math.Max(0, casillaNpc.Y - RadioTerrenoCasillas);
             var maxY = Math.Min(alto - 1, casillaNpc.Y + RadioTerrenoCasillas);
 
+            int mejorX = 0;
+            int mejorY = 0;
+            bool mejorVisible = false;
+            double mejorDist = double.MaxValue;
+            bool encontrada = false;
+
             for (var y = minY; y <= maxY; y++)
             {
                 for (var x = minX; x <= maxX; x++)
@@ -335,7 +341,7 @@ namespace CorazonPelican.Adaptador
                         continue;
                     }
 
-                    // Solo casillas de orilla para mantener acotado el coste y evitar cientos de casillas interiores.
+                    // Solo casillas de orilla y 1 representante por masa de agua para evitar ráfagas de deriva.
                     if (!EsOrillaDeAgua(matriz, ancho, alto, x, y))
                     {
                         continue;
@@ -344,17 +350,29 @@ namespace CorazonPelican.Adaptador
                     var visible = LineaVision.HayLineaVision(casillaNpc.X, casillaNpc.Y, x, y, esOpaco);
                     var distancia = EntidadObservada.CalcularDistancia(casillaNpc.X, casillaNpc.Y, x, y);
 
-                    entidades.Add(new EntidadObservada(
-                        IdentidadesObservacion.Agua(nombreUbicacion, x, y),
-                        CategoriaEntidad.Terreno,
-                        "agua",
-                        nombreUbicacion,
-                        x,
-                        y,
-                        new[] { "agua" },
-                        Visible: visible,
-                        Distancia: distancia));
+                    if (EsMejorRepresentanteTerreno(encontrada, mejorVisible, mejorDist, mejorY, mejorX, visible, distancia, y, x))
+                    {
+                        encontrada = true;
+                        mejorX = x;
+                        mejorY = y;
+                        mejorVisible = visible;
+                        mejorDist = distancia;
+                    }
                 }
+            }
+
+            if (encontrada)
+            {
+                entidades.Add(new EntidadObservada(
+                    IdentidadesObservacion.AguaZona(nombreUbicacion, "orilla"),
+                    CategoriaEntidad.Terreno,
+                    "agua",
+                    nombreUbicacion,
+                    mejorX,
+                    mejorY,
+                    new[] { "agua" },
+                    Visible: mejorVisible,
+                    Distancia: mejorDist));
             }
         }
 
@@ -365,6 +383,14 @@ namespace CorazonPelican.Adaptador
             Func<int, int, bool> esOpaco,
             List<EntidadObservada> entidades)
         {
+            int arbolX = 0, arbolY = 0;
+            bool arbolVisible = false, arbolEncontrado = false;
+            double arbolDist = double.MaxValue;
+
+            int cultivoX = 0, cultivoY = 0;
+            bool cultivoVisible = false, cultivoEncontrado = false;
+            double cultivoDist = double.MaxValue;
+
             foreach (var par in ubicacion.terrainFeatures.Pairs)
             {
                 var x = (int)par.Key.X;
@@ -378,33 +404,87 @@ namespace CorazonPelican.Adaptador
                 {
                     var visible = LineaVision.HayLineaVision(casillaNpc.X, casillaNpc.Y, x, y, esOpaco);
                     var distancia = EntidadObservada.CalcularDistancia(casillaNpc.X, casillaNpc.Y, x, y);
-                    entidades.Add(new EntidadObservada(
-                        IdentidadesObservacion.Terreno(nombreUbicacion, x, y, "arbol"),
-                        CategoriaEntidad.Terreno,
-                        "árbol",
-                        nombreUbicacion,
-                        x,
-                        y,
-                        new[] { "madera", "naturaleza" },
-                        Visible: visible,
-                        Distancia: distancia));
+                    if (EsMejorRepresentanteTerreno(arbolEncontrado, arbolVisible, arbolDist, arbolY, arbolX, visible, distancia, y, x))
+                    {
+                        arbolEncontrado = true;
+                        arbolX = x;
+                        arbolY = y;
+                        arbolVisible = visible;
+                        arbolDist = distancia;
+                    }
                 }
                 else if (par.Value is HoeDirt tierra && tierra.crop is not null)
                 {
                     var visible = LineaVision.HayLineaVision(casillaNpc.X, casillaNpc.Y, x, y, esOpaco);
                     var distancia = EntidadObservada.CalcularDistancia(casillaNpc.X, casillaNpc.Y, x, y);
-                    entidades.Add(new EntidadObservada(
-                        IdentidadesObservacion.Terreno(nombreUbicacion, x, y, "cultivo"),
-                        CategoriaEntidad.Terreno,
-                        "cultivo",
-                        nombreUbicacion,
-                        x,
-                        y,
-                        new[] { "cultivo", "naturaleza" },
-                        Visible: visible,
-                        Distancia: distancia));
+                    if (EsMejorRepresentanteTerreno(cultivoEncontrado, cultivoVisible, cultivoDist, cultivoY, cultivoX, visible, distancia, y, x))
+                    {
+                        cultivoEncontrado = true;
+                        cultivoX = x;
+                        cultivoY = y;
+                        cultivoVisible = visible;
+                        cultivoDist = distancia;
+                    }
                 }
             }
+
+            if (arbolEncontrado)
+            {
+                entidades.Add(new EntidadObservada(
+                    IdentidadesObservacion.TerrenoZona(nombreUbicacion, "arbol"),
+                    CategoriaEntidad.Terreno,
+                    "árbol",
+                    nombreUbicacion,
+                    arbolX,
+                    arbolY,
+                    new[] { "madera", "naturaleza" },
+                    Visible: arbolVisible,
+                    Distancia: arbolDist));
+            }
+
+            if (cultivoEncontrado)
+            {
+                entidades.Add(new EntidadObservada(
+                    IdentidadesObservacion.TerrenoZona(nombreUbicacion, "cultivo"),
+                    CategoriaEntidad.Terreno,
+                    "cultivo",
+                    nombreUbicacion,
+                    cultivoX,
+                    cultivoY,
+                    new[] { "cultivo", "naturaleza" },
+                    Visible: cultivoVisible,
+                    Distancia: cultivoDist));
+            }
+        }
+
+        private static bool EsMejorRepresentanteTerreno(
+            bool encontrada,
+            bool mejorVisible,
+            double mejorDist,
+            int mejorY,
+            int mejorX,
+            bool visible,
+            double distancia,
+            int y,
+            int x)
+        {
+            if (!encontrada)
+            {
+                return true;
+            }
+
+            if (visible != mejorVisible)
+            {
+                return visible;
+            }
+
+            const double eps = 1e-9;
+            if (Math.Abs(distancia - mejorDist) > eps)
+            {
+                return distancia < mejorDist;
+            }
+
+            return y != mejorY ? y < mejorY : x < mejorX;
         }
 
         private static bool EsOrillaDeAgua(WaterTiles.WaterTileData[,] matriz, int ancho, int alto, int x, int y)

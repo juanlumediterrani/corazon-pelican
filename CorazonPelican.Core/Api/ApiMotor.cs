@@ -101,11 +101,14 @@ namespace CorazonPelican.Core.Api
         private bool proveedorMemoriaEnHiloPrincipal;
         private Func<string, EscenaActual?>? proveedorEscena;
         private bool proveedorEscenaEnHiloPrincipal;
+        private Action<string?>? observadorRespuestaRecibida;
 
         private bool mundoCargado;
         private string? epocaVigente;
         private long siguientePulsoId = 1;
         private long siguienteEventoId = 1;
+        private long ultimoSincePulsos;
+        private long versionActividadCliente;
 
         public ApiMotor(string versionMotor = "0.1.0", MainThreadActionQueue? cola = null)
         {
@@ -133,6 +136,30 @@ namespace CorazonPelican.Core.Api
                 lock (this.sync)
                 {
                     return this.epocaVigente;
+                }
+            }
+        }
+
+        public long VersionActividadCliente => Interlocked.Read(ref this.versionActividadCliente);
+
+        public long UltimoSincePulsos
+        {
+            get
+            {
+                lock (this.sync)
+                {
+                    return this.ultimoSincePulsos;
+                }
+            }
+        }
+
+        public bool TieneEsperadoresPulsosActivos
+        {
+            get
+            {
+                lock (this.sync)
+                {
+                    return this.esperandoPulsos.Count > 0;
                 }
             }
         }
@@ -192,6 +219,7 @@ namespace CorazonPelican.Core.Api
                 this.pulsosPorId.Clear();
                 this.pulsosOrdenados.Clear();
                 this.siguientePulsoId = 1;
+                this.ultimoSincePulsos = 0;
                 this.eventos.Clear();
                 this.siguienteEventoId = 1;
                 this.aceptadasPorClave.Clear();
@@ -235,6 +263,7 @@ namespace CorazonPelican.Core.Api
                 this.pulsosPorId.Clear();
                 this.pulsosOrdenados.Clear();
                 this.siguientePulsoId = 1;
+                this.ultimoSincePulsos = 0;
                 this.eventos.Clear();
                 this.siguienteEventoId = 1;
                 this.aceptadasPorClave.Clear();
@@ -253,6 +282,7 @@ namespace CorazonPelican.Core.Api
         /// <summary>Construye la instantánea atómica para <c>GET /api/v1/salud</c>.</summary>
         public Salud ObtenerSalud()
         {
+            this.RegistrarActividadCliente();
             lock (this.sync)
             {
                 return new Salud
@@ -362,6 +392,8 @@ namespace CorazonPelican.Core.Api
             int esperaMs = 0,
             CancellationToken tokenCancelacion = default)
         {
+            this.RegistrarActividadCliente();
+
             if (since < 0)
             {
                 since = 0;
@@ -384,6 +416,11 @@ namespace CorazonPelican.Core.Api
                     return ResultadoConsultaPulsos.Conflicto(this.epocaVigente, mundoCargado: true);
                 }
 
+                if (since > this.ultimoSincePulsos)
+                {
+                    this.ultimoSincePulsos = since;
+                }
+
                 epocaObjetivo = this.epocaVigente;
                 var existentes = this.pulsosOrdenados.Where(p => p.Id > since).ToList();
                 if (existentes.Count > 0 || esperaMs == 0)
@@ -402,8 +439,11 @@ namespace CorazonPelican.Core.Api
             if (completada == esperador.Tcs.Task)
             {
                 ctsDemora.Cancel();
+                this.RegistrarActividadCliente();
                 return await esperador.Tcs.Task.ConfigureAwait(false);
             }
+
+            this.RegistrarActividadCliente();
 
             lock (this.sync)
             {
@@ -445,6 +485,8 @@ namespace CorazonPelican.Core.Api
         /// <summary>Devuelve los eventos con <c>id &gt; since</c> en orden creciente.</summary>
         public RespuestaEventos ObtenerEventos(long since = 0, int limite = 500)
         {
+            this.RegistrarActividadCliente();
+
             if (since < 0)
             {
                 since = 0;
@@ -472,6 +514,15 @@ namespace CorazonPelican.Core.Api
                     UltimoId = ultimoId,
                     Eventos = filtrados,
                 };
+            }
+        }
+
+        /// <summary>Registra un observador invocado fuera de bloqueo cuando llega cualquier respuesta HTTP válida para la época vigente.</summary>
+        public void RegistrarObservadorRespuestaRecibida(Action<string?>? observador)
+        {
+            lock (this.sync)
+            {
+                this.observadorRespuestaRecibida = observador;
             }
         }
 
@@ -551,6 +602,8 @@ namespace CorazonPelican.Core.Api
             string personaje,
             CancellationToken tokenCancelacion = default)
         {
+            this.RegistrarActividadCliente();
+
             if (string.IsNullOrWhiteSpace(personaje))
             {
                 return ResultadoConsultaRecurso<InstantaneaMemoria>.Ausente();
@@ -615,6 +668,8 @@ namespace CorazonPelican.Core.Api
             string personaje,
             CancellationToken tokenCancelacion = default)
         {
+            this.RegistrarActividadCliente();
+
             if (string.IsNullOrWhiteSpace(personaje))
             {
                 return ResultadoConsultaRecurso<EscenaActual>.Ausente();
@@ -726,14 +781,20 @@ namespace CorazonPelican.Core.Api
                 throw new ArgumentNullException(nameof(respuesta));
             }
 
-            Pulso pulso;
+            this.RegistrarActividadCliente();
+
+            Pulso? pulso;
             Func<Pulso, Respuesta, Resultado>? aplicador;
+            Action<string?>? observador;
+            string? personajeActividad = null;
+            Resultado? resultadoTemprano = null;
             string huella = huellaCuerpo ?? JsonSerializer.Serialize(respuesta, JsonCompacto);
             var clave = new ClaveRespuesta(respuesta.Epoca ?? string.Empty, respuesta.BasadaEn);
             var claveRechazo = new ClaveRechazoHuella(respuesta.Epoca ?? string.Empty, respuesta.BasadaEn, huella);
 
             lock (this.sync)
             {
+                observador = this.observadorRespuestaRecibida;
                 if (!this.mundoCargado || string.IsNullOrEmpty(this.epocaVigente))
                 {
                     return Resultado.Rechazar(new MotivoRechazo(
@@ -757,17 +818,18 @@ namespace CorazonPelican.Core.Api
                     return Resultado.Rechazar(errorEpoca);
                 }
 
+                this.pulsosPorId.TryGetValue(respuesta.BasadaEn, out pulso);
+                personajeActividad = pulso?.Personaje;
+
                 if (this.aceptadasPorClave.TryGetValue(clave, out var resultadoPrevio))
                 {
-                    return resultadoPrevio;
+                    resultadoTemprano = resultadoPrevio;
                 }
-
-                if (this.rechazosPorHuella.TryGetValue(claveRechazo, out var rechazoPrevio))
+                else if (this.rechazosPorHuella.TryGetValue(claveRechazo, out var rechazoPrevio))
                 {
-                    return rechazoPrevio;
+                    resultadoTemprano = rechazoPrevio;
                 }
-
-                if (!this.pulsosPorId.TryGetValue(respuesta.BasadaEn, out var pulsoEncontrado))
+                else if (pulso is null)
                 {
                     var rechazo = Resultado.Rechazar(new MotivoRechazo(
                         "pulso_desconocido",
@@ -783,12 +845,9 @@ namespace CorazonPelican.Core.Api
                             ["basada_en"] = respuesta.BasadaEn,
                             ["codigo"] = "pulso_desconocido",
                         });
-                    return rechazo;
+                    resultadoTemprano = rechazo;
                 }
-
-                pulso = pulsoEncontrado;
-
-                if (this.EstaSuperadaPorPulsoPosterior(pulso))
+                else if (this.EstaSuperadaPorPulsoPosterior(pulso))
                 {
                     var rechazo = Resultado.Rechazar(new MotivoRechazo(
                         "pulso_obsoleto",
@@ -804,35 +863,51 @@ namespace CorazonPelican.Core.Api
                             ["pulso_id"] = pulso.Id,
                             ["codigo"] = "pulso_obsoleto",
                         });
-                    return rechazo;
+                    resultadoTemprano = rechazo;
+                }
+                else
+                {
+                    var errorOrigen = ValidadorOrigenDiario.Comprobar(pulso, respuesta);
+                    if (errorOrigen is not null)
+                    {
+                        var rechazo = Resultado.Rechazar(errorOrigen);
+                        this.rechazosPorHuella[claveRechazo] = rechazo;
+                        this.AgregarEventoBloqueado(
+                            "respuesta_rechazada",
+                            pulso.Personaje,
+                            $"Respuesta al pulso #{pulso.Id} rechazada ({errorOrigen.Codigo})",
+                            new Dictionary<string, object?>
+                            {
+                                ["pulso_id"] = pulso.Id,
+                                ["codigo"] = errorOrigen.Codigo,
+                                ["campo"] = errorOrigen.Campo,
+                            });
+                        resultadoTemprano = rechazo;
+                    }
                 }
 
-                var errorOrigen = ValidadorOrigenDiario.Comprobar(pulso, respuesta);
-                if (errorOrigen is not null)
+                if (resultadoTemprano is null)
                 {
-                    var rechazo = Resultado.Rechazar(errorOrigen);
-                    this.rechazosPorHuella[claveRechazo] = rechazo;
-                    this.AgregarEventoBloqueado(
-                        "respuesta_rechazada",
-                        pulso.Personaje,
-                        $"Respuesta al pulso #{pulso.Id} rechazada ({errorOrigen.Codigo})",
-                        new Dictionary<string, object?>
-                        {
-                            ["pulso_id"] = pulso.Id,
-                            ["codigo"] = errorOrigen.Codigo,
-                            ["campo"] = errorOrigen.Campo,
-                        });
-                    return rechazo;
+                    if (!this.aplicadoresPorPersonaje.TryGetValue(pulso!.Personaje, out aplicador))
+                    {
+                        aplicador = this.aplicadorPorDefecto;
+                    }
                 }
-
-                if (!this.aplicadoresPorPersonaje.TryGetValue(pulso.Personaje, out aplicador))
+                else
                 {
-                    aplicador = this.aplicadorPorDefecto;
+                    aplicador = null;
                 }
             }
 
+            observador?.Invoke(personajeActividad);
+
+            if (resultadoTemprano is not null)
+            {
+                return resultadoTemprano;
+            }
+
             var resultado = aplicador is not null
-                ? aplicador(pulso, respuesta)
+                ? aplicador(pulso!, respuesta)
                 : TieneEfectos(respuesta)
                     ? Resultado.Rechazar(new MotivoRechazo(
                         "sin_aplicador",
@@ -857,7 +932,7 @@ namespace CorazonPelican.Core.Api
                         this.aceptadasPorClave[clave] = resultado;
                         this.AgregarEventoBloqueado(
                             "respuesta_aceptada",
-                            pulso.Personaje,
+                            pulso!.Personaje,
                             $"Respuesta aceptada para pulso #{pulso.Id} ({pulso.Personaje})",
                             new Dictionary<string, object?>
                             {
@@ -869,7 +944,7 @@ namespace CorazonPelican.Core.Api
                         this.rechazosPorHuella[claveRechazo] = resultado;
                         this.AgregarEventoBloqueado(
                             "respuesta_rechazada",
-                            pulso.Personaje,
+                            pulso!.Personaje,
                             $"Respuesta rechazada para pulso #{pulso.Id} ({pulso.Personaje})",
                             new Dictionary<string, object?>
                             {
@@ -882,6 +957,9 @@ namespace CorazonPelican.Core.Api
 
             return resultado;
         }
+
+        private void RegistrarActividadCliente()
+            => Interlocked.Increment(ref this.versionActividadCliente);
 
         /// <summary>Drena la cola de acciones pendientes en el hilo principal (<c>UpdateTicked</c>).</summary>
         public int DrenarCola(int maxAcciones = 64) => this.Cola.Drenar(maxAcciones);

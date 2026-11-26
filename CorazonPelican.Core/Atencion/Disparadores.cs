@@ -155,7 +155,7 @@ namespace CorazonPelican.Core.Atencion
 
             this.DetectarTransiciones(observacion, ahoraMs);
             this.integrador.Acumular(
-                bandas.Where(b => b.Banda is Banda.Periferia or Banda.Mencion).Sum(b => b.Saliencia),
+                CalcularSumaSalienciasIntegrador(observacion, bandas),
                 minutosJuego);
             this.Estimulos(observacion, bandas, ahoraMs, salida);
             this.DetectarAnticipacion(observacion, bandas, ahoraMs, salida);
@@ -481,6 +481,79 @@ namespace CorazonPelican.Core.Atencion
         /// <summary>La pulsión de una entrada sale diez minutos de juego antes de su hora: al disponerse, cuando aún se puede cambiar.</summary>
         private static bool AntesDeDisponerse(int horaActual, int horaEntrada)
             => HoraJuego.MinutosDesdeInicio(horaActual) < HoraJuego.MinutosDesdeInicio(horaEntrada) - 10;
+
+        private static double CalcularSumaSalienciasIntegrador(
+            Observacion observacion,
+            IReadOnlyList<EntidadEnBanda> bandas)
+        {
+            var entidadesPorRef = new Dictionary<string, EntidadObservada>(StringComparer.Ordinal);
+            foreach (var ent in observacion.Entidades)
+            {
+                entidadesPorRef.TryAdd(ent.Ref, ent);
+            }
+
+            var sumaNoTerreno = 0.0;
+            Dictionary<string, double>? maxTerrenoPorTipo = null;
+
+            foreach (var banda in bandas)
+            {
+                if (banda.Banda is not (Banda.Periferia or Banda.Mencion))
+                {
+                    continue;
+                }
+
+                entidadesPorRef.TryGetValue(banda.Ref, out var entidad);
+                var esTerreno = entidad?.Categoria == CategoriaEntidad.Terreno
+                    || banda.Ref.StartsWith("agua:", StringComparison.Ordinal)
+                    || banda.Ref.StartsWith("terreno:", StringComparison.Ordinal);
+
+                if (!esTerreno)
+                {
+                    sumaNoTerreno += banda.Saliencia;
+                    continue;
+                }
+
+                var claveTipo = ResolverClaveTerreno(banda.Ref, entidad);
+                maxTerrenoPorTipo ??= new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+                if (!maxTerrenoPorTipo.TryGetValue(claveTipo, out var previo) || banda.Saliencia > previo)
+                {
+                    maxTerrenoPorTipo[claveTipo] = banda.Saliencia;
+                }
+            }
+
+            if (maxTerrenoPorTipo is null)
+            {
+                return sumaNoTerreno;
+            }
+
+            var sumaTerreno = 0.0;
+            foreach (var valor in maxTerrenoPorTipo.Values)
+            {
+                sumaTerreno += valor;
+            }
+
+            return sumaNoTerreno + sumaTerreno;
+        }
+
+        private static string ResolverClaveTerreno(string referencia, EntidadObservada? entidad)
+        {
+            if (entidad is not null && !string.IsNullOrWhiteSpace(entidad.Nombre))
+            {
+                return entidad.Nombre.Trim();
+            }
+
+            if (referencia.StartsWith("terreno:", StringComparison.Ordinal))
+            {
+                var ultimo = referencia.LastIndexOf(':');
+                if (ultimo > "terreno:".Length - 1)
+                {
+                    return referencia[(ultimo + 1)..];
+                }
+            }
+
+            var idx = referencia.IndexOf(':');
+            return idx > 0 ? referencia[..idx] : referencia;
+        }
 
         private static IReadOnlyList<PendienteAgenda> Agenda(HorarioDia? horario, int desde)
             => horario is null

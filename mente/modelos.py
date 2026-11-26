@@ -160,6 +160,15 @@ def estrechar_esquema(
     defs["idObra"]["enum"] = _extraer_obras(pulso)
     defs["idEpisodio"]["enum"] = _extraer_episodios(pulso, episodios_adicionales)
 
+    if pulso.get("episodios_diario") is None:
+        memoria_schema = props.get("memoria")
+        if isinstance(memoria_schema, dict):
+            mem_props = memoria_schema.get("properties")
+            if isinstance(mem_props, dict):
+                mem_props.pop("reflexiones", None)
+            memoria_schema.pop("oneOf", None)
+            memoria_schema["required"] = ["recordar"]
+
     agenda_prop = esquema.get("properties", {}).get("agenda")
     if isinstance(agenda_prop, dict):
         items_prop = agenda_prop.get("items")
@@ -319,6 +328,13 @@ _URL_BASE_POR_PROVEEDOR = {
     "google": "https://generativelanguage.googleapis.com/v1beta",
     "bedrock": "bedrock-runtime",
 }
+
+
+def _bedrock_cache_point_habilitado(sistema_texto: str) -> bool:
+    flag = str(os.environ.get("CORAZON_BEDROCK_PROMPT_CACHE") or "").strip().lower()
+    if flag in {"0", "false", "no", "off"}:
+        return False
+    return len(sistema_texto) >= 1500
 
 
 class ModeloProveedorConfigurado:
@@ -551,6 +567,11 @@ class ModeloProveedorConfigurado:
                 return texto
         raise ErrorModeloError("El proveedor Gemini no devolvió texto en `candidates[0].content.parts`.")
 
+    def _ejecutar_bedrock(self, model_id: str, body: dict[str, Any]) -> dict[str, Any]:
+        if self._bedrock_invoker is not None:
+            return self._bedrock_invoker(model_id, body)
+        return self._llamar_bedrock_nativo(model_id, body)
+
     def _invocar_bedrock(
         self,
         prompt: PromptEnsamblado,
@@ -558,12 +579,19 @@ class ModeloProveedorConfigurado:
     ) -> dict[str, Any] | str:
         instruccion_json = (
             "Responde ÚNICAMENTE con un objeto JSON válido que cumpla exactamente "
-            f"este esquema JSON (sin bloques Markdown ni texto extra):\n{json.dumps(esquema, ensure_ascii=False)}"
+            f"este esquema JSON (sin bloques Markdown ni texto extra):\n"
+            f"{json.dumps(esquema, ensure_ascii=False, separators=(',', ':'))}"
         )
+        sistema_blocks: list[dict[str, Any]] = [{"text": prompt.sistema}]
+        usar_cache = _bedrock_cache_point_habilitado(prompt.sistema)
+        if usar_cache:
+            sistema_blocks.append({"cachePoint": {"type": "default"}})
+
+        user_texto = f"{prompt.usuario}\n\n{instruccion_json}"
         body = {
             "schemaVersion": "messages-v1",
-            "system": [{"text": f"{prompt.sistema}\n\n{instruccion_json}"}],
-            "messages": [{"role": "user", "content": [{"text": prompt.usuario}]}],
+            "system": sistema_blocks,
+            "messages": [{"role": "user", "content": [{"text": user_texto}]}],
             "inferenceConfig": {
                 "maxTokens": self.config.max_tokens,
                 "temperature": self.config.temperatura,
@@ -571,18 +599,24 @@ class ModeloProveedorConfigurado:
         }
         model_id = self.config.modelo or "eu.amazon.nova-2-lite-v1:0"
 
-        if self._bedrock_invoker is not None:
-            payload = self._bedrock_invoker(model_id, body)
-        else:
-            payload = self._llamar_bedrock_nativo(model_id, body)
+        try:
+            payload = self._ejecutar_bedrock(model_id, body)
+        except Exception as exc:
+            mensaje = str(exc).lower()
+            if usar_cache and "validationexception" in mensaje and "cachepoint" in mensaje:
+                body_sin_cache = {**body, "system": [{"text": prompt.sistema}]}
+                payload = self._ejecutar_bedrock(model_id, body_sin_cache)
+            else:
+                raise
 
         usage = payload.get("usage")
         if isinstance(usage, dict):
             cached = int(usage.get("cacheReadInputTokens") or 0)
+            cache_write = int(usage.get("cacheWriteInputTokens") or 0)
             inp = int(usage.get("inputTokens") or 0)
             out = int(usage.get("outputTokens") or 0)
             self.ultimo_uso = UsoTokens(
-                tokens_entrada=max(0, inp),
+                tokens_entrada=max(0, inp) + max(0, cache_write),
                 tokens_cache=max(0, cached),
                 tokens_salida=max(0, out),
             )

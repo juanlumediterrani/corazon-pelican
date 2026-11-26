@@ -63,6 +63,29 @@ def _leer_env_opcional(env: Mapping[str, str], clave: str) -> str | None:
     return limpio or None
 
 
+_VALORES_LIMITE_DESACTIVADO = frozenset({"none", "null", "off", "ilimitado", "sin_limite"})
+
+
+def _parsear_limite_int_opcional(valor: str | None) -> int | None:
+    if valor is None:
+        return None
+    limpio = valor.strip().lower()
+    if not limpio or limpio in _VALORES_LIMITE_DESACTIVADO:
+        return None
+    numero = int(limpio)
+    return numero if numero > 0 else None
+
+
+def _parsear_limite_float_opcional(valor: str | None) -> float | None:
+    if valor is None:
+        return None
+    limpio = valor.strip().lower()
+    if not limpio or limpio in _VALORES_LIMITE_DESACTIVADO:
+        return None
+    numero = float(limpio)
+    return numero if numero > 0 else None
+
+
 def resolver_ruta_voz(
     personaje: str,
     *,
@@ -180,14 +203,14 @@ def construir_parser(env: Mapping[str, str] | None = None) -> argparse.ArgumentP
     )
     parser.add_argument(
         "--limite-tokens-dia",
-        type=int,
-        default=int(lim_tok_def) if lim_tok_def else None,
+        type=_parsear_limite_int_opcional,
+        default=_parsear_limite_int_opcional(lim_tok_def),
         help="Presupuesto diario máximo de tokens para pulsos no interlocutorios.",
     )
     parser.add_argument(
         "--limite-coste-usd-dia",
-        type=float,
-        default=float(lim_usd_def) if lim_usd_def else None,
+        type=_parsear_limite_float_opcional,
+        default=_parsear_limite_float_opcional(lim_usd_def),
         help="Presupuesto diario máximo en USD para pulsos no interlocutorios.",
     )
     parser.add_argument(
@@ -382,10 +405,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     signal.signal(signal.SIGINT, _detener)
 
     LOG.info(
-        "Iniciando mente de %s -> proveedor=%s modelo=%s puerto=%s",
+        "Iniciando mente de %s -> proveedor=%s modelo=%s puerto=%s (limite_tokens_dia=%s limite_coste_usd_dia=%s)",
         cfg.personaje,
         cfg.proveedor,
         cfg.modelo,
         cfg.puerto,
+        cfg.limite_tokens_dia if cfg.limite_tokens_dia is not None else "sin_limite",
+        f"{cfg.limite_coste_usd_dia:.4f}" if cfg.limite_coste_usd_dia is not None else "sin_limite",
     )
     return ejecutar_bucle(cfg, parar=stop_event)

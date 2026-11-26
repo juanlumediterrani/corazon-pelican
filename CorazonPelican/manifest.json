@@ -1,10 +1,10 @@
 {
   "Name": "Corazón Pelican",
   "Author": "Dr4co",
-  "Version": "0.1.0",
+  "Version": "0.1.1",
   "Description": "Motor de habitantes: da a un personaje del valle una mente que habita el juego.",
   "UniqueID": "Dr4co.CorazonPelican",
   "EntryDll": "CorazonPelican.dll",
   "MinimumApiVersion": "4.1.0",
-  "UpdateKeys": []
+  "UpdateKeys": [ "GitHub:juanlumediterrani/corazon-pelican" ]
 }

@@ -433,3 +433,18 @@ class TestInformeCosteDiario:
         modelo = crear_modelo(ConfigModelo(proveedor="fake", modelo="gemini-2.5-flash"))
         assert isinstance(modelo, FakeLLM)
         assert modelo.modelo == "gemini-2.5-flash"
+
+    def test_tarifas_bedrock_nova_y_resolucion_con_prefijo_regional(self):
+        t_eu2 = obtener_tarifa("eu.amazon.nova-2-lite-v1:0", estricto=True)
+        t_base2 = obtener_tarifa("amazon.nova-2-lite-v1:0", estricto=True)
+        t_us2 = obtener_tarifa("us.amazon.nova-2-lite-v1:0", estricto=True)
+        t_eu1 = obtener_tarifa("eu.amazon.nova-lite-v1:0", estricto=True)
+
+        assert t_eu2.entrada_por_1m > 0
+        assert t_eu2.salida_por_1m > 0
+        assert t_eu2.cache_entrada_por_1m > 0
+        assert t_us2 == t_base2
+        assert t_eu1.entrada_por_1m > 0
+
+        est = estimar_coste_diario("pelican", modelo="eu.amazon.nova-2-lite-v1:0")
+        assert 0.0 < est.coste_usd < 0.10

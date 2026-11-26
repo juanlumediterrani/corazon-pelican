@@ -29,6 +29,7 @@ namespace CorazonPelican.Modules
     {
         private readonly ObservadorJuego observador = new();
         private readonly Stopwatch cronometro = new();
+        private readonly GuardaCicloPelican guardaPelican = new();
 
         private ModContext? context;
         private IPelicanApi? pelicanApi;
@@ -36,6 +37,7 @@ namespace CorazonPelican.Modules
         private TelemetriaJsonl? telemetria;
         private long ultimoPasoMs;
         private long siguientePulsoLocalId = 1;
+        private long ultimaVersionActividadApi;
 
         public string Nombre => "Habitante";
 
@@ -112,6 +114,12 @@ namespace CorazonPelican.Modules
                 return;
             }
 
+            this.pelicanApi ??= this.IntentarObtenerPelicanApi();
+            if (this.pelicanApi is not null || this.context.ModoRelojEfectivo == ModoReloj.Pelican)
+            {
+                this.guardaPelican.MarcarInicioJornadaOCarga(this.cronometro.ElapsedMilliseconds);
+            }
+
             foreach (var perfil in this.context.PersonajesGobernados.Values)
             {
                 var npc = Game1.getCharacterFromName(perfil.Npc);
@@ -141,6 +149,15 @@ namespace CorazonPelican.Modules
             this.ultimoPasoMs = 0;
             this.siguientePulsoLocalId = 1;
             this.pelicanApi ??= this.IntentarObtenerPelicanApi();
+            this.ultimaVersionActividadApi = this.context.Api.VersionActividadCliente;
+            if (this.pelicanApi is not null || this.context.ModoRelojEfectivo == ModoReloj.Pelican)
+            {
+                this.guardaPelican.MarcarInicioJornadaOCarga(0);
+            }
+            else
+            {
+                this.guardaPelican.Reiniciar();
+            }
 
             foreach (var (id, perfil) in this.context.PersonajesGobernados)
             {
@@ -255,7 +272,26 @@ namespace CorazonPelican.Modules
             var transcurridoMs = Math.Max(0, ahoraMs - this.ultimoPasoMs);
             this.ultimoPasoMs = ahoraMs;
 
+            var versionApi = this.context.Api.VersionActividadCliente;
+            var hayActividadApi = this.context.Api.TieneEsperadoresPulsosActivos || versionApi != this.ultimaVersionActividadApi;
+            if (hayActividadApi)
+            {
+                this.ultimaVersionActividadApi = versionApi;
+                var ultimoSince = this.context.Api.UltimoSincePulsos;
+                foreach (var motor in this.context.MotoresHabitante.Values)
+                {
+                    motor.NotificarActividadMente(ahoraMs, ultimoSince);
+                }
+            }
+
             var enNightHold = this.EstaEnNightHoldPelican();
+            var enRollover = this.EstaEnRolloverPelican();
+            var esModoPelican = this.pelicanApi is not null || this.context.ModoRelojEfectivo == ModoReloj.Pelican;
+            if (this.guardaPelican.DebePausarSensorio(esModoPelican, enNightHold, enRollover, Game1.timeOfDay, ahoraMs))
+            {
+                return;
+            }
+
             var minutosJuego = Game1.shouldTimePass() && !enNightHold
                 ? transcurridoMs * 10.0 / HoraJuego.MilisegundosPorDiezMinutos(this.context.ModoRelojEfectivo)
                 : 0.0;
@@ -355,6 +391,8 @@ namespace CorazonPelican.Modules
             this.telemetria = null;
             this.cronometro.Reset();
             this.ultimoPasoMs = 0;
+            this.ultimaVersionActividadApi = 0;
+            this.guardaPelican.Reiniciar();
         }
 
         private void EnSaltoHorarioPelican(int horaAnterior, int horaNueva)
@@ -429,6 +467,23 @@ namespace CorazonPelican.Modules
             try
             {
                 return this.pelicanApi.IsNightHold();
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool EstaEnRolloverPelican()
+        {
+            if (this.pelicanApi is null)
+            {
+                return false;
+            }
+
+            try
+            {
+                return this.pelicanApi.IsRolloverBusy();
             }
             catch
             {

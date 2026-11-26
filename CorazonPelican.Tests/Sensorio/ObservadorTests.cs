@@ -186,4 +186,12 @@ public class ObservadorTests
         medidor.Reiniciar();
         Assert.Empty(medidor.Resumen());
     }
+
+    [Fact]
+    public void Identidades_de_zona_en_terreno_y_agua_son_deterministas()
+    {
+        Assert.Equal("agua:Forest:orilla", IdentidadesObservacion.AguaZona("Forest"));
+        Assert.Equal("agua:Mountain:lago", IdentidadesObservacion.AguaZona("Mountain", "lago"));
+        Assert.Equal("terreno:Forest:arbol", IdentidadesObservacion.TerrenoZona("Forest", "arbol"));
+    }
 }

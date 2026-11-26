@@ -212,15 +212,40 @@ namespace CorazonPelican.Core.Atencion
         private Func<long>? relojMotorMs;
         private long? ultimoContactoMenteMs;
         private long? pulsoPendienteDesdeMs;
+        private long? pulsoPendienteId;
         private bool menteCaidaReportada;
         private string? errorModuloPendiente;
         private bool hayCambiosRutinaActivos;
         private readonly HashSet<string> hitosSustituidosLanzados = new(StringComparer.Ordinal);
 
         /// <summary>Registra actividad reciente del proceso de la mente (latido, consulta o respuesta).</summary>
-        public void NotificarActividadMente(long ahoraMs)
+        public void NotificarActividadMente(long ahoraMs, long? ultimoSincePulsos = null)
         {
             this.ultimoContactoMenteMs = ahoraMs;
+            this.menteCaidaReportada = false;
+            if (ultimoSincePulsos is long since
+                && this.pulsoPendienteId is long pendienteId
+                && since >= pendienteId)
+            {
+                this.pulsoPendienteDesdeMs = null;
+                this.pulsoPendienteId = null;
+            }
+        }
+
+        /// <summary>
+        /// Registra que la mente envió una respuesta HTTP en la época vigente (incluso si fue rechazada
+        /// antes de aplicarse al cuerpo), limpiando la espera del pulso pendiente.
+        /// </summary>
+        public void NotificarRespuestaRecibida(long? ahoraMs = null)
+        {
+            var ms = ahoraMs ?? this.relojMotorMs?.Invoke();
+            if (ms is long msActual)
+            {
+                this.ultimoContactoMenteMs = msActual;
+            }
+
+            this.pulsoPendienteDesdeMs = null;
+            this.pulsoPendienteId = null;
             this.menteCaidaReportada = false;
         }
 
@@ -256,6 +281,7 @@ namespace CorazonPelican.Core.Atencion
         {
             var motivoNormalizado = string.IsNullOrWhiteSpace(motivo) ? "degradacion" : motivo.Trim();
             this.pulsoPendienteDesdeMs = null;
+            this.pulsoPendienteId = null;
             this.menteCaidaReportada = false;
             this.errorModuloPendiente = null;
 
@@ -333,6 +359,7 @@ namespace CorazonPelican.Core.Atencion
             bool restaurarRutinaLocal = false)
         {
             this.pulsoPendienteDesdeMs = null;
+            this.pulsoPendienteId = null;
             this.bloqueoSinReemplazoDesdeMs = null;
             this.menteCaidaReportada = false;
             this.errorModuloPendiente = null;
@@ -459,7 +486,10 @@ namespace CorazonPelican.Core.Atencion
             }
 
             var tramoDiezMinMs = HoraJuego.MilisegundosPorDiezMinutos(this.ModoReloj);
-            var topeCaidaPulsoMs = Math.Min((long)this.tiempoMaxRespuestaMs, tramoDiezMinMs);
+            var topePulsoBaseMs = this.ModoReloj == ModoReloj.Pelican
+                ? Math.Max((long)this.tiempoMaxRespuestaMs, 60_000L)
+                : (long)this.tiempoMaxRespuestaMs;
+            var topeCaidaPulsoMs = Math.Min(topePulsoBaseMs, tramoDiezMinMs);
 
             if (this.pulsoPendienteDesdeMs is long pendienteDesde && ahoraMs - pendienteDesde >= topeCaidaPulsoMs)
             {
@@ -706,6 +736,7 @@ namespace CorazonPelican.Core.Atencion
                         if (this.MenteHabilitada && this.EstaReclamadoOActuando())
                         {
                             this.pulsoPendienteDesdeMs ??= ahoraMs;
+                            this.pulsoPendienteId = pulso.Id;
                         }
                     }
                 }
@@ -940,13 +971,7 @@ namespace CorazonPelican.Core.Atencion
             }
 
             var ahoraRespuestaMs = this.relojMotorMs?.Invoke();
-            if (ahoraRespuestaMs is long msActual)
-            {
-                this.ultimoContactoMenteMs = msActual;
-            }
-
-            this.pulsoPendienteDesdeMs = null;
-            this.menteCaidaReportada = false;
+            this.NotificarRespuestaRecibida(ahoraRespuestaMs);
 
             var motivos = new List<MotivoRechazo>();
             var errorOrigen = ValidadorOrigenDiario.Comprobar(pulso, respuesta);
